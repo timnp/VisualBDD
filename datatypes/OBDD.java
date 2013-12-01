@@ -117,6 +117,43 @@ public class OBDD {
 	}
 	
 	
+	//TODO getters, setters, constructors
+	
+	
+	/**
+	 * default constructor for OBDDs
+	 */
+	public OBDD() {
+		
+	}
+	
+	
+	/**
+	 * TEST constructor for terminals
+	 * @param value
+	 */
+	public OBDD(boolean value, LinkedList<String> varOrd) {
+		this.value = value;
+		this.varOrd = varOrd;
+	}
+	
+	
+	/**
+	 * TEST constructor for decision nodes
+	 * @param var
+	 * @param highChild
+	 * @param lowChild
+	 */
+	public OBDD(String var, OBDD highChild, OBDD lowChild) {
+		this.varOrd = highChild.varOrd;
+		this.var = var;
+		this.highChild = highChild;
+		this.lowChild = lowChild;
+		highChild.parents.add(this);
+		lowChild.parents.add(this);
+	}
+	
+	
 	/**
 	 * updates the node's layer HashMap
 	 */
