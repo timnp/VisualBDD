@@ -10,6 +10,10 @@ import java.util.LinkedList;
  */
 public class OBDD {
 	/**
+	 * identifier for OBDD nodes (usage in computed tables)
+	 */
+	private int id;
+	/**
 	 * boolean which determines if the node is a terminal
 	 */
 	private boolean terminal;
@@ -44,6 +48,43 @@ public class OBDD {
 	 * the (decision) node's low child
 	 */
 	private OBDD lowChild;
+	
+	
+	/**
+	 * the constant 1-terminal
+	 */
+	public static final OBDD one = one();
+	
+	/**
+	 * the constant 0-terminal
+	 */
+	public static final OBDD zero = zero();
+	
+	
+	/**
+	 * smart constructor for the 1-terminal
+	 * @return the 1-terminal
+	 */
+	private static OBDD one() {
+		OBDD one = new OBDD();
+		one.id = 1;
+		one.terminal = true;
+		one.value = true;
+		return one;
+	}
+	
+	
+	/**
+	 * smart constructor for the 0-terminal
+	 * @return the 0-terminal
+	 */
+	private static OBDD zero() {
+		OBDD zero = new OBDD();
+		zero.id = 0;
+		zero.terminal = true;
+		zero.value = false;
+		return zero;
+	}
 	
 	
 	/**
