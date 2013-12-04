@@ -7,25 +7,24 @@ package datatypes;
  */
 public class Formula {
 	/**
-	 * left successor (for binary operations)
+	 * first successor (for operations)
 	 */
-	private Formula leftSuccessor;
+	private Formula firstSuccessor;
 	/**
-	 * binary operation
+	 * second successor (for binary operations)
 	 */
-	private BinaryOperation op;
+	private Formula secondSuccessor;
 	/**
-	 * right successor (for binary operations)
+	 * number for operations:
+	 * 0 means NOT
+	 * 1 means AND
+	 * 2 means OR
 	 */
-	private Formula rightSuccessor;
+	private int operation;
 	/**
-	 * successor (for unary operations)
+	 * variable number
 	 */
-	private Formula successor;
-	/**
-	 * variable
-	 */
-	private String variable;
+	private int varNr;
 	/**
 	 * logical value
 	 */
@@ -33,41 +32,54 @@ public class Formula {
 	
 	
 	/**
-	 * constructor for binary operations 'and' and 'or'
-	 * @param leftSuccessor
-	 * @param rightSuccessor
-	 * @param and
+	 * smart "constructor" for variables
+	 * @param varNr
+	 * @return Formula representing the chosen variable
 	 */
-	public Formula(Formula leftSuccessor, BinaryOperation op, Formula rightSuccessor) {
-		this.op = op;
-		this.leftSuccessor = leftSuccessor;
-		this.rightSuccessor = rightSuccessor;
+	public Formula variable(int varNr) {
+		Formula variable = new Formula();
+		variable.varNr = varNr;
+		return variable;
 	}
 	
 	
 	/**
-	 * constructor for the unary operation 'not'
+	 * smart "constructor" for logical negation
 	 * @param successor
+	 * @return Formula representing a logical negation
 	 */
-	public Formula(Formula successor) {
-		this.successor = successor;
+	public Formula not() {
+		Formula not = new Formula();
+		not.firstSuccessor = this;
+		not.operation = 0;
+		return not;
 	}
 	
 	
 	/**
-	 * constructor for variables
-	 * @param variable
+	 * smart "constructor" for logical conjunction
+	 * @param secondSuccessor
+	 * @return Formula representing a logical conjunction
 	 */
-	public Formula(String variable) {
-		this.variable = variable;
+	public Formula and(Formula secondSuccessor) {
+		Formula and = new Formula();
+		and.firstSuccessor = this;
+		and.secondSuccessor = secondSuccessor;
+		and.operation = 1;
+		return and;
 	}
 	
 	
 	/**
-	 * constructor for logical values/constants
-	 * @param value
+	 * smart "constructor" for logical disjunction
+	 * @param secondSuccessor
+	 * @return Formula representing a logical disjunction
 	 */
-	public Formula(boolean value) {
-		this.value = value;
+	public Formula or(Formula secondSuccessor) {
+		Formula or = new Formula();
+		or.firstSuccessor = this;
+		or.secondSuccessor = secondSuccessor;
+		or.operation = 2;
+		return or;
 	}
 }
