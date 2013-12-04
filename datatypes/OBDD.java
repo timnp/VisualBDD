@@ -18,20 +18,20 @@ public class OBDD {
 	 */
 	private boolean value;
 	/**
-	 * variable for decision nodes
+	 * variable number for decision nodes
 	 */
-	private String var;
+	private int var;
 	/**
-	 * list of variables representing the OBDD'a variable ordering
+	 * list of variable numbers representing the OBDD'a variable ordering
 	 */
-	private LinkedList<String> varOrd;
+	private LinkedList<Integer> varOrd;
 	/**
 	 * HashMap for all of the OBDD's layers (except the terminal layer)
 	 * Each layer is identified by its nodes' variable.
 	 * Each layer is represented by a list of its nodes.
 	 * For reasons of performance this HashMap is only updated when it's used.
 	 */
-	private HashMap<String,LinkedList<OBDD>> layers;
+	private HashMap<Integer,LinkedList<OBDD>> layers;
 	/**
 	 * list of all parents of the node
 	 */
@@ -72,7 +72,7 @@ public class OBDD {
 	 * 
 	 * @return
 	 */
-	private String getVar() {
+	private int getVar() {
 		return var;
 	}
 	
@@ -80,7 +80,7 @@ public class OBDD {
 	 * 
 	 * @param var
 	 */
-	private void setVar(String var) {
+	private void setVar(int var) {
 		this.var = var;
 	}
 	
@@ -88,7 +88,7 @@ public class OBDD {
 	 * 
 	 * @return
 	 */
-	private LinkedList<String> getVarOrd() {
+	private LinkedList<Integer> getVarOrd() {
 		return varOrd;
 	}
 	
@@ -96,7 +96,7 @@ public class OBDD {
 	 * 
 	 * @param varOrd
 	 */
-	private void setVarOrd(LinkedList<String> varOrd) {
+	private void setVarOrd(LinkedList<Integer> varOrd) {
 		this.varOrd = varOrd;
 	}
 	
@@ -104,7 +104,7 @@ public class OBDD {
 	 * 
 	 * @return
 	 */
-	private HashMap<String, LinkedList<OBDD>> getLayers() {
+	private HashMap<Integer, LinkedList<OBDD>> getLayers() {
 		return layers;
 	}
 	
@@ -112,7 +112,7 @@ public class OBDD {
 	 * 
 	 * @param layers
 	 */
-	private void setLayers(HashMap<String, LinkedList<OBDD>> layers) {
+	private void setLayers(HashMap<Integer, LinkedList<OBDD>> layers) {
 		this.layers = layers;
 	}
 	
@@ -132,7 +132,7 @@ public class OBDD {
 	 * TEST constructor for terminals
 	 * @param value
 	 */
-	public OBDD(boolean value, LinkedList<String> varOrd) {
+	public OBDD(boolean value, LinkedList<Integer> varOrd) {
 		this.value = value;
 		this.varOrd = varOrd;
 	}
@@ -144,7 +144,7 @@ public class OBDD {
 	 * @param highChild
 	 * @param lowChild
 	 */
-	public OBDD(String var, OBDD highChild, OBDD lowChild) {
+	public OBDD(int var, OBDD highChild, OBDD lowChild) {
 		this.varOrd = highChild.varOrd;
 		this.var = var;
 		this.highChild = highChild;
@@ -161,8 +161,8 @@ public class OBDD {
 		/**
 		 * initializing the new layer HashMap
 		 */
-		HashMap<String,LinkedList<OBDD>> layers =
-				new HashMap<String,LinkedList<OBDD>>();
+		HashMap<Integer,LinkedList<OBDD>> layers =
+				new HashMap<Integer,LinkedList<OBDD>>();
 		/**
 		 * retrieving the OBDD's root node to begin with
 		 */
@@ -187,7 +187,7 @@ public class OBDD {
 	 * @param layers
 	 * @return the updated layer HashMap
 	 */
-	private HashMap<String,LinkedList<OBDD>> addToLayerHashMap(HashMap<String,LinkedList<OBDD>> layers) {
+	private HashMap<Integer,LinkedList<OBDD>> addToLayerHashMap(HashMap<Integer,LinkedList<OBDD>> layers) {
 		/**
 		 * if the node is a terminal, nothing is done
 		 */
@@ -275,7 +275,7 @@ public class OBDD {
 	 * @param lowChild
 	 * @return the new node
 	 */
-	public OBDD cons(String variable, OBDD lowChild) {
+	public OBDD cons(int variable, OBDD lowChild) {
 		/**
 		 * initializing the new node
 		 */
@@ -333,7 +333,7 @@ public class OBDD {
 		/**
 		 * trying to find equivalent nodes in each layer individually
 		 */
-		for (String var : this.getVarOrd()) {
+		for (int var : this.getVarOrd()) {
 			/**
 			 * getting the current layer list
 			 */
