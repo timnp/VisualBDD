@@ -94,75 +94,196 @@ public class Formula {
 		 * a switch for the possible constructors for this Formula
 		 */
 		switch (constructor) {
+		/**
+		 * First case: The Formula represents a variable.
+		 */
+		case 1:
 			/**
-			 * First case: The Formula represents a variable.
+			 * If the variable is assigned the logical value one,
+			 * true is returned. 
 			 */
-			case 1:
+			if(assignedOne.contains(this.varNr)) {
+				return true;
+			}
+			/**
+			 * Otherwise the variable is assigned the logical value zero
+			 * or it isn't assigned anything. Therefore false is returned. 
+			 */
+			return false;
+		/**
+		 * Second case: The Formula represents a logical negation.
+		 */
+		case 2:
+			/**
+			 * calculating the value of the successor
+			 */
+			boolean firstSucVal = this.firstSuccessor.assign(assignedOne);
+			/**
+			 * returning the negated value of the successor
+			 */
+			return !firstSucVal;
+		/**
+		 * Third case: The Formula represents a logical conjunction.
+		 */
+		case 3:
+			/**
+			 * calculating the value of the first successor
+			 */
+			firstSucVal = this.firstSuccessor.assign(assignedOne);
+			/**
+			 * calculating the value of the second successor
+			 */
+			boolean secondSucVal = this.secondSuccessor.assign(assignedOne);
+			/**
+			 * returning the conjunction of the two successor values
+			 */
+			return firstSucVal && secondSucVal;
+		/**
+		 * Fourth case: The Formula represents a logical disjunction.
+		 */
+		case 4:
+			/**
+			 * calculating the value of the first successor
+			 */
+			firstSucVal = this.firstSuccessor.assign(assignedOne);
+			/**
+			 * calculating the value of the second successor
+			 */
+			secondSucVal = this.secondSuccessor.assign(assignedOne);
+			/**
+			 * returning the disjunction of the two successor values
+			 */
+			return firstSucVal || secondSucVal;
+		/**
+		 * Default case: None of the given constructors was used.
+		 */
+		default:
+			/**
+			 * tentative default value: false
+			 */
+			// TODO user message
+			return false;
+		}
+	}
+	
+	
+	/**
+	 * @return the numbers of the variables used in
+	 * the Formula and its sub-Formulas
+	 */
+	private LinkedList<Integer> vars() {
+		/**
+		 * initializing the LinkedList for the return
+		 */
+		LinkedList<Integer> vars = new LinkedList<Integer>();
+		/**
+		 * a switch for the possible constructors for this Formula
+		 */
+		switch (constructor) {
+		/**
+		 * First case: The Formula represents a variable.
+		 */
+		case 1:
+			/**
+			 * clearing the list
+			 */
+			vars.clear();
+			/**
+			 * adding the variable's number to the list
+			 */
+			vars.add(this.varNr);
+			/**
+			 * returning the list
+			 */
+			return vars;
+		/**
+		 * Second case: The Formula represents a logical negation.
+		 */
+		case 2:
+			/**
+			 * clearing the list
+			 */
+			vars.clear();
+			/**
+			 * adding all variable numbers of the successor to the list
+			 */
+			vars.addAll(this.firstSuccessor.vars());
+			/**
+			 * returning the list
+			 */
+			return vars;
+		/**
+		 * Third case: The Formula represents a logical conjunction.
+		 */
+		case 3:
+			/**
+			 * clearing the list
+			 */
+			vars.clear();
+			/**
+			 * adding all variable numbers of the first successor to the list
+			 */
+			vars.addAll(this.firstSuccessor.vars());
+			/**
+			 * getting all variable numbers of the second successor
+			 */
+			LinkedList<Integer> secondSucVars = this.secondSuccessor.vars();
+			/**
+			 * merging the list with the second successor's variable numbers
+			 */
+			for(Integer i : secondSucVars) {
 				/**
-				 * If the variable is assigned the logical value one,
-				 * true is returned. 
+				 * adding the variable number to the list if it isn't already in
 				 */
-				if(assignedOne.contains(this.varNr)) {
-					return true;
+				if(!vars.contains(i)) {
+					vars.add(i);
 				}
-				/**
-				 * Otherwise the variable is assigned the logical value zero
-				 * or it isn't assigned anything. Therefore false is returned. 
-				 */
-				return false;
+			}
 			/**
-			 * Second case: The Formula represents a logical negation.
+			 * returning the list
 			 */
-			case 2:
-				/**
-				 * calculating the value of the successor
-				 */
-				boolean firstSucVal = this.firstSuccessor.assign(assignedOne);
-				/**
-				 * returning the negated value of the successor
-				 */
-				return !firstSucVal;
+			return vars;
+		/**
+		 * Fourth case: The Formula represents a logical disjunction.
+		 */
+		case 4:
 			/**
-			 * Third case: The Formula represents a logical conjunction.
+			 * clearing the list
 			 */
-			case 3:
-				/**
-				 * calculating the value of the first successor
-				 */
-				firstSucVal = this.firstSuccessor.assign(assignedOne);
-				/**
-				 * calculating the value of the second successor
-				 */
-				boolean secondSucVal = this.secondSuccessor.assign(assignedOne);
-				/**
-				 * returning the conjunction of the two successor values
-				 */
-				return firstSucVal && secondSucVal;
+			vars.clear();
 			/**
-			 * Fourth case: The Formula represents a logical disjunction.
+			 * adding all variable numbers of the first successor to the list
 			 */
-			case 4:
-				/**
-				 * calculating the value of the first successor
-				 */
-				firstSucVal = this.firstSuccessor.assign(assignedOne);
-				/**
-				 * calculating the value of the second successor
-				 */
-				secondSucVal = this.secondSuccessor.assign(assignedOne);
-				/**
-				 * returning the disjunction of the two successor values
-				 */
-				return firstSucVal || secondSucVal;
+			vars.addAll(this.firstSuccessor.vars());
 			/**
-			 * Default case: None of the constructors was used.
+			 * getting all variable numbers of the second successor
 			 */
-			default:
+			secondSucVars = this.secondSuccessor.vars();
+			/**
+			 * merging the list with the second successor's variable numbers
+			 */
+			for(Integer i : secondSucVars) {
 				/**
-				 * tentative default value: false
+				 * adding the variable number to the list if it isn't already in
 				 */
-				// TODO user message
-				return false;
+				if(!vars.contains(i)) {
+					vars.add(i);
+				}
+			}
+			/**
+			 * returning the list
+			 */
+			return vars;
+		/**
+		 * Default case: None of the given constructors was used.
+		 */
+		default:
+			/**
+			 * tentative default value: the empty list
+			 */
+			// TODO user message
+			vars.clear();
+			return vars;
 		}
 	}
 }
