@@ -3,6 +3,8 @@ package datatypes;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import javax.swing.JTable;
+
 /**
  * 
  * @author TimNP
@@ -45,11 +47,17 @@ public class DatatypeTests {
 		boolean b_eval = b.assign(assignment);
 		boolean c_eval = c.assign(assignment);
 		/**
+		 * entire truth table for ((x1 or x2) and not(x3))
+		 */
+		JTable c_entire_truth_table = c.entireTruthTable();
+		/**
 		 * displaying the results
 		 */
 		System.out.println("x1 is " + x1_eval + "\nx2 is " + x2_eval + "\n"
 		+ "x3 is " + x3_eval + "\n(x1 or x2) is " + a_eval + "\n"
-		+ "not(x3) is " + b_eval + "\n((x1 or x2) and not(x3)) is " + c_eval);
+		+ "not(x3) is " + b_eval + "\n((x1 or x2) and not(x3)) is " + c_eval
+		+ "\n\nEntire truth table for ((x1 or x2) and not(x3)):"
+		+ c_entire_truth_table);
 	}
 
 }
