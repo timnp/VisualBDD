@@ -62,7 +62,7 @@ public class OBDD {
 	
 	
 	/**
-	 * smart constructor for the 1-terminal
+	 * smart "constructor" for the 1-terminal
 	 * @return the 1-terminal
 	 */
 	private static OBDD one() {
@@ -75,7 +75,7 @@ public class OBDD {
 	
 	
 	/**
-	 * smart constructor for the 0-terminal
+	 * smart "constructor" for the 0-terminal
 	 * @return the 0-terminal
 	 */
 	private static OBDD zero() {
@@ -84,114 +84,6 @@ public class OBDD {
 		zero.terminal = true;
 		zero.value = false;
 		return zero;
-	}
-	
-	
-	/**
-	 * @return whether the node is a terminal
-	 */
-	private boolean isTerminal() {
-		return terminal;
-	}
-	
-	/**
-	 * @return
-	 */
-	private boolean getValue() {
-		return value;
-	}
-	
-	/**
-	 * 
-	 * @param value
-	 */
-	private void setValue(boolean value) {
-		this.value = value;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	private int getVar() {
-		return var;
-	}
-	
-	/**
-	 * 
-	 * @param var
-	 */
-	private void setVar(int var) {
-		this.var = var;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	private LinkedList<Integer> getVarOrd() {
-		return varOrd;
-	}
-	
-	/**
-	 * 
-	 * @param varOrd
-	 */
-	private void setVarOrd(LinkedList<Integer> varOrd) {
-		this.varOrd = varOrd;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	private HashMap<Integer, LinkedList<OBDD>> getLayers() {
-		return layers;
-	}
-	
-	/**
-	 * 
-	 * @param layers
-	 */
-	private void setLayers(HashMap<Integer, LinkedList<OBDD>> layers) {
-		this.layers = layers;
-	}
-	
-	
-	//TODO getters, setters, constructors
-	
-	
-	/**
-	 * default constructor for OBDDs
-	 */
-	public OBDD() {
-		
-	}
-	
-	
-	/**
-	 * TEST constructor for terminals
-	 * @param value
-	 */
-	public OBDD(boolean value, LinkedList<Integer> varOrd) {
-		this.value = value;
-		this.varOrd = varOrd;
-	}
-	
-	
-	/**
-	 * TEST constructor for decision nodes
-	 * @param var
-	 * @param highChild
-	 * @param lowChild
-	 */
-	public OBDD(int var, OBDD highChild, OBDD lowChild) {
-		this.varOrd = highChild.varOrd;
-		this.var = var;
-		this.highChild = highChild;
-		this.lowChild = lowChild;
-		highChild.parents.add(this);
-		lowChild.parents.add(this);
 	}
 	
 	
@@ -232,11 +124,11 @@ public class OBDD {
 		/**
 		 * if the node is a terminal, nothing is done
 		 */
-		if (!this.isTerminal()) {
+		if (!this.terminal) {
 			/**
 			 * retrieving this node's layer list
 			 */
-			LinkedList<OBDD> layerList = layers.get(this.getVar());
+			LinkedList<OBDD> layerList = layers.get(this.var);
 			/**
 			 * adding the node to its layer list if it isn't already in
 			 */
@@ -246,7 +138,7 @@ public class OBDD {
 			/**
 			 * putting the updated layer list into the layer HashMap
 			 */
-			layers.put(this.getVar(), layerList);
+			layers.put(this.var, layerList);
 			/**
 			 * recursively adding the high child
 			 */
@@ -374,11 +266,11 @@ public class OBDD {
 		/**
 		 * trying to find equivalent nodes in each layer individually
 		 */
-		for (int var : this.getVarOrd()) {
+		for (int var : this.varOrd) {
 			/**
 			 * getting the current layer list
 			 */
-			residualLayerList = this.getLayers().get(var);
+			residualLayerList = this.layers.get(var);
 			/**
 			 * While there are two or more nodes in the layer list,
 			 * they might be equivalent.
@@ -392,8 +284,8 @@ public class OBDD {
 				/**
 				 * initializing an empty computed table
 				 */
-				HashMap<Pair<OBDD>,Boolean> emptyCT =
-						new HashMap<Pair<OBDD>,Boolean>();
+				HashMap<Pair<Integer>,Boolean> emptyCT =
+						new HashMap<Pair<Integer>,Boolean>();
 				/**
 				 * checking for each node of the residual layer list
 				 * whether it's equivalent to the first candidate node
@@ -433,19 +325,19 @@ public class OBDD {
 	 * @param cT
 	 * @return whether another node is equivalent to this node
 	 */
-	public boolean isEquivalent(OBDD otherNode, HashMap<Pair<OBDD>, Boolean> cT) {
+	public boolean isEquivalent(OBDD otherNode, HashMap<Pair<Integer>, Boolean> cT) {
 		/**
 		 * If at least one of the two nodes is a terminal,
 		 * they aren't equivalent unless they're the same.
 		 */
-		if (this.isTerminal() || otherNode.isTerminal()) {
+		if (this.terminal || otherNode.terminal) {
 			return (this == otherNode);
 		}
 		else {
 			/**
 			 * initializing a pair of the two OBDDs
 			 */
-			Pair<OBDD> checkPair = new Pair<OBDD>(this,otherNode);
+			Pair<Integer> checkPair = new Pair<Integer>(this.id,otherNode.id);
 			/**
 			 * Return the value stated for the two nodes in the computed table
 			 * if there is one.
@@ -467,12 +359,12 @@ public class OBDD {
 				/**
 				 * For equivalence the two variables have to be equivalent.
 				 */
-				boolean equivalentV = this.getVar() == otherNode.getVar();
+				boolean equivalentVar = this.var == otherNode.var;
 				/**
 				 * combining all three criteria
 				 */
 				boolean equivalent =
-						(equivalentHC && equivalentLC && equivalentV);
+						(equivalentHC && equivalentLC && equivalentVar);
 				/**
 				 * putting the value for the two nodes into the computed table
 				 */
