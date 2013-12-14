@@ -60,6 +60,27 @@ public class OBDD {
 	 */
 	public static final OBDD ZERO = zero();
 	
+	/**
+	 * all sixteen boolean functions as constants for Apply
+	 */
+	public static final int CONTRADICTION = 0;
+	public static final int AND = 1;
+	public static final int AGREATERTHANB = 2;
+	public static final int IDENTITYOFA = 3;
+	public static final int BGREATHERTHANA = 4;
+	public static final int IDENTITYOFB = 5;
+	public static final int XOR = 6;
+	public static final int OR = 7;
+	public static final int NOR = 8;
+	public static final int XNOR = 9;
+	public static final int NOTB = 10;
+	public static final int BIMPLIESA = 11;
+	public static final int NOTA = 12;
+	public static final int AIMPLIESB = 13;
+	public static final int NAND = 14;
+	public static final int TAUTOLOGY = 15;
+	
+	
 	
 	/**
 	 * smart "constructor" for the 1-terminal
