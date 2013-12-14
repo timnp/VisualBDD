@@ -31,17 +31,19 @@ public class Formula {
 	 */
 	private int varNr;
 	
+	/**
+	 * private default constructor for smart "constructors"
+	 */
+	private Formula () {}
+	
 	
 	/**
-	 * smart "constructor" for variables
+	 * constructor for variables
 	 * @param varNr
-	 * @return Formula representing the chosen variable
 	 */
-	public Formula variable(int varNr) {
-		Formula variable = new Formula();
-		variable.varNr = varNr;
-		variable.constructor = 1;
-		return variable;
+	public Formula (int varNr) {
+		this.varNr = varNr;
+		this.constructor = 1;
 	}
 	
 	
@@ -425,12 +427,12 @@ public class Formula {
 			else data[vars.size()][row] = 0;
 		}
 		/**
-		 * creating the function table as a concrete JTable
+		 * creating the truth table as a concrete JTable
 		 */
-		JTable entireFunTab = new JTable(data, columnNames);
+		JTable truthTable = new JTable(data, columnNames);
 		/**
-		 * returning the function table
+		 * returning the truth table
 		 */
-		return entireFunTab;
+		return truthTable;
 	}
 }

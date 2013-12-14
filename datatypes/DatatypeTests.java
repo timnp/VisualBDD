@@ -16,15 +16,11 @@ public class DatatypeTests {
 
 	public static void main(String[] args) {
 		/**
-		 * empty Formula for smart "constructor" calls
-		 */
-		Formula base = new Formula();
-		/**
 		 * some variables
 		 */
-		Formula x1 = base.variable(1);
-		Formula x2 = base.variable(2);
-		Formula x3 = base.variable(3);
+		Formula x1 = new Formula(1);
+		Formula x2 = new Formula(2);
+		Formula x3 = new Formula(3);
 		/**
 		 * some "extended" Formulas
 		 */
