@@ -53,12 +53,12 @@ public class OBDD {
 	/**
 	 * the constant 1-terminal
 	 */
-	public static final OBDD one = one();
+	public static final OBDD ONE = one();
 	
 	/**
 	 * the constant 0-terminal
 	 */
-	public static final OBDD zero = zero();
+	public static final OBDD ZERO = zero();
 	
 	
 	/**
