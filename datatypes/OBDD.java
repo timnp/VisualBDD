@@ -14,6 +14,10 @@ public class OBDD {
 	 */
 	private int id;
 	/**
+	 * counter for the identifiers (0 and 1 are the terminals (constants)
+	 */
+	private static int idCount = 2;
+	/**
 	 * boolean which determines if the node is a terminal
 	 */
 	private boolean terminal;
@@ -121,8 +125,8 @@ public class OBDD {
 		 * retrieving the OBDD's root node to begin with
 		 */
 		OBDD currentNode = this;
-		while (!currentNode.getParents().isEmpty()) {
-			currentNode = currentNode.getParents().getFirst();
+		while (!currentNode.parents.isEmpty()) {
+			currentNode = currentNode.parents.getFirst();
 		}
 		/**
 		 * adding all of the OBBD's non-terminal nodes to the layer HashMap
@@ -163,64 +167,15 @@ public class OBDD {
 			/**
 			 * recursively adding the high child
 			 */
-			layers = this.getHighChild().addToLayerHashMap(layers);
+			layers = this.highChild.addToLayerHashMap(layers);
 			/**
 			 * recursively adding the low child
 			 */
-			layers = this.getLowChild().addToLayerHashMap(layers);
+			layers = this.lowChild.addToLayerHashMap(layers);
 		}
 		return layers;
-	}
-	
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public LinkedList<OBDD> getParents() {
-		return parents;
-	}
-	
-	/**
-	 * 
-	 * @param parents
-	 */
-	public void setParents(LinkedList<OBDD> parents) {
-		this.parents = parents;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public OBDD getHighChild() {
-		return highChild;
-	}
-	
-	/**
-	 * 
-	 * @param highChild
-	 */
-	public void setHighChild(OBDD highChild) {
-		this.highChild = highChild;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public OBDD getLowChild() {
-		return lowChild;
-	}
-	
-	/**
-	 * 
-	 * @param lowChild
-	 */
-	public void setLowChild(OBDD lowChild) {
-		this.lowChild = lowChild;
-	}
-	
+	}	
+
 	
 	/**
 	 * creates a new OBDD with this node as high child, a given variable,
@@ -234,6 +189,11 @@ public class OBDD {
 		 * initializing the new node
 		 */
 		OBDD newNode = new OBDD();
+		/**
+		 * Setting the new node's ID to the counter's current value and
+		 * increasing it by one.
+		 */
+		newNode.id = idCount++;
 		/**
 		 * The new node isn't a terminal since it's created with children.
 		 */
@@ -630,12 +590,12 @@ public class OBDD {
 				 * For equivalence the two high children have to be equivalent.
 				 */
 				boolean equivalentHC =
-						this.getHighChild().isEquivalent(otherNode.getHighChild(), cT);
+						this.highChild.isEquivalent(otherNode.highChild, cT);
 				/**
 				 * For equivalence the two low children have to be equivalent.
 				 */
 				boolean equivalentLC =
-						this.getLowChild().isEquivalent(otherNode.getLowChild(), cT);
+						this.lowChild.isEquivalent(otherNode.lowChild, cT);
 				/**
 				 * For equivalence the two variables have to be equivalent.
 				 */
