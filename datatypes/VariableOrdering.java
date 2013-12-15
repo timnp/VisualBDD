@@ -15,6 +15,23 @@ public class VariableOrdering {
 	
 	
 	/**
+	 * getter for the ordering list
+	 * @return the ordering list
+	 */
+	public LinkedList<Integer> getOrdList() {
+		return this.ordList;
+	}
+	
+	/**
+	 * setter for the ordering list
+	 * @param ordList
+	 */
+	public void setOrdList(LinkedList<Integer> ordList) {
+		this.ordList = ordList;
+	}
+	
+	
+	/**
 	 * constructor for a VariableOrdering with variables of the type X0,X1,...
 	 * @param ordList
 	 */
