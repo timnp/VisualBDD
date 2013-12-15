@@ -85,5 +85,15 @@ public class VariableOrdering {
 			this.ordList.add(movedVar);
 		}
 	}
+	
+	
+	/**
+	 * Function that provides a variable's position in the order
+	 * @param var
+	 * @return the variable's position (as integer)
+	 */
+	public int indexOf(int var) {
+		return this.ordList.indexOf(var);
+	}
 
 }
