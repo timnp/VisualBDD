@@ -28,7 +28,7 @@ public class OBDD {
 	/**
 	 * list of variable numbers representing the OBDD'a variable ordering
 	 */
-	private LinkedList<Integer> varOrd;
+	private VariableOrdering varOrd;
 	/**
 	 * HashMap for all of the OBDD's layers (except the terminal layer)
 	 * Each layer is identified by its nodes' variable.
@@ -287,7 +287,7 @@ public class OBDD {
 		/**
 		 * trying to find equivalent nodes in each layer individually
 		 */
-		for (int var : this.varOrd) {
+		for (int var : this.varOrd.getOrdList()) {
 			/**
 			 * getting the current layer list
 			 */
