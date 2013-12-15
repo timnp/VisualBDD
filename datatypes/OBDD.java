@@ -528,9 +528,118 @@ public class OBDD {
 			 */
 			Formula lcFormula = this.lowChild.toFormula();
 			/**
-			 * Boole's expansion theorem
+			 * Shannon expansion
 			 */
 			return xn.and(hcFormula).or(xn.not().and(lcFormula));
+		}
+	}
+	
+	
+	/**
+	 * Evaluates the formula represented by the OBDD relating to a given
+	 * assignment.
+	 * @param assignedOne - list of all variables assigned one
+	 * @return the value of the formula as a boolean
+	 */
+	public boolean value1(LinkedList<Integer> assignedOne) {
+		if (this.terminal) {
+			/**
+			 * If the node is a terminal, its value is returned.
+			 */
+			return this.value;
+		}
+		/**
+		 * Otherwise the OBDD is run through as directed by the assignment.
+		 */
+		else {
+			if (assignedOne.contains(this.var)) {
+				/**
+				 * If the node's variable is assigned one, the high child gets
+				 * to continue the calculation.
+				 */
+				return this.highChild.value1(assignedOne);
+			}
+			else {
+				/**
+				 * Otherwise the node's variable is assigned zero and therefore
+				 * the low child gets to continue the calculation.
+				 */
+				return this.lowChild.value1(assignedOne);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Evaluates the Formula represented by the OBDD relating to a given
+	 * assignment.
+	 * @param assignedOne - list of all variables assigned one
+	 * @return the value of the Formula as a boolean
+	 */
+	public boolean value2(LinkedList<Integer> assignedOne) {
+		/**
+		 * using the "assign" function of the Formula data type
+		 */
+		return this.toFormula().assign(assignedOne);
+	}
+	
+	
+	/**
+	 * function that provides the number of satisfying assignments for the OBDD
+	 * @return the number of satisfying assignments
+	 */
+	public int number() {
+		/**
+		 * If the node is a terminal, the number of satisfying assignments can
+		 * easily be returned.
+		 */
+		if (this.terminal) {
+			if (this.value) {
+				/**
+				 * The 1-terminal has exactly one satisfying assignment: the
+				 * empty one.
+				 */
+				return 1;
+			}
+			else {
+				/**
+				 * The 0-terminal doesn't have any satisfying assignments.
+				 */
+				return 0;
+			}
+		}
+		/**
+		 * If the node is a decision node, the number of satisfying assignments
+		 * is calculated by summing the numbers of satisfying assignments for
+		 * both children.
+		 */
+		else {
+			/**
+			 * position of this node's variable in the variable ordering
+			 */
+			int varPos = this.varOrd.indexOf(this.var);
+			/**
+			 * position of the high child's variable in the variable ordering
+			 * (The variable ordering has to be the same in the entire OBDD.)
+			 */
+			int hcVarPos = this.varOrd.indexOf(this.highChild.var);
+			/**
+			 * position of the low child's variable in the variable ordering
+			 */
+			int lcVarPos = this.varOrd.indexOf(this.lowChild.var);
+			/**
+			 * the high child's number of satisfying assignments 
+			 */
+			int hcNumber = this.highChild.number();
+			/**
+			 * the low child's number of satisfying assignments
+			 */
+			int lcNumber = this.lowChild.number();
+			/**
+			 * Satz 3.2.6
+			 */
+			return (int) ((hcNumber * Math.pow(2, hcVarPos - varPos) + 
+					lcNumber * Math.pow(2, lcVarPos - varPos)) / 2);
 		}
 	}
 	
