@@ -67,15 +67,15 @@ public class OBDD {
 	public static final int AND = 1;
 	public static final int A_GREATER_THAN_B = 2;
 	public static final int IDENTITY_OF_A = 3;
-	public static final int B_GREATHER_THAN_A = 4;
+	public static final int B_GREATER_THAN_A = 4;
 	public static final int IDENTITY_OF_B = 5;
 	public static final int XOR = 6;
 	public static final int OR = 7;
 	public static final int NOR = 8;
 	public static final int XNOR = 9;
-	public static final int NOTB = 10;
+	public static final int NOT_B = 10;
 	public static final int B_IMPLIES_A = 11;
-	public static final int NOTA = 12;
+	public static final int NOT_A = 12;
 	public static final int A_IMPLIES_B = 13;
 	public static final int NAND = 14;
 	public static final int TAUTOLOGY = 15;
@@ -264,6 +264,265 @@ public class OBDD {
 		lowChild.parents.add(newNode);
 		return newNode;
 	}
+	
+	
+//	public OBDD apply(OBDD b, int op) {
+//		/**
+//		 * If both OBDD nodes are terminals, the resulting terminal can be
+//		 * calculated by means of the boolean operation.
+//		 */
+//		if (this.terminal && b.terminal) {
+//			/**
+//			 * switch for the sixteen possible boolean operations
+//			 */
+//			switch (op) {
+//			/**
+//			 * case 0
+//			 */
+//			case CONTRADICTION:
+//				/**
+//				 * "applying" the contradiction: returning the 0-terminal
+//				 */
+//				return ZERO;
+//			/**
+//			 * case 1
+//			 */
+//			case AND:
+//				/**
+//				 * applying "and"
+//				 */
+//				if (this.value && b.value) {
+//					/**
+//					 * Return the 1-terminal if both nodes are the 1-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 2
+//			 */
+//			case A_GREATER_THAN_B:
+//				/**
+//				 * applying "a greater than b"
+//				 */
+//				if (this.value && !b.value) {
+//					/**
+//					 * Return the 1-terminal if this node is the 1-terminal and
+//					 * the other one is the 0-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 3
+//			 */
+//			case IDENTITY_OF_A:
+//				/**
+//				 * "applying" the "identity of a": returning this node
+//				 */
+//				return this;
+//			/**
+//			 * case 4
+//			 */
+//			case B_GREATER_THAN_A:
+//				/**
+//				 * applying "b greater than a"
+//				 */
+//				if (!this.value && b.value) {
+//					/**
+//					 * Return the 1-terminal if this node is the 0-terminal and
+//					 * the other one is the 1-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 5
+//			 */
+//			case IDENTITY_OF_B:
+//				/**
+//				 * "applying" the "identity of b": returning the other node
+//				 */
+//				return b;
+//			/**
+//			 * case 6
+//			 */
+//			case XOR:
+//				/**
+//				 * applying "xor"
+//				 */
+//				if (this.value ^ b.value) {
+//					/**
+//					 * Return the 1-terminal if one of the two nodes is the
+//					 * 1-terminal and the other one is the 0-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 7
+//			 */
+//			case OR:
+//				/**
+//				 * applying "or"
+//				 */
+//				if (this.value || b.value) {
+//					/**
+//					 * Return the 1-terminal if at least one of the two nodes
+//					 * is the 1-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 8
+//			 */
+//			case NOR:
+//				/**
+//				 * applying "nor"
+//				 */
+//				if (!(this.value || b.value)) {
+//					/**
+//					 * Return the 1-terminal if none of the two nodes is the
+//					 * 1-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 9
+//			 */
+//			case XNOR:
+//				/**
+//				 * applying "xnor"
+//				 */
+//				if (this.value == b.value) {
+//					/**
+//					 * Return the 1-terminal if the two nodes are the same.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 10
+//			 */
+//			case NOT_B:
+//				/**
+//				 * applying "not b"
+//				 */
+//				if (!b.value) {
+//					/**
+//					 * Return the 1-terminal if b is the 0-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 11
+//			 */
+//			case B_IMPLIES_A:
+//				/**
+//				 * applying "b implies a"
+//				 */
+//				if (this.value || !b.value) {
+//					/**
+//					 * Return the 1-terminal if this node is the 1-terminal or
+//					 * the other one is the 0-terminal (or both).
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 12
+//			 */
+//			case NOT_A:
+//				/**
+//				 * applying "not a"
+//				 */
+//				if (!this.value) {
+//					/**
+//					 * Returning the 1-terminal if this node is the 0-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 13
+//			 */
+//			case A_IMPLIES_B:
+//				/**
+//				 * applying "a implies b"
+//				 */
+//				if (!this.value || b.value) {
+//					/**
+//					 * Returning the 1-terminal if this node is the 0-terminal
+//					 * or the other one is the 1-terminal (or both).
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 14
+//			 */
+//			case NAND:
+//				/**
+//				 * applying "nand"
+//				 */
+//				if (!(this.value && b.value)) {
+//					/**
+//					 * Returning the 1-terminal if at least one of the two
+//					 * nodes is the 0-terminal.
+//					 */
+//					return ONE;
+//				}
+//				/**
+//				 * Otherwise return the 0-terminal.
+//				 */
+//				else return ZERO;
+//			/**
+//			 * case 15
+//			 */
+//			case TAUTOLOGY:
+//				/**
+//				 * "applying" the tautology: returning the 1-terminal
+//				 */
+//				return ONE;
+//			}
+//		}
+//	}
 	
 	
 	/**
