@@ -65,18 +65,18 @@ public class OBDD {
 	 */
 	public static final int CONTRADICTION = 0;
 	public static final int AND = 1;
-	public static final int AGREATERTHANB = 2;
-	public static final int IDENTITYOFA = 3;
-	public static final int BGREATHERTHANA = 4;
-	public static final int IDENTITYOFB = 5;
+	public static final int A_GREATER_THAN_B = 2;
+	public static final int IDENTITY_OF_A = 3;
+	public static final int B_GREATHER_THAN_A = 4;
+	public static final int IDENTITY_OF_B = 5;
 	public static final int XOR = 6;
 	public static final int OR = 7;
 	public static final int NOR = 8;
 	public static final int XNOR = 9;
 	public static final int NOTB = 10;
-	public static final int BIMPLIESA = 11;
+	public static final int B_IMPLIES_A = 11;
 	public static final int NOTA = 12;
-	public static final int AIMPLIESB = 13;
+	public static final int A_IMPLIES_B = 13;
 	public static final int NAND = 14;
 	public static final int TAUTOLOGY = 15;
 	
