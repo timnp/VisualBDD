@@ -487,6 +487,56 @@ public class OBDD {
 	
 	/**
 	 * 
+	 * @return the Formula represented by the OBDD 
+	 */
+	public Formula toFormula() {
+		/**
+		 * In the case of a terminal, a "base Formula" is constructed.
+		 * (The constants true/1 and false/0 aren't implemented for Formulas.)
+		 */
+		if (this.terminal) {
+			/**
+			 * Formula representing the variable X0
+			 */
+			Formula x0 = new Formula(0);
+			if (this.value) {
+				/**
+				 * returning a tautological Formula if the node is the
+				 * 1-terminal
+				 */
+				return x0.or(x0.not());
+			}
+			else {
+				/**
+				 * returning a contradictory Formula if the node is the
+				 * 0-terminal
+				 */
+				return x0.and(x0.not());
+			}
+		}
+		else {
+			/**
+			 * Formula representing the node's variable
+			 */
+			Formula xn = new Formula(this.var);
+			/**
+			 * Formula represented by the OBDD induced by the node's high child
+			 */
+			Formula hcFormula = this.highChild.toFormula();
+			/**
+			 * Formula represented by the OBDD induced by the node's low child
+			 */
+			Formula lcFormula = this.lowChild.toFormula();
+			/**
+			 * Boole's expansion theorem
+			 */
+			return xn.and(hcFormula).or(xn.not().and(lcFormula));
+		}
+	}
+	
+	
+	/**
+	 * 
 	 * @return a list with two equivalent nodes in the OBDD if possible
 	 */
 	public LinkedList<OBDD> findEquivalent() {
