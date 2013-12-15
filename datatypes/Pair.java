@@ -15,13 +15,6 @@ public class Pair<E> {
 	 * the pair's second element
 	 */
 	private E second;
-
-	/**
-	 * default constructor for a pair
-	 */
-	public Pair() {
-
-	}
 	
 	/**
 	 * constructor for a pair
