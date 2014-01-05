@@ -412,7 +412,7 @@ public class Formula {
 			// adding each variable in which's column is a one (in this row)
 			// to the assignment list
 			for (int column = 0 ; column < vars.size() ; column++) {
-				if (data[column][row] == 1) {
+				if (data[row][column] == 1) {
 					// If there is a one in the column, the respective variable
 					// is added to the assignment list.
 					assignedOne.add(vars.get(column));
@@ -424,9 +424,9 @@ public class Formula {
 			// transferring the boolean function value into one/zero and
 			// writing it into the data array
 			if (funVal) {
-				data[vars.size()][row] = 1;
+				data[row][vars.size()] = 1;
 			}
-			else data[vars.size()][row] = 0;
+			else data[row][vars.size()] = 0;
 		}
 		// creating the truth table as a concrete JTable
 		JTable truthTable = new JTable(data, columnNames);
