@@ -1,6 +1,7 @@
 package datatypes;
 
 import java.util.LinkedList;
+import java.util.regex.*;
 
 import javax.swing.JTable;
 
@@ -87,84 +88,172 @@ public class Formula {
 		return or;
 	}
 	
+	/**
+	 * String for spaces in Patterns
+	 */
+	private String spaces = "\\s*";
 	
 	/**
-	 * Evaluates the Formula under a given assignment.
+	 * Pattern String for variables
+	 */
+	private String variablePatternString =
+									// A variable starts with an X.
+									"[Xx]"
+									// group: the variable's number
+									+ "(\\d+)";
+	/**
+	 * Pattern for variables
+	 */
+	private Pattern variablePattern = Pattern.compile(variablePatternString);
+	
+	/**
+	 * Pattern String for logical negation
+	 */
+	private String notPatternString =
+									// left parenthesis
+									"[(]" 
+									+ spaces 
+									// negation symbol
+									+ "[-]" 
+									+ spaces 
+									// successor:
+									// either put in parentheses or a variable
+									+ "([(].+[)]|[Xx]\\d+)" 
+									+ spaces
+									// right parenthesis
+									+ "[)]";
+	/**
+	 * Pattern for logical negation
+	 */
+	private Pattern notPattern = Pattern.compile(notPatternString);
+	
+	/**
+	 * Pattern String for binary operations
+	 */
+	private String binOpPatternString = 
+									// left parenthesis
+									"[(]" 
+									+ spaces 
+									// first successor:
+									// either put in parentheses or a variable
+									+ "([(].+[)]|[Xx]\\d+)" 
+									+ spaces 
+									// the operation:
+									// logical conjunction or disjunction
+									+ "([*+])" 
+									+ spaces 
+									// second successor:
+									// either put in parentheses or a variable
+									+ "([(].+[)]|[Xx]\\d+)" 
+									+ spaces 
+									// right parenthesis
+									+ "[)]";
+	/**
+	 * Pattern for binary operations
+	 */
+	private Pattern binOpPattern = Pattern.compile(binOpPatternString);
+	
+	/**
+	 * Matcher for the Patterns
+	 */
+	private Matcher matcher;
+	
+	
+	/**
+	 * constructor for Formulas from a given String that meets the criteria
+	 * defined by the Patterns 
+	 * @param formulaString
+	 */
+	public Formula (String formulaString) {
+		// matching the input String to the variable Pattern
+		this.matcher = variablePattern.matcher(formulaString);
+		if (matcher.matches()) {
+			// retrieving the variable number from the String
+			this.varNr = Integer.parseInt(matcher.group(1));
+			// setting the constructor
+			this.constructor = 1;
+		}
+		// matching the input String to the logical negation Pattern
+		this.matcher = notPattern.matcher(formulaString);
+		if (matcher.matches()) {
+			// retrieving the String that represents the successor
+			String successorString = matcher.group(1);
+			// creating the successor
+			this.firstSuccessor = new Formula(successorString);
+			// setting the constructor
+			this.constructor = 2;
+		}
+		// matching the input String to the binary operation Pattern
+		this.matcher = binOpPattern.matcher(formulaString);
+		if (matcher.matches()) {
+			// retrieving the String that represents the first successor
+			String firstSuccessorString = matcher.group(1);
+			// creating the first successor
+			this.firstSuccessor = new Formula(firstSuccessorString);
+			// retrieving the String that represents the operation
+			String opString = matcher.group(2);
+			// retrieving the String that represents the first successor
+			String secondSuccessorString = matcher.group(3);
+			// creating the first successor
+			this.secondSuccessor = new Formula(secondSuccessorString);
+			// switch for the possible binary operations
+			switch (opString) {
+			// "*" stands for a logical conjunction
+			case "*":
+				this.constructor = 3;
+			// "+" stands for a logical disjunction
+			case "+":
+				this.constructor =4;
+			default:
+				//TODO user message
+			}
+		}
+	}
+	
+	
+	/**
+	 * Evaluates the Formula relating to a given assignment.
 	 * @param assignedOne - list of all variables assigned one
 	 * @return the value of the Formula as a boolean
 	 */
 	public boolean assign(LinkedList<Integer> assignedOne) {
-		/**
-		 * a switch for the possible constructors for this Formula
-		 */
+		// a switch for the possible constructors for this Formula
 		switch (constructor) {
-		/**
-		 * First case: The Formula represents a variable.
-		 */
+		// First case: The Formula represents a variable.
 		case 1:
-			/**
-			 * If the variable is assigned the logical value one,
-			 * true is returned. 
-			 */
+			// If the variable is assigned the logical value one,
+			// true is returned.
 			if(assignedOne.contains(this.varNr)) {
 				return true;
 			}
-			/**
-			 * Otherwise the variable is assigned the logical value zero
-			 * or it isn't assigned anything. Therefore false is returned. 
-			 */
+			// Otherwise the variable is assigned the logical value zero
+			// or it isn't assigned anything. Therefore false is returned.
 			return false;
-		/**
-		 * Second case: The Formula represents a logical negation.
-		 */
+		// Second case: The Formula represents a logical negation.
 		case 2:
-			/**
-			 * calculating the value of the successor
-			 */
+			// calculating the value of the successor
 			boolean firstSucVal = this.firstSuccessor.assign(assignedOne);
-			/**
-			 * returning the negated value of the successor
-			 */
+			// returning the negated value of the successor
 			return !firstSucVal;
-		/**
-		 * Third case: The Formula represents a logical conjunction.
-		 */
+		// Third case: The Formula represents a logical conjunction.
 		case 3:
-			/**
-			 * calculating the value of the first successor
-			 */
+			// calculating the value of the first successor
 			firstSucVal = this.firstSuccessor.assign(assignedOne);
-			/**
-			 * calculating the value of the second successor
-			 */
+			// calculating the value of the second successor
 			boolean secondSucVal = this.secondSuccessor.assign(assignedOne);
-			/**
-			 * returning the conjunction of the two successor values
-			 */
+			// returning the conjunction of the two successor values
 			return firstSucVal && secondSucVal;
-		/**
-		 * Fourth case: The Formula represents a logical disjunction.
-		 */
+		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
-			/**
-			 * calculating the value of the first successor
-			 */
+			// calculating the value of the first successor
 			firstSucVal = this.firstSuccessor.assign(assignedOne);
-			/**
-			 * calculating the value of the second successor
-			 */
+			// calculating the value of the second successor
 			secondSucVal = this.secondSuccessor.assign(assignedOne);
-			/**
-			 * returning the disjunction of the two successor values
-			 */
+			// returning the disjunction of the two successor values
 			return firstSucVal || secondSucVal;
-		/**
-		 * Default case: None of the given constructors was used.
-		 */
+		// Default case: None of the given constructors was used.
 		default:
-			/**
-			 * tentative default value: false
-			 */
+			// tentative default value: false
 			// TODO user message
 			return false;
 		}
@@ -176,115 +265,63 @@ public class Formula {
 	 * the Formula and its sub-Formulas
 	 */
 	private LinkedList<Integer> vars() {
-		/**
-		 * initializing the LinkedList for the return
-		 */
+		// initializing the LinkedList for the return
 		LinkedList<Integer> vars = new LinkedList<Integer>();
-		/**
-		 * a switch for the possible constructors for this Formula
-		 */
+		// a switch for the possible constructors for this Formula
 		switch (constructor) {
-		/**
-		 * First case: The Formula represents a variable.
-		 */
+		// First case: The Formula represents a variable.
 		case 1:
-			/**
-			 * clearing the list
-			 */
+			// clearing the list
 			vars.clear();
-			/**
-			 * adding the variable's number to the list
-			 */
+			// adding the variable's number to the list
 			vars.add(this.varNr);
-			/**
-			 * returning the list
-			 */
+			// returning the list
 			return vars;
-		/**
-		 * Second case: The Formula represents a logical negation.
-		 */
+		// Second case: The Formula represents a logical negation.
 		case 2:
-			/**
-			 * clearing the list
-			 */
+			// clearing the list
 			vars.clear();
-			/**
-			 * adding all variable numbers of the successor to the list
-			 */
+			// adding all variable numbers of the successor to the list
 			vars.addAll(this.firstSuccessor.vars());
-			/**
-			 * returning the list
-			 */
+			// returning the list
 			return vars;
-		/**
-		 * Third case: The Formula represents a logical conjunction.
-		 */
+		// Third case: The Formula represents a logical conjunction.
 		case 3:
-			/**
-			 * clearing the list
-			 */
+			// clearing the list
 			vars.clear();
-			/**
-			 * adding all variable numbers of the first successor to the list
-			 */
+			// adding all variable numbers of the first successor to the list
 			vars.addAll(this.firstSuccessor.vars());
-			/**
-			 * getting all variable numbers of the second successor
-			 */
+			// getting all variable numbers of the second successor
 			LinkedList<Integer> secondSucVars = this.secondSuccessor.vars();
-			/**
-			 * merging the list with the second successor's variable numbers
-			 */
+			// merging the list with the second successor's variable numbers
 			for(Integer i : secondSucVars) {
-				/**
-				 * adding the variable number to the list if it isn't already in
-				 */
+				// adding the variable number to the list if it isn't already in
 				if(!vars.contains(i)) {
 					vars.add(i);
 				}
 			}
-			/**
-			 * returning the list
-			 */
+			// returning the list
 			return vars;
-		/**
-		 * Fourth case: The Formula represents a logical disjunction.
-		 */
+		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
-			/**
-			 * clearing the list
-			 */
+			// clearing the list
 			vars.clear();
-			/**
-			 * adding all variable numbers of the first successor to the list
-			 */
+			// adding all variable numbers of the first successor to the list
 			vars.addAll(this.firstSuccessor.vars());
-			/**
-			 * getting all variable numbers of the second successor
-			 */
+			// getting all variable numbers of the second successor
 			secondSucVars = this.secondSuccessor.vars();
-			/**
-			 * merging the list with the second successor's variable numbers
-			 */
+			// merging the list with the second successor's variable numbers
 			for(Integer i : secondSucVars) {
-				/**
-				 * adding the variable number to the list if it isn't already in
-				 */
+				// adding the variable number to the list if it isn't already in
 				if(!vars.contains(i)) {
 					vars.add(i);
 				}
 			}
-			/**
-			 * returning the list
-			 */
+			// returning the list
 			return vars;
-		/**
-		 * Default case: None of the given constructors was used.
-		 */
+		// Default case: None of the given constructors was used.
 		default:
-			/**
-			 * tentative default value: the empty list
-			 */
+			// tentative default value: the empty list
 			// TODO user message
 			vars.clear();
 			return vars;
@@ -292,147 +329,105 @@ public class Formula {
 	}
 	
 	
+	/**
+	 * 
+	 * @return the Formula's entire truth table
+	 */
 	public JTable entireTruthTable() {
-		/**
-		 * initializing the greatest and least numbers
-		 * among the Formula's variables
-		 */
+		// initializing the greatest and least numbers
+		// among the Formula's variables
 		int maxVarNo = -1;
 		int minVarNo = -1;
-		/**
-		 * checking for each of the Formula's variable numbers
-		 * whether it's the greatest or the least
-		 */
+		// checking for each of the Formula's variable numbers
+		// whether it's the greatest or the least
 		for (int i : this.vars()) {
 			if (i > maxVarNo || maxVarNo == -1) {
-				/**
-				 * if a number is greater than the current maximum or there is
-				 * no maximum, the number becomes the new maximum
-				 */
+				// if a number is greater than the current maximum or there is
+				// no maximum, the number becomes the new maximum
 				maxVarNo = i;
 			}
 			if (i < minVarNo || minVarNo == -1) {
-				/**
-				 * if a number is less than the current minimum or there is
-				 * no minimum, the number becomes the new minimum
-				 */
+				// if a number is less than the current minimum or there is
+				// no minimum, the number becomes the new minimum
 				minVarNo = i;
 			}
 		}
-		/**
-		 * initializing a list for all variable numbers from minVarNo
-		 * to maxVarNo
-		 */
+		// initializing a list for all variable numbers from minVarNo
+		// to maxVarNo
 		LinkedList<Integer> vars = new LinkedList<Integer>();
-		/**
-		 * adding the variable numbers to the list
-		 */
+		// adding the variable numbers to the list
 		for (int i = minVarNo ; i <= maxVarNo ; i++) {
 			vars.add(i);
 		}
-		/**
-		 * returning the truth table for "all" variables
-		 */
+		// returning the truth table for "all" variables
 		return truthTable(vars);
 	}
 	
 	
+	/**
+	 * 
+	 * @param vars
+	 * @return the Formula's truth table showing only the given variables
+	 */
 	private JTable truthTable(LinkedList<Integer> vars) {
-		/**
-		 * initializing the column name array
-		 */
+		// initializing the column name array
 		String[] columnNames = new String[vars.size() + 1];
-		/**
-		 * making each of the Formula's variables a column name
-		 */
+		// making each of the Formula's variables a column name
 		for (int i : vars) {
 			columnNames[i - vars.getFirst()] = "X"+i;
 		}
-		/**
-		 * making the function value the last column name
-		 */
+		// making the function value the last column name
 		columnNames[vars.size()] =
 				"f(X" + vars.getFirst() + ",...,X" + vars.getLast() + ")";
-		/**
-		 * initializing the data array
-		 */
+		// initializing the data array
 		Integer[][] data = new Integer[vars.size() + 1]
 						[(int) Math.pow(2, vars.size())];
-		/**
-		 * writing zeros and ones for the variable values into the data array
-		 * 
-		 * iterating over the columns
-		 */
+		// writing zeros and ones for the variable values into the data array 
+		// iterating over the columns
 		for (int column = 0 ; column < vars.size() ; column++) {
-			/**
-			 * A row of zeros and then ones before the next zero
-			 * is considered a "run".
-			 */
+			// A row of zeros and then ones before the next zero
+			// is considered a "run".
 			for (int run = 0 ; run < Math.pow(2, column) ; run++) {
-				/**
-				 * A zero or one after (below) another instance of
-				 * the same number is considered a "repeat".
-				 */
+				// A zero or one after (below) another instance of
+				// the same number is considered a "repeat".
 				for (int repeat = 0 ; repeat < Math.pow(2, vars.size() - column- 1); repeat++) {
-					/**
-					 * Each "run" first has the repeats of zeros. 
-					 */
+					// Each "run" first has the repeats of zeros. 
 					data[column][(int) Math.pow(2, vars.size() - run) * run + repeat] = 0;
-					/**
-					 * After (below) the zeros there are the repeats of ones.
-					 */
+					// After (below) the zeros there are the repeats of ones.
 					data[column][(int) (Math.pow(2, vars.size() - run) * run +
 							Math.pow(2, vars.size() - run - 1)) + repeat] = 1;
 				}
 			}
 		}
-		/**
-		 * initializing the list for the assignments to calculate the values
-		 * for the last column
-		 */
+		// initializing the list for the assignments to calculate the values
+		// for the last column
 		LinkedList<Integer> assignedOne = new LinkedList<Integer>();
-		/**
-		 * calculating the values one row after another
-		 */
+		// calculating the values one row after another
 		for (int row = 0 ; row < Math.pow(2, vars.size()) ; row++) {
-			/**
-			 * clearing the assignment list
-			 */
+			// clearing the assignment list
 			assignedOne.clear();
-			/**
-			 * adding each variable in which's column is a one (in this row)
-			 * to the assignment list
-			 */
+			// adding each variable in which's column is a one (in this row)
+			// to the assignment list
 			for (int column = 0 ; column < vars.size() ; column++) {
 				if (data[column][row] == 1) {
-					/**
-					 * If there is a one in the column, the respective variable
-					 * is added to the assignment list.
-					 */
+					// If there is a one in the column, the respective variable
+					// is added to the assignment list.
 					assignedOne.add(vars.get(column));
 				}
 			}
-			/**
-			 * function value of this Formula's function under the assignment
-			 * represented by the row
-			 */
+			// function value of this Formula's function under the assignment
+			// represented by the row
 			boolean funVal = this.assign(assignedOne);
-			/**
-			 * transferring the boolean function value into one/zero and
-			 * writing it into the data array
-			 */
+			// transferring the boolean function value into one/zero and
+			// writing it into the data array
 			if (funVal) {
 				data[vars.size()][row] = 1;
 			}
 			else data[vars.size()][row] = 0;
 		}
-		/**
-		 * creating the truth table as a concrete JTable
-		 */
+		// creating the truth table as a concrete JTable
 		JTable truthTable = new JTable(data, columnNames);
-		/**
-		 * returning the truth table
-		 */
+		// returning the truth table
 		return truthTable;
 	}
 }
