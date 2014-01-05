@@ -88,12 +88,42 @@ public class VariableOrdering {
 	
 	
 	/**
-	 * Function that provides a variable's position in the order
+	 * function that provides a variable's position in the order
 	 * @param var
 	 * @return the variable's position (as integer)
 	 */
 	public int indexOf(int var) {
 		return this.ordList.indexOf(var);
+	}
+	
+	
+	/**
+	 * function that states if a variable has a lower position in this
+	 * variable ordering than another
+	 * @param a
+	 * @param b
+	 * @return boolean
+	 */
+	public boolean lowerPosition(int a, int b) {
+		// a higher index means a "lower" position
+		if (this.ordList.indexOf(a) > this.ordList.indexOf(b)) {
+			return true;
+		} else return false;
+	}
+	
+	
+	/**
+	 * function that states if a variable has a higher position in this
+	 * variable ordering than another
+	 * @param a
+	 * @param b
+	 * @return boolean
+	 */
+	public boolean higherPosition(int a, int b) {
+		// a lower index means a "higher" position
+		if (this.ordList.indexOf(a) < this.ordList.indexOf(b)) {
+			return true;
+		} else return false;
 	}
 
 }
