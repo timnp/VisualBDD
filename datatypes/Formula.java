@@ -374,28 +374,31 @@ public class Formula {
 		String[] columnNames = new String[vars.size() + 1];
 		// making each of the Formula's variables a column name
 		for (int i : vars) {
-			columnNames[i - vars.getFirst()] = "X"+i;
+			columnNames[vars.indexOf(i)] = "X"+i;
 		}
 		// making the function value the last column name
 		columnNames[vars.size()] =
 				"f(X" + vars.getFirst() + ",...,X" + vars.getLast() + ")";
 		// initializing the data array
-		Integer[][] data = new Integer[vars.size() + 1]
-						[(int) Math.pow(2, vars.size())];
+		Integer[][] data = new Integer[(int) Math.pow(2, vars.size())]
+						[vars.size() + 1];
 		// writing zeros and ones for the variable values into the data array 
 		// iterating over the columns
 		for (int column = 0 ; column < vars.size() ; column++) {
 			// A row of zeros and then ones before the next zero
 			// is considered a "run".
-			for (int run = 0 ; run < Math.pow(2, column) ; run++) {
-				// A zero or one after (below) another instance of
-				// the same number is considered a "repeat".
-				for (int repeat = 0 ; repeat < Math.pow(2, vars.size() - column- 1); repeat++) {
+			int maxRun = (int) Math.pow(2, column);
+			// A zero or one after (below) another instance of
+			// the same number is considered a "repeat".
+			int maxRepeat = (int) Math.pow(2, vars.size() - column - 1);
+			for (int run = 0 ; run < maxRun ; run++) {
+				for (int repeat = 0 ; repeat < maxRepeat; repeat++) {
 					// Each "run" first has the repeats of zeros. 
-					data[column][(int) Math.pow(2, vars.size() - run) * run + repeat] = 0;
+					data[(int) Math.pow(2, vars.size() - maxRun + 1) * run 
+					     + repeat][column] = 0;
 					// After (below) the zeros there are the repeats of ones.
-					data[column][(int) (Math.pow(2, vars.size() - run) * run +
-							Math.pow(2, vars.size() - run - 1)) + repeat] = 1;
+					data[(int) Math.pow(2, vars.size() - maxRun + 1) * run 
+							+ maxRepeat + repeat][column] = 1;
 				}
 			}
 		}
