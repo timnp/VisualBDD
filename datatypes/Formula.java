@@ -203,7 +203,7 @@ public class Formula {
 				this.constructor = 3;
 			// "+" stands for a logical disjunction
 			case "+":
-				this.constructor =4;
+				this.constructor = 4;
 			default:
 				//TODO user message
 			}
@@ -429,5 +429,33 @@ public class Formula {
 		JTable truthTable = new JTable(data, columnNames);
 		// returning the truth table
 		return truthTable;
+	}
+	
+	
+	/**
+	 * function that turns the Formula into a String
+	 */
+	public String toString() {
+		// switch for the possible constructors
+		switch (this.constructor) {
+		// first case: returning the variable
+		case 1:
+			return "X" + this.varNr;
+		// second case: returning the negated successor in parentheses
+		case 2:
+			return "(-" + this.firstSuccessor.toString() + ")";
+		// third case: returning the two successors combined by a symbol for
+		// logical conjunction (*) in parentheses
+		case 3:
+			return "(" + this.firstSuccessor.toString() 
+					+ " * " + this.secondSuccessor.toString() + ")";
+		// fourth case: returning the two successors combined by a symbol for
+		// logical disjunction (+) in parentheses
+		case 4:
+			return "(" + this.firstSuccessor.toString() 
+					+ " + " + this.secondSuccessor.toString() + ")";
+		default:
+			return "";
+		}
 	}
 }
