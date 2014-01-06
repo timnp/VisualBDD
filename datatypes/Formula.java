@@ -21,6 +21,7 @@ public class Formula {
 	private Formula secondSuccessor;
 	/**
 	 * number for used constructor:
+	 * 0 stands for a constant
 	 * 1 stands for a variable
 	 * 2 stands for NOT
 	 * 3 stands for AND
@@ -31,6 +32,10 @@ public class Formula {
 	 * variable number
 	 */
 	private int varNr;
+	/**
+	 * value (for constants)
+	 */
+	private boolean value;
 	
 	/**
 	 * private default constructor for smart "constructors"
@@ -45,6 +50,16 @@ public class Formula {
 	public Formula (int varNr) {
 		this.varNr = varNr;
 		this.constructor = 1;
+	}
+	
+	
+	/**
+	 * constructor for constants (not for external use)
+	 * @param val
+	 */
+	protected Formula(boolean val) {
+		this.value = val;
+		this.constructor = 0;
 	}
 	
 	
@@ -201,9 +216,11 @@ public class Formula {
 			// "*" stands for a logical conjunction
 			case "*":
 				this.constructor = 3;
+				break;
 			// "+" stands for a logical disjunction
 			case "+":
 				this.constructor = 4;
+				break;
 			default:
 				//TODO user message
 			}
@@ -219,6 +236,10 @@ public class Formula {
 	public boolean assign(LinkedList<Integer> assignedOne) {
 		// a switch for the possible constructors for this Formula
 		switch (constructor) {
+		// Zeroth case: The Formula represents a constant.
+		case 0:
+			// simply returning the constant's value
+			return this.value;
 		// First case: The Formula represents a variable.
 		case 1:
 			// If the variable is assigned the logical value one,
@@ -269,6 +290,12 @@ public class Formula {
 		LinkedList<Integer> vars = new LinkedList<Integer>();
 		// a switch for the possible constructors for this Formula
 		switch (constructor) {
+		// Zeroth case: The Formula represents a constant.
+		case 0:
+			// clearing the list
+			vars.clear();
+			// returning the list
+			return vars;
 		// First case: The Formula represents a variable.
 		case 1:
 			// clearing the list
@@ -435,10 +462,17 @@ public class Formula {
 	
 	/**
 	 * function that turns the Formula into a String
+	 * @Override
 	 */
 	public String toString() {
 		// switch for the possible constructors
 		switch (this.constructor) {
+		// zeroth case: returning either the tautological or the
+		// contradictory Formula respectively
+		case 0:
+			if (this.value) {
+				return "0";
+			} else return "1";
 		// first case: returning the variable
 		case 1:
 			return "X" + this.varNr;

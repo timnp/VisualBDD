@@ -310,7 +310,7 @@ public class OBDD {
 		else if (!this.terminal && !b.terminal && this.var == b.var) {
 			// applying the operation on the both nodes' high children
 			OBDD applyHighChildren = this.highChild.apply(b.highChild, op);
-			// apllying the operation on the both nodes' low children
+			// applying the operation on the both nodes' low children
 			OBDD applyLowChildren = this.lowChild.apply(b.lowChild, op);
 			// combining the two resulting nodes 
 			return applyHighChildren.cons(this.var, applyLowChildren);
@@ -364,17 +364,15 @@ public class OBDD {
 		// In the case of a terminal, a "base Formula" is constructed.
 		// (The constants true/1 and false/0 aren't implemented for Formulas.)
 		if (this.terminal) {
-			// Formula representing the variable X0
-			Formula x0 = new Formula(0);
 			if (this.value) {
-				// returning a tautological Formula if the node is the
+				// returning the tautological Formula if the node is the
 				// 1-terminal
-				return x0.or(x0.not());
+				return new Formula(true);
 			}
 			else {
-				// returning a contradictory Formula if the node is the
+				// returning the contradictory Formula if the node is the
 				// 0-terminal
-				return x0.and(x0.not());
+				return new Formula(false);
 			}
 		}
 		else {
