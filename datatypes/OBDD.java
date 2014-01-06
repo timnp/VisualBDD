@@ -470,6 +470,7 @@ public class OBDD {
 	
 	/**
 	 * method that negates an OBDD
+	 * (3.4.5)
 	 * @return the negated OBDD
 	 */
 	private OBDD negateRec() {
@@ -524,7 +525,7 @@ public class OBDD {
 	
 	/**
 	 * method that provides a satisfying assignment for this OBDD (if possible)
-	 * (Satz 3.2.3)
+	 * (3.2.3)
 	 */
 	private void satisfyRec() {
 		// If the node is a terminal, it's value is returned.
@@ -607,6 +608,7 @@ public class OBDD {
 	/**
 	 * Evaluates the formula represented by the OBDD relating to a given
 	 * assignment.
+	 * (3.2.1)
 	 * @param assignedOne - list of all variables assigned one
 	 * @return the value of the formula as a boolean
 	 */
