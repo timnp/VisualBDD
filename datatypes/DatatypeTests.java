@@ -1,6 +1,5 @@
 package datatypes;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 
 import javax.swing.JTable;
@@ -50,12 +49,16 @@ public class DatatypeTests {
 			c_ett_s += "| " + c_ett.getValueAt(i, c_ett.getColumnCount() - 1);
 			c_ett_s += "\n";
 		}
+		// "reading" a Formula: ((x1 and not(x2)) or not(x3))
+		Formula d = new Formula("((X1 * (-X2)) + (-X3))");
+		// turning the Formula back into a string
+		String d_string = d.toString();
 		// displaying the results
 		System.out.println("x1 is " + x1_eval + "\nx2 is " + x2_eval + "\n"
 		+ "x3 is " + x3_eval + "\n(x1 or x2) is " + a_eval + "\n"
 		+ "not(x3) is " + b_eval + "\n((x1 or x2) and not(x3)) is " + c_eval
-		+ "\n\nEntire truth table for ((x1 or x2) and not(x3)):"
-		+ c_ett_s);
+		+ "\n\nEntire truth table for ((x1 or x2) and not(x3)):" + c_ett_s
+		+ "\n((X1 * (-X2)) + (-X3)) =?=\n" + d_string);
 	}
 
 }
