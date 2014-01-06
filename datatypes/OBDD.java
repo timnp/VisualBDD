@@ -201,13 +201,29 @@ public class OBDD {
 	
 	
 	/**
+	 * function that provides the apply algorithm using a computed table
+	 * @param b
+	 * @param op
+	 * @return
+	 */
+	public OBDD apply(OBDD b, int op) {
+		// initializing an empty computed table
+		HashMap<Pair<Integer>,OBDD> cT =
+				new HashMap<Pair<Integer>,OBDD>();
+		// calling the actual (recursive) apply algorithm
+		return applyRec(b, op, cT);
+	}
+	
+	
+	/**
 	 * function that applies a boolean operation on two OBDDs
 	 * (3.5.4)
 	 * @param b - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
+	 * @param cT - the computed table for storing results
 	 * @return the resulting OBDD
 	 */
-	public OBDD apply(OBDD b, int op) {
+	private OBDD applyRec(OBDD b, int op, HashMap<Pair<Integer>,OBDD> cT) {
 		// If both OBDD nodes are terminals, the resulting terminal can be
 		// calculated by means of the boolean operation.
 		if (this.terminal && b.terminal) {
@@ -316,23 +332,22 @@ public class OBDD {
 		// If neither OBDD node is a terminal, 
 		// first the computed table is checked.
 		else {
-			// initializing an empty computed table
-			HashMap<Pair<Integer>,OBDD> cT =
-					new HashMap<Pair<Integer>,OBDD>();
 			// initializing a pair of the two OBDD nodes
 			Pair<Integer> applyPair = new Pair<Integer>(this.id, b.id);
 			// Return the OBDD stated for the two nodes in the computed table
 			// if there is one.
-			if (cT.containsValue(applyPair)) {
+			if (cT.containsKey(applyPair)) {
 				return cT.get(applyPair);
 			} else {
 				// If both nodes have the same variable,
 				// both nodes' children can be called recursively.
 				if (!this.terminal && !b.terminal && this.var == b.var) {
 					// applying the operation on the both nodes' high children
-					OBDD applyHighChildren = this.highChild.apply(b.highChild, op);
+					OBDD applyHighChildren = 
+							this.highChild.applyRec(b.highChild, op, cT);
 					// applying the operation on the both nodes' low children
-					OBDD applyLowChildren = this.lowChild.apply(b.lowChild, op);
+					OBDD applyLowChildren = 
+							this.lowChild.applyRec(b.lowChild, op, cT);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChildren.cons(this.var, applyLowChildren);
@@ -348,10 +363,10 @@ public class OBDD {
 				else if (!this.terminal && this.varOrd.higherPosition(this.var, b.var)) {
 					// applying the operation on this node's high child
 					// and the other node
-					OBDD applyHighChild = this.highChild.apply(b, op);
+					OBDD applyHighChild = this.highChild.applyRec(b, op, cT);
 					// applying the operation on this node's low child
 					// and the other node
-					OBDD applyLowChild = this.lowChild.apply(b, op);
+					OBDD applyLowChild = this.lowChild.applyRec(b, op, cT);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChild.cons(this.var, applyLowChild);
@@ -367,10 +382,10 @@ public class OBDD {
 				else {
 					// applying the operation on this node
 					// and the other node's high child
-					OBDD applyHighChild = this.apply(b.highChild, op);
+					OBDD applyHighChild = this.applyRec(b.highChild, op, cT);
 					// applying the operation on this node
 					// and the other node's low child
-					OBDD applyLowChild = this.apply(b.lowChild, op);
+					OBDD applyLowChild = this.applyRec(b.lowChild, op, cT);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChild.cons(this.var, applyLowChild);
@@ -398,10 +413,67 @@ public class OBDD {
 	
 	
 	/**
-	 * 
-	 * @return the Formula represented by the OBDD 
+	 * method that provides the negation algorithm on OBDDs
+	 * using a computed table
+	 * @return
+	 */
+	public OBDD negate() {
+		// initializing an empty computed table
+		HashMap<Integer,OBDD> cT = new HashMap<Integer,OBDD>();
+		// calling the actual (recursive) negate algorithm
+		return negateRec(cT);
+	}
+	
+	
+	/**
+	 * method that negates an OBDD
+	 * @param cT - the computed table for storing results
+	 * @return the negated OBDD
+	 */
+	public OBDD negateRec(HashMap<Integer,OBDD> cT) {
+		// If the node is a terminal, it's negation is the opposite terminal.
+		if (this.terminal) {
+			OBDD oppositeTerminal = booleanToOBDD(!this.value);
+			return oppositeTerminal;
+		}
+		else {
+			// Return the OBDD stated for this node in the computed table 
+			// (if there is one).
+			if (cT.containsKey(this.id)) {
+				return cT.get(this.id);
+			} else {
+				// negating the high child
+				OBDD negHC = this.highChild.negate();
+				// negating the low child
+				OBDD negLC = this.lowChild.negate();
+				// combining the two negated children
+				OBDD neg = negHC.cons(this.var, negLC);
+				// putting the negated node into the computed table
+				cT.put(this.id, neg);
+				// returning the negated node
+				return neg;
+			}
+		}
+	}
+	
+	
+	/**
+	 * function that provides the toFormula method using a computed table
+	 * @return
 	 */
 	public Formula toFormula() {
+		// initializing the computed table
+		HashMap<Integer, Formula> cT = new HashMap<Integer, Formula>();
+		// calling the actual (recursive) toFormula method
+		return toFormulaRec(cT);
+	}
+	
+	
+	/**
+	 * @param cT - the computed table for storing results
+	 * @return the Formula represented by the OBDD 
+	 */
+	private Formula toFormulaRec(HashMap<Integer, Formula> cT) {
 		// In the case of a terminal, a "base Formula" is constructed.
 		// (The constants true/1 and false/0 aren't implemented for Formulas.)
 		if (this.terminal) {
@@ -417,16 +489,26 @@ public class OBDD {
 			}
 		}
 		else {
-			// Formula representing the node's variable
-			Formula xn = new Formula(this.var);
-			// Formula represented by the OBDD induced by the node's high child
-			Formula hcFormula = this.highChild.toFormula();
-			// Formula represented by the OBDD induced by the node's low child
-			Formula lcFormula = this.lowChild.toFormula();
-			// Shannon expansion
-			Formula shannon = xn.and(hcFormula).or(xn.not().and(lcFormula));
-			// returning the Formula, reducing constants
-			return shannon.reduceConstants();
+			// Return the Formula stated in the computed table for this node
+			// (if there is one).
+			if (cT.containsKey(this.id)) {
+				return cT.get(this.id);
+			} else {
+				// Formula representing the node's variable
+				Formula xn = new Formula(this.var);
+				// Formula represented by the OBDD induced by the node's high child
+				Formula hcFormula = this.highChild.toFormulaRec(cT);
+				// Formula represented by the OBDD induced by the node's low child
+				Formula lcFormula = this.lowChild.toFormulaRec(cT);
+				// Shannon expansion
+				Formula shannon = xn.and(hcFormula).or(xn.not().and(lcFormula));
+				// returning the Formula, reducing constants
+				Formula shannonRC = shannon.reduceConstants();
+				// putting the Formula into the computed table
+				cT.put(this.id, shannonRC);
+				// returning the Formula
+				return shannonRC;
+			}
 		}
 	}
 	
@@ -468,13 +550,26 @@ public class OBDD {
 		// using the "assign" function of the Formula data type
 		return this.toFormula().assign(assignedOne);
 	}
+
+	
+	/**
+	 * function that provides the number algorithm using a computed table
+	 * @return
+	 */
+	public int number() {
+		// initializing an empty computed table
+		HashMap<Integer, Integer> cT = new HashMap<Integer, Integer>();
+		// calling the actual (recursive) number algorithm
+		return numberRec(cT);
+	}
 	
 	
 	/**
 	 * function that provides the number of satisfying assignments for the OBDD
+	 * @param cT - the computed table for storing results
 	 * @return the number of satisfying assignments
 	 */
-	public int number() {
+	private int numberRec(HashMap<Integer, Integer> cT) {
 		// If the node is a terminal, the number of satisfying assignments can
 		// easily be returned.
 		if (this.terminal) {
@@ -488,24 +583,34 @@ public class OBDD {
 				return 0;
 			}
 		}
-		// If the node is a decision node, the number of satisfying assignments
-		// is calculated by summing the numbers of satisfying assignments for
-		// both children.
 		else {
-			// position of this node's variable in the variable ordering
-			int varPos = this.varOrd.indexOf(this.var);
-			// position of the high child's variable in the variable ordering
-			// (The variable ordering has to be the same in the entire OBDD.)
-			int hcVarPos = this.varOrd.indexOf(this.highChild.var);
-			// position of the low child's variable in the variable ordering
-			int lcVarPos = this.varOrd.indexOf(this.lowChild.var);
-			// the high child's number of satisfying assignments 
-			int hcNumber = this.highChild.number();
-			// the low child's number of satisfying assignments
-			int lcNumber = this.lowChild.number();
-			// Satz 3.2.6
-			return (int) ((hcNumber * Math.pow(2, hcVarPos - varPos) + 
-					lcNumber * Math.pow(2, lcVarPos - varPos)) / 2);
+			// Return the number stated for this node in the computed table
+			// (if there is one).
+			if (cT.containsKey(this.id)) {
+				return cT.get(this.id);
+			}
+			// Otherwise the number of satisfying assignments is calculated by 
+			// summing the numbers of satisfying assignments for both children.
+			else {
+				// position of this node's variable in the variable ordering
+				int varPos = this.varOrd.indexOf(this.var);
+				// position of the high child's variable in the variable ordering
+				// (The variable ordering has to be the same in the entire OBDD.)
+				int hcVarPos = this.varOrd.indexOf(this.highChild.var);
+				// position of the low child's variable in the variable ordering
+				int lcVarPos = this.varOrd.indexOf(this.lowChild.var);
+				// the high child's number of satisfying assignments 
+				int hcNumber = this.highChild.numberRec(cT);
+				// the low child's number of satisfying assignments
+				int lcNumber = this.lowChild.numberRec(cT);
+				// Satz 3.2.6
+				int number = (int) ((hcNumber * Math.pow(2, hcVarPos - varPos) 
+						+ lcNumber * Math.pow(2, lcVarPos - varPos)) / 2);
+				// putting the number for this node into the computed table
+				cT.put(this.id, number);
+				// returning the number
+				return number;
+			}
 		}
 	}
 	
@@ -555,33 +660,45 @@ public class OBDD {
 	
 	
 	/**
+	 * function that provides the equivalence test 
+	 * using a computed table for storing results
 	 * @param otherNode
-	 * @return whether another node is equivalent to this node
+	 * @return
 	 */
 	public boolean isEquivalent(OBDD otherNode) {
+		// initializing an empty computed table
+		HashMap<Pair<Integer>,Boolean> cT =
+				new HashMap<Pair<Integer>,Boolean>();
+		// calling the actual (recursive) equivalence test
+		return isEquivalentRec(otherNode, cT);
+	}
+	
+	
+	/**
+	 * @param otherNode
+	 * @param cT - the computed table for storing results
+	 * @return whether another node is equivalent to this node
+	 */
+	private boolean isEquivalentRec(OBDD otherNode, HashMap<Pair<Integer>,Boolean> cT) {
 		// If at least one of the two nodes is a terminal,
 		// they aren't equivalent unless they're the same.
 		if (this.terminal || otherNode.terminal) {
 			return (this.id == otherNode.id);
 		}
 		else {
-			// initializing an empty computed table
-			HashMap<Pair<Integer>,Boolean> cT =
-					new HashMap<Pair<Integer>,Boolean>();
 			// initializing a pair of the two OBDDs
 			Pair<Integer> checkPair = new Pair<Integer>(this.id,otherNode.id);
 			// Return the value stated for the two nodes in the computed table
 			// if there is one.
-			if (cT.containsValue(checkPair)) {
+			if (cT.containsKey(checkPair)) {
 				return cT.get(checkPair);
-			}
-			else {
+			} else {
 				// For equivalence the two high children have to be equivalent.
 				boolean equivalentHC =
-						this.highChild.isEquivalent(otherNode.highChild);
+						this.highChild.isEquivalentRec(otherNode.highChild, cT);
 				// For equivalence the two low children have to be equivalent.
 				boolean equivalentLC =
-						this.lowChild.isEquivalent(otherNode.lowChild);
+						this.lowChild.isEquivalentRec(otherNode.lowChild, cT);
 				// For equivalence the two variables have to be equivalent.
 				boolean equivalentVar = this.var == otherNode.var;
 				// combining all three criteria
