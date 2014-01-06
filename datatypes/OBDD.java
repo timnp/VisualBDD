@@ -184,10 +184,18 @@ public class OBDD {
 		newNode.highChild = this;
 		// The given node becomes the new node's low child.
 		newNode.lowChild = lowChild;
-		// The new node becomes a parent of this node.
-		this.parents.add(newNode);
+		// The new node's parent list is initialized.
+		newNode.parents = new LinkedList<OBDD>();
+		// The new node becomes a parent of this node
+		// if this node isn't a terminal.
+		if (!this.terminal) {
+			this.parents.add(newNode);			
+		}
 		// The new node becomes a parent of the given node.
-		lowChild.parents.add(newNode);
+		// if this node isn't a terminal.
+		if (!lowChild.terminal) {
+			lowChild.parents.add(newNode);			
+		}
 		return newNode;
 	}
 	
