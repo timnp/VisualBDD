@@ -493,4 +493,87 @@ public class Formula {
 			return "";
 		}
 	}
+	
+	
+	public Formula reduceConstants() {
+		// switch for the possible constructors
+		switch (this.constructor) {
+		// Zeroth case: The Formula represents a constant and can't be reduced.
+		case 0:
+			return this;
+		// First case: The Formula represents a variable and can't be reduced.
+		case 1:
+			return this;
+		// Second case: The Formula represents a logical negation.
+		case 2:
+			// First the successor is reduced.
+			Formula rcSuccessor = this.firstSuccessor.reduceConstants();
+			// If the reduced successor is a constant,
+			// the opposite constant is returned.
+			if (rcSuccessor.constructor == 0) {
+				return new Formula(!rcSuccessor.value);
+			}
+			// Otherwise the negation of the reduced successor is returned.
+			else {
+				 return rcSuccessor.not();
+			}
+		// Third case: The Formula represents a logical conjunction.
+		case 3:
+			// First the two successors are reduced.
+			Formula rcFirstSuccessor = this.firstSuccessor.reduceConstants();
+			Formula rcSecondSuccessor = this.secondSuccessor.reduceConstants();
+			if (rcFirstSuccessor.constructor == 0) {
+				// If the first successor is the tautological Formula,
+				// the second successor is returned.
+				if (rcFirstSuccessor.value) {
+					return rcSecondSuccessor;
+				}
+				// If the first successor is the contradictory Formula,
+				// it is returned.
+				else return rcFirstSuccessor;
+			} else if (rcSecondSuccessor.constructor == 0) {
+				// If the second successor is the tautological Formula,
+				// the first successor is returned.
+				if (rcSecondSuccessor.value) {
+					return rcFirstSuccessor;
+				}
+				// If the second successor is the contradictory Formula,
+				// it is returned.
+				else return rcSecondSuccessor;
+			// If none of the two successors is a constant, 
+			// their conjunction is returned.
+			} else return rcFirstSuccessor.and(rcSecondSuccessor);
+		// Fourth case: The Formula represents a logical disjunction.
+		case 4:
+			// First the two successors are reduced.
+			rcFirstSuccessor = this.firstSuccessor.reduceConstants();
+			rcSecondSuccessor = this.secondSuccessor.reduceConstants();
+			if (rcFirstSuccessor.constructor == 0) {
+				// If the first successor is the tautological Formula,
+				// it is returned.
+				if (rcFirstSuccessor.value) {
+					return rcFirstSuccessor;
+				}
+				// If the first successor is the contradictory Formula,
+				// the second successor is returned.
+				else return rcSecondSuccessor;
+			} else if (rcSecondSuccessor.constructor == 0) {
+				// If the second successor is the tautological Formula,
+				// it is returned.
+				if (rcSecondSuccessor.value) {
+					return rcSecondSuccessor;
+				}
+				// If the second successor is the contradictory Formula,
+				// the first successor is returned.
+				else return rcFirstSuccessor;
+			// If none of the two successors is a constant, 
+			// their conjunction is returned.
+			} else return rcFirstSuccessor.and(rcSecondSuccessor);
+		// Default case: None of the given constructors was used.
+		default:
+			// tentative value: the Formula itself
+			// TODO user message
+			return this;
+		}
+	}
 }

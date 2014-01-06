@@ -383,7 +383,9 @@ public class OBDD {
 			// Formula represented by the OBDD induced by the node's low child
 			Formula lcFormula = this.lowChild.toFormula();
 			// Shannon expansion
-			return xn.and(hcFormula).or(xn.not().and(lcFormula));
+			Formula shannon = xn.and(hcFormula).or(xn.not().and(lcFormula));
+			// returning the Formula, reducing constants
+			return shannon.reduceConstants();
 		}
 	}
 	
