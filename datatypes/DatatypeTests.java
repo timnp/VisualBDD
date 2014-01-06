@@ -53,12 +53,23 @@ public class DatatypeTests {
 		Formula d = new Formula("((X1 * (-X2)) + (-X3))");
 		// turning the Formula back into a string
 		String d_string = d.toString();
+		// constructing a small OBDD
+		OBDD nodeD = OBDD.ONE.cons(3, OBDD.ZERO);
+		OBDD nodeC = nodeD.cons(2, OBDD.ZERO);
+		OBDD nodeB = OBDD.ONE.cons(2, nodeD);
+		OBDD nodeA = nodeB.cons(1, nodeC);
+		// the OBDD's (Node A's) Formula
+		Formula nodeAFormula = nodeA.toFormula();
+		// turning the OBDD's Formula into a string
+		String nodeAFormula_String = nodeAFormula.toString();
+		
 		// displaying the results
 		System.out.println("x1 is " + x1_eval + "\nx2 is " + x2_eval + "\n"
 		+ "x3 is " + x3_eval + "\n(x1 or x2) is " + a_eval + "\n"
 		+ "not(x3) is " + b_eval + "\n((x1 or x2) and not(x3)) is " + c_eval
 		+ "\n\nEntire truth table for ((x1 or x2) and not(x3)):" + c_ett_s
-		+ "\n((X1 * (-X2)) + (-X3)) =?=\n" + d_string);
+		+ "\n((X1 * (-X2)) + (-X3)) =?=\n" + d_string 
+		+ "\nThe OBDD's Formula:\n" + nodeAFormula_String);
 	}
 
 }
