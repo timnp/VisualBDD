@@ -568,7 +568,7 @@ public class Formula {
 				else return rcFirstSuccessor;
 			// If none of the two successors is a constant, 
 			// their conjunction is returned.
-			} else return rcFirstSuccessor.and(rcSecondSuccessor);
+			} else return rcFirstSuccessor.or(rcSecondSuccessor);
 		// Default case: None of the given constructors was used.
 		default:
 			// tentative value: the Formula itself
