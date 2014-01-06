@@ -313,41 +313,74 @@ public class OBDD {
 				return ZERO;
 			}
 		}
-		// If neither OBDD node is a terminal and both have the same variable,
-		// both nodes' children can be called recursively.
-		else if (!this.terminal && !b.terminal && this.var == b.var) {
-			// applying the operation on the both nodes' high children
-			OBDD applyHighChildren = this.highChild.apply(b.highChild, op);
-			// applying the operation on the both nodes' low children
-			OBDD applyLowChildren = this.lowChild.apply(b.lowChild, op);
-			// combining the two resulting nodes 
-			return applyHighChildren.cons(this.var, applyLowChildren);
-		}
-		// If this OBDD node isn't a terminal and it's variable has a higher
-		// position in the variable ordering than the other node's one, only
-		// this node's children are called recursively (here).
-		else if (!this.terminal && this.varOrd.higherPosition(this.var, b.var)) {
-			// applying the operation on this node's high child
-			// and the other node
-			OBDD applyHighChild = this.highChild.apply(b, op);
-			// applying the operation on this node's low child
-			// and the other node
-			OBDD applyLowChild = this.lowChild.apply(b, op);
-			// combining the two resulting nodes
-			return applyHighChild.cons(this.var, applyLowChild);
-		}
-		// Otherwise the other node isn't a terminal and it's variable has a
-		// higher position in the variable ordering than this node's one.
-		// So only the other node's children are called recursively (here).
+		// If neither OBDD node is a terminal, 
+		// first the computed table is checked.
 		else {
-			// applying the operation on this node
-			// and the other node's high child
-			OBDD applyHighChild = this.apply(b.highChild, op);
-			// applying the operation on this node
-			// and the other node's low child
-			OBDD applyLowChild = this.apply(b.lowChild, op);
-			// combining the two resulting nodes
-			return applyHighChild.cons(this.var, applyLowChild);
+			// initializing an empty computed table
+			HashMap<Pair<Integer>,OBDD> cT =
+					new HashMap<Pair<Integer>,OBDD>();
+			// initializing a pair of the two OBDD nodes
+			Pair<Integer> applyPair = new Pair<Integer>(this.id, b.id);
+			// Return the OBDD stated for the two nodes in the computed table
+			// if there is one.
+			if (cT.containsValue(applyPair)) {
+				return cT.get(applyPair);
+			} else {
+				// If both nodes have the same variable,
+				// both nodes' children can be called recursively.
+				if (!this.terminal && !b.terminal && this.var == b.var) {
+					// applying the operation on the both nodes' high children
+					OBDD applyHighChildren = this.highChild.apply(b.highChild, op);
+					// applying the operation on the both nodes' low children
+					OBDD applyLowChildren = this.lowChild.apply(b.lowChild, op);
+					// combining the two resulting nodes
+					OBDD newNode = 
+							applyHighChildren.cons(this.var, applyLowChildren);
+					// putting the resulting node for the two nodes
+					// into the computed table
+					cT.put(applyPair, newNode);
+					// returning the node
+					return newNode;
+				}
+				// If this OBDD node isn't a terminal and it's variable has a higher
+				// position in the variable ordering than the other node's one, only
+				// this node's children are called recursively (here).
+				else if (!this.terminal && this.varOrd.higherPosition(this.var, b.var)) {
+					// applying the operation on this node's high child
+					// and the other node
+					OBDD applyHighChild = this.highChild.apply(b, op);
+					// applying the operation on this node's low child
+					// and the other node
+					OBDD applyLowChild = this.lowChild.apply(b, op);
+					// combining the two resulting nodes
+					OBDD newNode = 
+							applyHighChild.cons(this.var, applyLowChild);
+					// putting the resulting node for the two nodes
+					// into the computed table
+					cT.put(applyPair, newNode);
+					// returning the node
+					return newNode;
+				}
+				// Otherwise the other node isn't a terminal and it's variable has a
+				// higher position in the variable ordering than this node's one.
+				// So only the other node's children are called recursively (here).
+				else {
+					// applying the operation on this node
+					// and the other node's high child
+					OBDD applyHighChild = this.apply(b.highChild, op);
+					// applying the operation on this node
+					// and the other node's low child
+					OBDD applyLowChild = this.apply(b.lowChild, op);
+					// combining the two resulting nodes
+					OBDD newNode = 
+							applyHighChild.cons(this.var, applyLowChild);
+					// putting the resulting node for the two nodes
+					// into the computed table
+					cT.put(applyPair, newNode);
+					// returning the node
+					return newNode;
+				}				
+			}
 		}
 	}
 	
@@ -499,15 +532,12 @@ public class OBDD {
 				// moving the first node from the residual layer list
 				// to the candidate list
 				candidates.add(residualLayerList.removeFirst());
-				// initializing an empty computed table
-				HashMap<Pair<Integer>,Boolean> emptyCT =
-						new HashMap<Pair<Integer>,Boolean>();
 				// checking for each node of the residual layer list
 				// whether it's equivalent to the first candidate node
 				for (OBDD secondCandidate : residualLayerList) {
 					// If the two nodes are equivalent,
 					// return the list with the two of them.
-					if (candidates.getFirst().isEquivalent(secondCandidate, emptyCT)) {
+					if (candidates.getFirst().isEquivalent(secondCandidate)) {
 						candidates.add(secondCandidate);
 						return candidates;
 					}
@@ -526,16 +556,18 @@ public class OBDD {
 	
 	/**
 	 * @param otherNode
-	 * @param cT
 	 * @return whether another node is equivalent to this node
 	 */
-	public boolean isEquivalent(OBDD otherNode, HashMap<Pair<Integer>, Boolean> cT) {
+	public boolean isEquivalent(OBDD otherNode) {
 		// If at least one of the two nodes is a terminal,
 		// they aren't equivalent unless they're the same.
 		if (this.terminal || otherNode.terminal) {
-			return (this == otherNode);
+			return (this.id == otherNode.id);
 		}
 		else {
+			// initializing an empty computed table
+			HashMap<Pair<Integer>,Boolean> cT =
+					new HashMap<Pair<Integer>,Boolean>();
 			// initializing a pair of the two OBDDs
 			Pair<Integer> checkPair = new Pair<Integer>(this.id,otherNode.id);
 			// Return the value stated for the two nodes in the computed table
@@ -546,10 +578,10 @@ public class OBDD {
 			else {
 				// For equivalence the two high children have to be equivalent.
 				boolean equivalentHC =
-						this.highChild.isEquivalent(otherNode.highChild, cT);
+						this.highChild.isEquivalent(otherNode.highChild);
 				// For equivalence the two low children have to be equivalent.
 				boolean equivalentLC =
-						this.lowChild.isEquivalent(otherNode.lowChild, cT);
+						this.lowChild.isEquivalent(otherNode.lowChild);
 				// For equivalence the two variables have to be equivalent.
 				boolean equivalentVar = this.var == otherNode.var;
 				// combining all three criteria
