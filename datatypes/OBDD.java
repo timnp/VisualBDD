@@ -84,6 +84,46 @@ public class OBDD {
 	public static final int NAND = 14;
 	public static final int TAUTOLOGY = 15;
 	
+	/**
+	 * computed table for the apply algorithm
+	 */
+	private static HashMap<Pair<Integer>, OBDD> applyCT = 
+			new HashMap<Pair<Integer>, OBDD>();
+	
+	/**
+	 * computed table for the negation algorithm
+	 */
+	private static HashMap<Integer,OBDD> negCT = 
+			new HashMap<Integer,OBDD>();
+	
+	/**
+	 * computed table for the toFormula method
+	 */
+	private static HashMap<Integer, Formula> formulaCT = 
+			new HashMap<Integer, Formula>();
+	
+	/**
+	 * computed table for the number algorithm
+	 */
+	private static HashMap<Integer, Integer> numberCT = 
+			new HashMap<Integer, Integer>();
+	
+	/**
+	 * computed table for the equivalence test
+	 */
+	private static HashMap<Pair<Integer>,Boolean> equivCT = 
+			new HashMap<Pair<Integer>,Boolean>();
+	
+	/**
+	 * list of variables assigned one for the satisfaction algorithm
+	 */
+	private static LinkedList<Integer> satAO = new LinkedList<Integer>();
+	
+	/**
+	 * boolean value for the satisfaction algorithm
+	 */
+	private static boolean satVal;
+	
 	
 	
 	/**
@@ -201,17 +241,19 @@ public class OBDD {
 	
 	
 	/**
-	 * function that provides the apply algorithm using a computed table
+	 * function that provides the apply algorithm
+	 * and clears the computed table afterwards
 	 * @param b
 	 * @param op
 	 * @return
 	 */
 	public OBDD apply(OBDD b, int op) {
-		// initializing an empty computed table
-		HashMap<Pair<Integer>,OBDD> cT =
-				new HashMap<Pair<Integer>,OBDD>();
 		// calling the actual (recursive) apply algorithm
-		return applyRec(b, op, cT);
+		OBDD result = applyRec(b, op);
+		// clearing the computed table
+		applyCT.clear();
+		// returning the result
+		return result;
 	}
 	
 	
@@ -220,10 +262,9 @@ public class OBDD {
 	 * (3.5.4)
 	 * @param b - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
-	 * @param cT - the computed table for storing results
 	 * @return the resulting OBDD
 	 */
-	private OBDD applyRec(OBDD b, int op, HashMap<Pair<Integer>,OBDD> cT) {
+	private OBDD applyRec(OBDD b, int op) {
 		// If both OBDD nodes are terminals, the resulting terminal can be
 		// calculated by means of the boolean operation.
 		if (this.terminal && b.terminal) {
@@ -336,24 +377,24 @@ public class OBDD {
 			Pair<Integer> applyPair = new Pair<Integer>(this.id, b.id);
 			// Return the OBDD stated for the two nodes in the computed table
 			// if there is one.
-			if (cT.containsKey(applyPair)) {
-				return cT.get(applyPair);
+			if (applyCT.containsKey(applyPair)) {
+				return applyCT.get(applyPair);
 			} else {
 				// If both nodes have the same variable,
 				// both nodes' children can be called recursively.
 				if (!this.terminal && !b.terminal && this.var == b.var) {
 					// applying the operation on the both nodes' high children
 					OBDD applyHighChildren = 
-							this.highChild.applyRec(b.highChild, op, cT);
+							this.highChild.applyRec(b.highChild, op);
 					// applying the operation on the both nodes' low children
 					OBDD applyLowChildren = 
-							this.lowChild.applyRec(b.lowChild, op, cT);
+							this.lowChild.applyRec(b.lowChild, op);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChildren.cons(this.var, applyLowChildren);
 					// putting the resulting node for the two nodes
 					// into the computed table
-					cT.put(applyPair, newNode);
+					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
 				}
@@ -363,16 +404,16 @@ public class OBDD {
 				else if (!this.terminal && this.varOrd.higherPosition(this.var, b.var)) {
 					// applying the operation on this node's high child
 					// and the other node
-					OBDD applyHighChild = this.highChild.applyRec(b, op, cT);
+					OBDD applyHighChild = this.highChild.applyRec(b, op);
 					// applying the operation on this node's low child
 					// and the other node
-					OBDD applyLowChild = this.lowChild.applyRec(b, op, cT);
+					OBDD applyLowChild = this.lowChild.applyRec(b, op);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChild.cons(this.var, applyLowChild);
 					// putting the resulting node for the two nodes
 					// into the computed table
-					cT.put(applyPair, newNode);
+					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
 				}
@@ -382,16 +423,16 @@ public class OBDD {
 				else {
 					// applying the operation on this node
 					// and the other node's high child
-					OBDD applyHighChild = this.applyRec(b.highChild, op, cT);
+					OBDD applyHighChild = this.applyRec(b.highChild, op);
 					// applying the operation on this node
 					// and the other node's low child
-					OBDD applyLowChild = this.applyRec(b.lowChild, op, cT);
+					OBDD applyLowChild = this.applyRec(b.lowChild, op);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChild.cons(this.var, applyLowChild);
 					// putting the resulting node for the two nodes
 					// into the computed table
-					cT.put(applyPair, newNode);
+					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
 				}				
@@ -414,23 +455,24 @@ public class OBDD {
 	
 	/**
 	 * method that provides the negation algorithm on OBDDs
-	 * using a computed table
+	 * and clears the computed table afterwards
 	 * @return
 	 */
 	public OBDD negate() {
-		// initializing an empty computed table
-		HashMap<Integer,OBDD> cT = new HashMap<Integer,OBDD>();
 		// calling the actual (recursive) negate algorithm
-		return negateRec(cT);
+		OBDD result = negateRec();
+		// clearing the computed table
+		negCT.clear();
+		// returning the result
+		return result;
 	}
 	
 	
 	/**
 	 * method that negates an OBDD
-	 * @param cT - the computed table for storing results
 	 * @return the negated OBDD
 	 */
-	public OBDD negateRec(HashMap<Integer,OBDD> cT) {
+	private OBDD negateRec() {
 		// If the node is a terminal, it's negation is the opposite terminal.
 		if (this.terminal) {
 			OBDD oppositeTerminal = booleanToOBDD(!this.value);
@@ -439,8 +481,8 @@ public class OBDD {
 		else {
 			// Return the OBDD stated for this node in the computed table 
 			// (if there is one).
-			if (cT.containsKey(this.id)) {
-				return cT.get(this.id);
+			if (negCT.containsKey(this.id)) {
+				return negCT.get(this.id);
 			} else {
 				// negating the high child
 				OBDD negHC = this.highChild.negate();
@@ -449,7 +491,7 @@ public class OBDD {
 				// combining the two negated children
 				OBDD neg = negHC.cons(this.var, negLC);
 				// putting the negated node into the computed table
-				cT.put(this.id, neg);
+				negCT.put(this.id, neg);
 				// returning the negated node
 				return neg;
 			}
@@ -458,22 +500,71 @@ public class OBDD {
 	
 	
 	/**
-	 * function that provides the toFormula method using a computed table
+	 * method that provides the satisfaction algorithm 
+	 * and clears the assignment and the value before
 	 * @return
 	 */
-	public Formula toFormula() {
-		// initializing the computed table
-		HashMap<Integer, Formula> cT = new HashMap<Integer, Formula>();
-		// calling the actual (recursive) toFormula method
-		return toFormulaRec(cT);
+	public LinkedList<Integer> satisfy() {
+		// clearing the assignment and the value
+		satAO.clear();
+		satVal = false;
+		// calling the actual (recursive) satisfy algorithm
+		satisfyRec();
+		// If the value is one, the assignment currently stored in satAO
+		// is a satisfying one and therefore returned.
+		if (satVal) {
+			return satAO;
+		} else {
+			// tentative value: null
+			// TODO user message
+			return null;
+		}
 	}
 	
 	
 	/**
-	 * @param cT - the computed table for storing results
+	 * method that provides a satisfying assignment for this OBDD (if possible)
+	 * (Satz 3.2.3)
+	 */
+	private void satisfyRec() {
+		// If the node is a terminal, it's value is returned.
+		if (this.terminal) {
+			satVal = this.value;
+		} else {
+			// First the node's variable is assigned one
+			satAO.add(this.var);
+			// The search continues from the high child on.
+			this.highChild.satisfyRec();
+			if (!satVal) {
+				// If the current assignment isn't a satisfying one,
+				// zero is tested for this node's variable.
+				satAO.removeFirstOccurrence(this.var);
+				// The search then continues from the low child on.
+				this.lowChild.satisfyRec();
+			}
+		}
+	}
+	
+	
+	/**
+	 * function that provides the toFormula method 
+	 * and clears the computed table afterwards
+	 * @return
+	 */
+	public Formula toFormula() {
+		// calling the actual (recursive) toFormula method
+		Formula result = toFormulaRec();
+		// clearing the computed table
+		formulaCT.clear();
+		// returning the result
+		return result;
+	}
+	
+	
+	/**
 	 * @return the Formula represented by the OBDD 
 	 */
-	private Formula toFormulaRec(HashMap<Integer, Formula> cT) {
+	private Formula toFormulaRec() {
 		// In the case of a terminal, a "base Formula" is constructed.
 		// (The constants true/1 and false/0 aren't implemented for Formulas.)
 		if (this.terminal) {
@@ -491,21 +582,21 @@ public class OBDD {
 		else {
 			// Return the Formula stated in the computed table for this node
 			// (if there is one).
-			if (cT.containsKey(this.id)) {
-				return cT.get(this.id);
+			if (formulaCT.containsKey(this.id)) {
+				return formulaCT.get(this.id);
 			} else {
 				// Formula representing the node's variable
 				Formula xn = new Formula(this.var);
 				// Formula represented by the OBDD induced by the node's high child
-				Formula hcFormula = this.highChild.toFormulaRec(cT);
+				Formula hcFormula = this.highChild.toFormulaRec();
 				// Formula represented by the OBDD induced by the node's low child
-				Formula lcFormula = this.lowChild.toFormulaRec(cT);
+				Formula lcFormula = this.lowChild.toFormulaRec();
 				// Shannon expansion
 				Formula shannon = xn.and(hcFormula).or(xn.not().and(lcFormula));
 				// returning the Formula, reducing constants
 				Formula shannonRC = shannon.reduceConstants();
 				// putting the Formula into the computed table
-				cT.put(this.id, shannonRC);
+				formulaCT.put(this.id, shannonRC);
 				// returning the Formula
 				return shannonRC;
 			}
@@ -553,23 +644,25 @@ public class OBDD {
 
 	
 	/**
-	 * function that provides the number algorithm using a computed table
+	 * function that provides the number algorithm 
+	 * and clears the computed table afterwards
 	 * @return
 	 */
 	public int number() {
-		// initializing an empty computed table
-		HashMap<Integer, Integer> cT = new HashMap<Integer, Integer>();
 		// calling the actual (recursive) number algorithm
-		return numberRec(cT);
+		int result = numberRec();
+		// clearing the computed table
+		numberCT.clear();
+		// returning the result
+		return result;
 	}
 	
 	
 	/**
 	 * function that provides the number of satisfying assignments for the OBDD
-	 * @param cT - the computed table for storing results
 	 * @return the number of satisfying assignments
 	 */
-	private int numberRec(HashMap<Integer, Integer> cT) {
+	private int numberRec() {
 		// If the node is a terminal, the number of satisfying assignments can
 		// easily be returned.
 		if (this.terminal) {
@@ -586,8 +679,8 @@ public class OBDD {
 		else {
 			// Return the number stated for this node in the computed table
 			// (if there is one).
-			if (cT.containsKey(this.id)) {
-				return cT.get(this.id);
+			if (numberCT.containsKey(this.id)) {
+				return numberCT.get(this.id);
 			}
 			// Otherwise the number of satisfying assignments is calculated by 
 			// summing the numbers of satisfying assignments for both children.
@@ -600,14 +693,14 @@ public class OBDD {
 				// position of the low child's variable in the variable ordering
 				int lcVarPos = this.varOrd.indexOf(this.lowChild.var);
 				// the high child's number of satisfying assignments 
-				int hcNumber = this.highChild.numberRec(cT);
+				int hcNumber = this.highChild.numberRec();
 				// the low child's number of satisfying assignments
-				int lcNumber = this.lowChild.numberRec(cT);
+				int lcNumber = this.lowChild.numberRec();
 				// Satz 3.2.6
 				int number = (int) ((hcNumber * Math.pow(2, hcVarPos - varPos) 
 						+ lcNumber * Math.pow(2, lcVarPos - varPos)) / 2);
 				// putting the number for this node into the computed table
-				cT.put(this.id, number);
+				numberCT.put(this.id, number);
 				// returning the number
 				return number;
 			}
@@ -661,25 +754,25 @@ public class OBDD {
 	
 	/**
 	 * function that provides the equivalence test 
-	 * using a computed table for storing results
+	 * and clears the computed table afterwards
 	 * @param otherNode
 	 * @return
 	 */
 	public boolean isEquivalent(OBDD otherNode) {
-		// initializing an empty computed table
-		HashMap<Pair<Integer>,Boolean> cT =
-				new HashMap<Pair<Integer>,Boolean>();
 		// calling the actual (recursive) equivalence test
-		return isEquivalentRec(otherNode, cT);
+		boolean result = isEquivalentRec(otherNode);
+		// clearing the computed table
+		equivCT.clear();
+		// returning the result
+		return result;
 	}
 	
 	
 	/**
 	 * @param otherNode
-	 * @param cT - the computed table for storing results
 	 * @return whether another node is equivalent to this node
 	 */
-	private boolean isEquivalentRec(OBDD otherNode, HashMap<Pair<Integer>,Boolean> cT) {
+	private boolean isEquivalentRec(OBDD otherNode) {
 		// If at least one of the two nodes is a terminal,
 		// they aren't equivalent unless they're the same.
 		if (this.terminal || otherNode.terminal) {
@@ -690,22 +783,22 @@ public class OBDD {
 			Pair<Integer> checkPair = new Pair<Integer>(this.id,otherNode.id);
 			// Return the value stated for the two nodes in the computed table
 			// if there is one.
-			if (cT.containsKey(checkPair)) {
-				return cT.get(checkPair);
+			if (equivCT.containsKey(checkPair)) {
+				return equivCT.get(checkPair);
 			} else {
 				// For equivalence the two high children have to be equivalent.
 				boolean equivalentHC =
-						this.highChild.isEquivalentRec(otherNode.highChild, cT);
+						this.highChild.isEquivalentRec(otherNode.highChild);
 				// For equivalence the two low children have to be equivalent.
 				boolean equivalentLC =
-						this.lowChild.isEquivalentRec(otherNode.lowChild, cT);
+						this.lowChild.isEquivalentRec(otherNode.lowChild);
 				// For equivalence the two variables have to be equivalent.
 				boolean equivalentVar = this.var == otherNode.var;
 				// combining all three criteria
 				boolean equivalent =
 						(equivalentHC && equivalentLC && equivalentVar);
 				// putting the value for the two nodes into the computed table
-				cT.put(checkPair, equivalent);
+				equivCT.put(checkPair, equivalent);
 				// finally returning the value
 				return equivalent;
 			}
