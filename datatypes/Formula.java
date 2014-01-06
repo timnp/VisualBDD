@@ -394,11 +394,9 @@ public class Formula {
 			for (int run = 0 ; run < maxRun ; run++) {
 				for (int repeat = 0 ; repeat < maxRepeat; repeat++) {
 					// Each "run" first has the repeats of zeros. 
-					data[(int) Math.pow(2, vars.size() - maxRun + 1) * run 
-					     + repeat][column] = 0;
+					data[2 * maxRepeat * run + repeat][column] = 0;
 					// After (below) the zeros there are the repeats of ones.
-					data[(int) Math.pow(2, vars.size() - maxRun + 1) * run 
-							+ maxRepeat + repeat][column] = 1;
+					data[2 * maxRepeat * run + maxRepeat + repeat][column] = 1;
 				}
 			}
 		}
@@ -406,7 +404,7 @@ public class Formula {
 		// for the last column
 		LinkedList<Integer> assignedOne = new LinkedList<Integer>();
 		// calculating the values one row after another
-		for (int row = 0 ; row < Math.pow(2, vars.size()) ; row++) {
+		for (int row = 0 ; row < (int) Math.pow(2, vars.size()) ; row++) {
 			// clearing the assignment list
 			assignedOne.clear();
 			// adding each variable in which's column is a one (in this row)
