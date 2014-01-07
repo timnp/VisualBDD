@@ -555,10 +555,12 @@ public class OBDD {
 	public Formula toFormula() {
 		// calling the actual (recursive) toFormula method
 		Formula result = toFormulaRec();
+		// reducing constants
+		Formula resultRC = result.reduceConstants();
 		// clearing the computed table
 		formulaCT.clear();
 		// returning the result
-		return result;
+		return resultRC;
 	}
 	
 	
@@ -594,12 +596,10 @@ public class OBDD {
 				Formula lcFormula = this.lowChild.toFormulaRec();
 				// Shannon expansion
 				Formula shannon = xn.and(hcFormula).or(xn.not().and(lcFormula));
-				// returning the Formula, reducing constants
-				Formula shannonRC = shannon.reduceConstants();
 				// putting the Formula into the computed table
-				formulaCT.put(this.id, shannonRC);
+				formulaCT.put(this.id, shannon);
 				// returning the Formula
-				return shannonRC;
+				return shannon;
 			}
 		}
 	}
