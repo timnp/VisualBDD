@@ -103,5 +103,13 @@ public class VariableOrdering {
 	public boolean isEmpty() {
 		return this.ordList.isEmpty();
 	}
+	
+	
+	/**
+	 * @return the number of variables in the VariableOrdering
+	 */
+	public int size() {
+		return this.ordList.size();
+	}
 
 }
