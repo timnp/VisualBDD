@@ -168,12 +168,9 @@ public class OBDD {
 		HashMap<Integer,LinkedList<OBDD>> layers =
 				new HashMap<Integer,LinkedList<OBDD>>();
 		// retrieving the OBDD's root node to begin with
-		OBDD currentNode = this;
-		while (!currentNode.parents.isEmpty()) {
-			currentNode = currentNode.parents.getFirst();
-		}
+		OBDD root = this.getRoot();
 		// adding all of the OBBD's non-terminal nodes to the layer HashMap
-		layers = currentNode.addToLayerHashMap(layers);
+		layers = root.addToLayerHashMap(layers);
 		// saving the updated layer HashMap for this node
 		this.layers = layers;
 	}
@@ -468,6 +465,23 @@ public class OBDD {
 	
 	
 	/**
+	 * @return this entire OBDD's root
+	 */
+	private OBDD getRoot() {
+		// initializing the "root" as this node
+		OBDD root = this;
+		// As long as the "root" has any parents, it isn't the real root
+		// and is replaced by one of its parents.
+		while (!root.parents.isEmpty()) {
+			root = root.parents.getFirst();
+		}
+		// returning this entire OBDD's node without parents 
+		// and therefore its root
+		return root;
+	}
+	
+	
+	/**
 	 * method that provides the negation algorithm on OBDDs
 	 * and clears the computed table before
 	 * @return
@@ -569,8 +583,11 @@ public class OBDD {
 	public Formula toFormula() {
 		// clearing the computed table
 		formulaCT.clear();
+		// retrieving the entire OBDD's root's VariableOrdering and therefore 
+		// the complete one
+		VariableOrdering completeVarOrd = this.getRoot().varOrd;
 		// calling the actual (recursive) toFormula method
-		Formula result = toFormulaRec();
+		Formula result = toFormulaRec(completeVarOrd);
 		// reducing constants
 		Formula resultRC = result.reduceConstants();
 		// returning the result
@@ -579,21 +596,21 @@ public class OBDD {
 	
 	
 	/**
+	 * @param completeVarOrd - the complete VariableOrdering
 	 * @return the Formula represented by the OBDD 
 	 */
-	private Formula toFormulaRec() {
-		// In the case of a terminal, a "base Formula" is constructed.
-		// (The constants true/1 and false/0 aren't implemented for Formulas.)
+	private Formula toFormulaRec(VariableOrdering completeVarOrd) {
+		// In the case of a terminal, a constant Formula is constructed.
 		if (this.terminal) {
 			if (this.value) {
 				// returning the tautological Formula if the node is the
 				// 1-terminal
-				return new Formula(true);
+				return new Formula(true, completeVarOrd);
 			}
 			else {
 				// returning the contradictory Formula if the node is the
 				// 0-terminal
-				return new Formula(false);
+				return new Formula(false, completeVarOrd);
 			}
 		}
 		else {
@@ -603,13 +620,21 @@ public class OBDD {
 				return formulaCT.get(this.id);
 			} else {
 				// Formula representing the node's variable
-				Formula xn = new Formula(this.var);
-				// Formula represented by the OBDD induced by the node's high child
-				Formula hcFormula = this.highChild.toFormulaRec();
-				// Formula represented by the OBDD induced by the node's low child
-				Formula lcFormula = this.lowChild.toFormulaRec();
+				Formula xn = new Formula(this.var, completeVarOrd);
+				// Formula represented by the OBDD induced by the node's 
+				// high child
+				Formula hcFormula = 
+						this.highChild.toFormulaRec(completeVarOrd);
+				// Formula represented by the OBDD induced by the node's 
+				// low child
+				Formula lcFormula = this.lowChild.toFormulaRec(completeVarOrd);
+				// the left half of the Shannon expansion
+				Formula shannonLeft = xn.and(hcFormula, completeVarOrd);
+				// the right half of the Shannon expansion
+				Formula shannonRight = 
+						xn.not(completeVarOrd).and(lcFormula, completeVarOrd);
 				// Shannon expansion
-				Formula shannon = xn.and(hcFormula).or(xn.not().and(lcFormula));
+				Formula shannon = shannonLeft.or(shannonRight);
 				// putting the Formula into the computed table
 				formulaCT.put(this.id, shannon);
 				// returning the Formula
