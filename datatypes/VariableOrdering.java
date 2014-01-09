@@ -95,5 +95,13 @@ public class VariableOrdering {
 		// returning the reduced VariableOrdering
 		return reducedOrd;
 	}
+	
+	
+	/**
+	 * @return whether the VariableOrdering is empty
+	 */
+	public boolean isEmpty() {
+		return this.ordList.isEmpty();
+	}
 
 }
