@@ -406,15 +406,30 @@ public class OBDD {
 					return newNode;
 				}
 				else {
-					// creating a VariableOrderingComparator for the complete 
-					// VariableOrdering
-					VariableOrderingComparator complVarOrdComp = 
-							new VariableOrderingComparator(this.getRoot().varOrd);
+					// boolean for comparing the two nodes' variables by means 
+					// of the VariableOrdering
+					boolean thisVarIsHigher;
+					// getting the entire OBDD's complete VariableOrdering
+					VariableOrdering complVarOrd = this.getRoot().varOrd;
+					if (complVarOrd.isEmpty()) {
+						// If there is no given VariableOrdering, the variables 
+						// are assumed to be sorted ascending with the lowest 
+						// number on the first/highest position.
+						thisVarIsHigher = (this.var < b.var);
+					} else {
+						// creating a VariableOrderingComparator for the complete 
+						// VariableOrdering
+						VariableOrderingComparator complVarOrdComp = 
+								new VariableOrderingComparator(complVarOrd);
+						// If there is a given VariableOrdering, the two 
+						// variables can be compared by its means.
+						thisVarIsHigher = (complVarOrdComp.compare(this.var, b.var) > 0);
+					}
 					// If this OBDD node isn't a terminal and it's variable has 
 					// a higher position in the variable ordering than the 
 					// other node's one, only this node's children are called 
 					// recursively (here).
-					if (!this.terminal && (complVarOrdComp.compare(this.var, b.var) > 0)) {
+					if (!this.terminal && thisVarIsHigher) {
 					// applying the operation on this node's high child
 					// and the other node
 					OBDD applyHighChild = 
