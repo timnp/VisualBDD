@@ -111,5 +111,21 @@ public class VariableOrdering {
 	public int size() {
 		return this.ordList.size();
 	}
+	
+	
+	/**
+	 * @return the VariableOrdering's first (highest) variable
+	 */
+	public int getFirst() {
+		return this.ordList.getFirst();
+	}
+	
+	
+	/**
+	 * @return the VariableOrdering's last (lowest) variable
+	 */
+	public int getLast() {
+		return this.ordList.getLast();
+	}
 
 }
