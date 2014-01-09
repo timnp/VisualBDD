@@ -105,5 +105,25 @@ public class VariableOrdering {
 			return true;
 		} else return false;
 	}
+	
+	
+	/**
+	 * method that provides a VariableOrdering like this one, except that all
+	 * variables in the VariableOrdering before the given one are removed
+	 * @param var
+	 * @return the reduced VariableOrdering
+	 */
+	public VariableOrdering removeBefore(int var) {
+		// initializing the new VariableOrdering as this one
+		VariableOrdering reducedOrd = this;
+		// getting the index of the given variable
+		int index = reducedOrd.indexOf(var);
+		// removing all variables in the VariableOrdering before the given one
+		for (int i = 0; i < index; i++) {
+			reducedOrd.ordList.removeFirst();
+		}
+		// returning the reduced VariableOrdering
+		return reducedOrd;
+	}
 
 }
