@@ -31,6 +31,10 @@ public class Formula {
 	 * value (for constants)
 	 */
 	private boolean value;
+	/**
+	 * the used variable ordering
+	 */
+	private VariableOrdering varOrd;
 	
 	/**
 	 * constant numbers for all possible constructors
@@ -51,9 +55,11 @@ public class Formula {
 	/**
 	 * constructor for constants
 	 * @param val
+	 * @param varOrd
 	 */
-	public Formula(boolean val) {
+	public Formula(boolean val, VariableOrdering varOrd) {
 		this.value = val;
+		this.varOrd = varOrd;
 		this.constructor = CONSTANT;
 	}
 	
@@ -61,9 +67,11 @@ public class Formula {
 	/**
 	 * constructor for variables
 	 * @param varNr
+	 * @param varOrd
 	 */
-	public Formula (int varNr) {
+	public Formula (int varNr, VariableOrdering varOrd) {
 		this.varNr = varNr;
+		this.varOrd = varOrd;
 		this.constructor = VARIABLE;
 	}
 	
@@ -71,12 +79,14 @@ public class Formula {
 	/**
 	 * smart "constructor" for logical negation
 	 * @param successor
+	 * @param varOrd
 	 * @return Formula representing a logical negation
 	 * 			between this node and the given one
 	 */
-	public Formula not() {
+	public Formula not(VariableOrdering varOrd) {
 		Formula not = new Formula();
 		not.firstSuccessor = this;
+		not.varOrd = varOrd;
 		not.constructor = NOT;
 		return not;
 	}
@@ -85,13 +95,15 @@ public class Formula {
 	/**
 	 * smart "constructor" for logical conjunction
 	 * @param secondSuccessor
+	 * @param varOrd
 	 * @return Formula representing a logical conjunction
 	 * 			between this node and the given one
 	 */
-	public Formula and(Formula secondSuccessor) {
+	public Formula and(Formula secondSuccessor, VariableOrdering varOrd) {
 		Formula and = new Formula();
 		and.firstSuccessor = this;
 		and.secondSuccessor = secondSuccessor;
+		and.varOrd = varOrd;
 		and.constructor = AND;
 		return and;
 	}
@@ -100,12 +112,14 @@ public class Formula {
 	/**
 	 * smart "constructor" for logical disjunction
 	 * @param secondSuccessor
+	 * @param varOrd
 	 * @return Formula representing a logical disjunction
 	 */
 	public Formula or(Formula secondSuccessor) {
 		Formula or = new Formula();
 		or.firstSuccessor = this;
 		or.secondSuccessor = secondSuccessor;
+		or.varOrd = varOrd;
 		or.constructor = OR;
 		return or;
 	}
@@ -260,6 +274,21 @@ public class Formula {
 			}
 		}
 	}
+	
+	
+//	public OBDD toOBDD() {
+//		// a switch for the possible constructors
+//		switch (this.constructor) {
+//		// Zeroth case: The Formula represents a constant.
+//		case 0:
+//			if (this.value) {
+//				return OBDD.ONE;
+//			}
+//			else {
+//				return OBDD.ZERO;
+//			}
+//		}
+//	}
 	
 	
 	/**
@@ -545,11 +574,11 @@ public class Formula {
 			// If the reduced successor is a constant,
 			// the opposite constant is returned.
 			if (rcSuccessor.constructor == CONSTANT) {
-				return new Formula(!rcSuccessor.value);
+				return new Formula(!rcSuccessor.value, this.varOrd);
 			}
 			// Otherwise the negation of the reduced successor is returned.
 			else {
-				 return rcSuccessor.not();
+				 return rcSuccessor.not(this.varOrd);
 			}
 		// Third case: The Formula represents a logical conjunction.
 		case 3:
@@ -576,7 +605,7 @@ public class Formula {
 				else return rcSecondSuccessor;
 			// If none of the two successors is a constant, 
 			// their conjunction is returned.
-			} else return rcFirstSuccessor.and(rcSecondSuccessor);
+			} else return rcFirstSuccessor.and(rcSecondSuccessor, this.varOrd);
 		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
 			// First the two successors are reduced.
