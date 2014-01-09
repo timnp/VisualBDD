@@ -137,6 +137,8 @@ public class OBDD {
 		one.value = true;
 		// defining the variable number for comparability
 		one.var = -1;
+		// A terminal has an empty variable ordering.
+		one.varOrd = new VariableOrdering(new LinkedList<Integer>());
 		return one;
 	}
 	
@@ -152,6 +154,8 @@ public class OBDD {
 		zero.value = false;
 		// defining the variable number for comparability
 		zero.var = -1;
+		// A terminal has an empty variable ordering.
+		zero.varOrd = new VariableOrdering(new LinkedList<Integer>());
 		return zero;
 	}
 	
@@ -206,9 +210,10 @@ public class OBDD {
 	 * and a given node as low child
 	 * @param variable
 	 * @param lowChild
+	 * @param varOrd - the complete VariableOrdering
 	 * @return the new node
 	 */
-	public OBDD cons(int variable, OBDD lowChild) {
+	public OBDD cons(int variable, OBDD lowChild, VariableOrdering varOrd) {
 		// initializing the new node
 		OBDD newNode = new OBDD();
 		// setting the new node's ID to the counter's current value and
@@ -220,6 +225,9 @@ public class OBDD {
 		newNode.varOrd = this.varOrd;
 		// The given variable becomes the new node's one.
 		newNode.var = variable;
+		// The new node's VariableOrdering is "cut off" 
+		// before the node's variable.
+		newNode.varOrd = varOrd.removeBefore(variable);
 		// This node becomes the new node's high child.
 		newNode.highChild = this;
 		// The given node becomes the new node's low child.
@@ -245,13 +253,14 @@ public class OBDD {
 	 * and clears the computed table before
 	 * @param b
 	 * @param op
+	 * @param varOrd
 	 * @return
 	 */
-	public OBDD apply(OBDD b, int op) {
+	public OBDD apply(OBDD b, int op, VariableOrdering varOrd) {
 		// clearing the computed table
 		applyCT.clear();
 		// calling the actual (recursive) apply algorithm
-		OBDD result = applyRec(b, op);
+		OBDD result = applyRec(b, op, varOrd);
 		// returning the result
 		return result;
 	}
@@ -262,9 +271,10 @@ public class OBDD {
 	 * (3.5.4)
 	 * @param b - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
+	 * @param varOrd - the complete VariableOrdering
 	 * @return the resulting OBDD
 	 */
-	private OBDD applyRec(OBDD b, int op) {
+	private OBDD applyRec(OBDD b, int op, VariableOrdering varOrd) {
 		// If both OBDD nodes are terminals, the resulting terminal can be
 		// calculated by means of the boolean operation.
 		if (this.terminal && b.terminal) {
@@ -385,51 +395,55 @@ public class OBDD {
 				if (!this.terminal && !b.terminal && this.var == b.var) {
 					// applying the operation on the both nodes' high children
 					OBDD applyHighChildren = 
-							this.highChild.applyRec(b.highChild, op);
+							this.highChild.applyRec(b.highChild, op, varOrd);
 					// applying the operation on the both nodes' low children
 					OBDD applyLowChildren = 
-							this.lowChild.applyRec(b.lowChild, op);
+							this.lowChild.applyRec(b.lowChild, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
-							applyHighChildren.cons(this.var, applyLowChildren);
+							applyHighChildren.cons(this.var, applyLowChildren, varOrd);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
 				}
-				// If this OBDD node isn't a terminal and it's variable has a higher
-				// position in the variable ordering than the other node's one, only
-				// this node's children are called recursively (here).
+				// If this OBDD node isn't a terminal and it's variable has a 
+				// higher position in the variable ordering than the other 
+				// node's one, only this node's children are called recursively 
+				// (here).
 				else if (!this.terminal && this.varOrd.higherPosition(this.var, b.var)) {
 					// applying the operation on this node's high child
 					// and the other node
-					OBDD applyHighChild = this.highChild.applyRec(b, op);
+					OBDD applyHighChild = 
+							this.highChild.applyRec(b, op, varOrd);
 					// applying the operation on this node's low child
 					// and the other node
-					OBDD applyLowChild = this.lowChild.applyRec(b, op);
+					OBDD applyLowChild = this.lowChild.applyRec(b, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
-							applyHighChild.cons(this.var, applyLowChild);
+							applyHighChild.cons(this.var, applyLowChild, varOrd);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
 				}
-				// Otherwise the other node isn't a terminal and it's variable has a
-				// higher position in the variable ordering than this node's one.
-				// So only the other node's children are called recursively (here).
+				// Otherwise the other node isn't a terminal and it's variable 
+				// has a higher position in the variable ordering than this 
+				// node's one. So only the other node's children are called 
+				// recursively (here).
 				else {
 					// applying the operation on this node
 					// and the other node's high child
-					OBDD applyHighChild = this.applyRec(b.highChild, op);
+					OBDD applyHighChild = 
+							this.applyRec(b.highChild, op, varOrd);
 					// applying the operation on this node
 					// and the other node's low child
-					OBDD applyLowChild = this.applyRec(b.lowChild, op);
+					OBDD applyLowChild = this.applyRec(b.lowChild, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
-							applyHighChild.cons(this.var, applyLowChild);
+							applyHighChild.cons(this.var, applyLowChild, varOrd);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
@@ -490,7 +504,7 @@ public class OBDD {
 				// negating the low child
 				OBDD negLC = this.lowChild.negate();
 				// combining the two negated children
-				OBDD neg = negHC.cons(this.var, negLC);
+				OBDD neg = negHC.cons(this.var, negLC, varOrd);
 				// putting the negated node into the computed table
 				negCT.put(this.id, neg);
 				// returning the negated node
