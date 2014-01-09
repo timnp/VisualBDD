@@ -1,5 +1,6 @@
 package datatypes;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.regex.*;
 
@@ -32,7 +33,8 @@ public class Formula {
 	 */
 	private boolean value;
 	/**
-	 * the used variable ordering
+	 * the variable ordering
+	 * used when an OBDD representing the Formula is created
 	 */
 	private VariableOrdering varOrd;
 	
@@ -281,12 +283,42 @@ public class Formula {
 //		switch (this.constructor) {
 //		// Zeroth case: The Formula represents a constant.
 //		case 0:
+//			// If this constant Formula is tautological, the OBDD has to be too.
 //			if (this.value) {
-//				return OBDD.ONE;
+//				// Because the Formula has no successors and doesn't represent
+//				// a variable itself, the set of its variables is empty.
+//				// So simply a row of redundant nodes leading to the 1-terminal 
+//				// is created (bottom up) with all variables of the 
+//				// VariableOrdering (empty or not). 
+//				// The first and lowest node is the 1-terminal itself.
+//				OBDD currentNode = OBDD.ONE;
+//				// Then for each variable in the VariableOrdering a 
+//				// redundant node is added. Since the "cons" method is 
+//				// constructive, the current node may be overwritten 
+//				// without losing any node constructed this way.
+//				for (int i = this.varOrd.size() - 1; i >= 0; i--) {
+//					currentNode = 
+//							currentNode.cons(this.varOrd.get(i), currentNode, this.varOrd);
+//				}
 //			}
+//			// Otherwise the Formula is contradictory and so the OBDD has to be.
 //			else {
-//				return OBDD.ZERO;
+//				// In this case also simply a row of redundant nodes leading to 
+//				// the 1-terminal is created (bottom up) with all variables of 
+//				// the VariableOrdering (empty or not). 
+//				// The first and lowest node is the 1-terminal itself.
+//				OBDD currentNode = OBDD.ONE;
+//				// Then for each variable in the VariableOrdering a 
+//				// redundant node is added. Since the "cons" method is 
+//				// constructive, the current node may be overwritten 
+//				// without losing any node constructed this way.
+//				for (int i = this.varOrd.size() - 1; i >= 0; i--) {
+//					currentNode = 
+//							currentNode.cons(this.varOrd.get(i), currentNode, this.varOrd);
+//				}
 //			}
+//		// First case: The Formula represents a variable.
+//		case 1:
 //		}
 //	}
 	
@@ -424,33 +456,8 @@ public class Formula {
 	 * @return the Formula's entire truth table
 	 */
 	public JTable entireTruthTable() {
-		// initializing the greatest and least numbers
-		// among the Formula's variables
-		int maxVarNo = -1;
-		int minVarNo = -1;
-		// checking for each of the Formula's variable numbers
-		// whether it's the greatest or the least
-		for (int i : this.vars()) {
-			if (i > maxVarNo || maxVarNo == -1) {
-				// if a number is greater than the current maximum or there is
-				// no maximum, the number becomes the new maximum
-				maxVarNo = i;
-			}
-			if (i < minVarNo || minVarNo == -1) {
-				// if a number is less than the current minimum or there is
-				// no minimum, the number becomes the new minimum
-				minVarNo = i;
-			}
-		}
-		// initializing a list for all variable numbers from minVarNo
-		// to maxVarNo
-		LinkedList<Integer> vars = new LinkedList<Integer>();
-		// adding the variable numbers to the list
-		for (int i = minVarNo ; i <= maxVarNo ; i++) {
-			vars.add(i);
-		}
 		// returning the truth table for "all" variables
-		return truthTable(vars);
+		return truthTable(this.varOrd.getOrdList());
 	}
 	
 	
