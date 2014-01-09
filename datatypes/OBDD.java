@@ -405,11 +405,16 @@ public class OBDD {
 					// returning the node
 					return newNode;
 				}
-				// If this OBDD node isn't a terminal and it's variable has a 
-				// higher position in the variable ordering than the other 
-				// node's one, only this node's children are called recursively 
-				// (here).
-				else if (!this.terminal && this.varOrd.higherPosition(this.var, b.var)) {
+				else {
+					// creating a VariableOrderingComparator for the complete 
+					// VariableOrdering
+					VariableOrderingComparator complVarOrdComp = 
+							new VariableOrderingComparator(this.getRoot().varOrd);
+					// If this OBDD node isn't a terminal and it's variable has 
+					// a higher position in the variable ordering than the 
+					// other node's one, only this node's children are called 
+					// recursively (here).
+					if (!this.terminal && (complVarOrdComp.compare(this.var, b.var) > 0)) {
 					// applying the operation on this node's high child
 					// and the other node
 					OBDD applyHighChild = 
@@ -425,27 +430,28 @@ public class OBDD {
 					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
-				}
-				// Otherwise the other node isn't a terminal and it's variable 
-				// has a higher position in the variable ordering than this 
-				// node's one. So only the other node's children are called 
-				// recursively (here).
-				else {
-					// applying the operation on this node
-					// and the other node's high child
-					OBDD applyHighChild = 
-							this.applyRec(b.highChild, op, varOrd);
-					// applying the operation on this node
-					// and the other node's low child
-					OBDD applyLowChild = this.applyRec(b.lowChild, op, varOrd);
-					// combining the two resulting nodes
-					OBDD newNode = 
-							applyHighChild.cons(this.var, applyLowChild, varOrd);
-					// putting the resulting node for the two nodes
-					// into the computed table
-					applyCT.put(applyPair, newNode);
-					// returning the node
-					return newNode;
+					}
+					// Otherwise the other node isn't a terminal and it's variable 
+					// has a higher position in the variable ordering than this 
+					// node's one. So only the other node's children are called 
+					// recursively (here).
+					else {
+						// applying the operation on this node
+						// and the other node's high child
+						OBDD applyHighChild = 
+								this.applyRec(b.highChild, op, varOrd);
+						// applying the operation on this node
+						// and the other node's low child
+						OBDD applyLowChild = this.applyRec(b.lowChild, op, varOrd);
+						// combining the two resulting nodes
+						OBDD newNode = 
+								applyHighChild.cons(this.var, applyLowChild, varOrd);
+						// putting the resulting node for the two nodes
+						// into the computed table
+						applyCT.put(applyPair, newNode);
+						// returning the node
+						return newNode;
+					}
 				}				
 			}
 		}
