@@ -36,7 +36,7 @@ public class VariableOrdering {
 			// TODO?
 			// tentative solution for multiple appearances of the same integer:
 			// removing all but the first appearance 
-			while (ordList.lastIndexOf(movedVar) != -1) {
+			while (ordList.lastIndexOf(movedVar) >= 0) {
 				ordList.removeLastOccurrence(movedVar);
 			}
 			// adding the variable to this objects list
@@ -58,7 +58,7 @@ public class VariableOrdering {
 			// TODO?
 			// tentative solution for multiple appearances of the same integer:
 			// removing all but the first appearance 
-			while (ordList.lastIndexOf(movedVar) != -1) {
+			while (ordList.lastIndexOf(movedVar) >= 0) {
 				ordList.removeLastOccurrence(movedVar);
 			}
 			// adding the variable to this objects list
@@ -74,36 +74,6 @@ public class VariableOrdering {
 	 */
 	public int indexOf(int var) {
 		return this.ordList.indexOf(var);
-	}
-	
-	
-	/**
-	 * function that states if a variable has a lower position in this
-	 * variable ordering than another
-	 * @param a
-	 * @param b
-	 * @return boolean
-	 */
-	public boolean lowerPosition(int a, int b) {
-		// a higher index means a "lower" position
-		if (this.ordList.indexOf(a) > this.ordList.indexOf(b)) {
-			return true;
-		} else return false;
-	}
-	
-	
-	/**
-	 * function that states if a variable has a higher position in this
-	 * variable ordering than another
-	 * @param a
-	 * @param b
-	 * @return boolean
-	 */
-	public boolean higherPosition(int a, int b) {
-		// a lower index means a "higher" position
-		if (this.ordList.indexOf(a) < this.ordList.indexOf(b)) {
-			return true;
-		} else return false;
 	}
 	
 	
