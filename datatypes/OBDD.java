@@ -242,16 +242,16 @@ public class OBDD {
 	
 	/**
 	 * function that provides the apply algorithm
-	 * and clears the computed table afterwards
+	 * and clears the computed table before
 	 * @param b
 	 * @param op
 	 * @return
 	 */
 	public OBDD apply(OBDD b, int op) {
-		// calling the actual (recursive) apply algorithm
-		OBDD result = applyRec(b, op);
 		// clearing the computed table
 		applyCT.clear();
+		// calling the actual (recursive) apply algorithm
+		OBDD result = applyRec(b, op);
 		// returning the result
 		return result;
 	}
@@ -455,14 +455,14 @@ public class OBDD {
 	
 	/**
 	 * method that provides the negation algorithm on OBDDs
-	 * and clears the computed table afterwards
+	 * and clears the computed table before
 	 * @return
 	 */
 	public OBDD negate() {
-		// calling the actual (recursive) negate algorithm
-		OBDD result = negateRec();
 		// clearing the computed table
 		negCT.clear();
+		// calling the actual (recursive) negate algorithm
+		OBDD result = negateRec();
 		// returning the result
 		return result;
 	}
@@ -549,16 +549,16 @@ public class OBDD {
 	
 	/**
 	 * function that provides the toFormula method 
-	 * and clears the computed table afterwards
+	 * and clears the computed table before
 	 * @return
 	 */
 	public Formula toFormula() {
+		// clearing the computed table
+		formulaCT.clear();
 		// calling the actual (recursive) toFormula method
 		Formula result = toFormulaRec();
 		// reducing constants
 		Formula resultRC = result.reduceConstants();
-		// clearing the computed table
-		formulaCT.clear();
 		// returning the result
 		return resultRC;
 	}
@@ -647,14 +647,14 @@ public class OBDD {
 	
 	/**
 	 * function that provides the number algorithm 
-	 * and clears the computed table afterwards
+	 * and clears the computed table before
 	 * @return
 	 */
 	public int number() {
-		// calling the actual (recursive) number algorithm
-		int result = numberRec();
 		// clearing the computed table
 		numberCT.clear();
+		// calling the actual (recursive) number algorithm
+		int result = numberRec();
 		// returning the result
 		return result;
 	}
@@ -756,15 +756,15 @@ public class OBDD {
 	
 	/**
 	 * function that provides the equivalence test 
-	 * and clears the computed table afterwards
+	 * and clears the computed table before
 	 * @param otherNode
 	 * @return
 	 */
 	public boolean isEquivalent(OBDD otherNode) {
-		// calling the actual (recursive) equivalence test
-		boolean result = isEquivalentRec(otherNode);
 		// clearing the computed table
 		equivCT.clear();
+		// calling the actual (recursive) equivalence test
+		boolean result = isEquivalentRec(otherNode);
 		// returning the result
 		return result;
 	}
