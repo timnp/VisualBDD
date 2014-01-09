@@ -127,5 +127,14 @@ public class VariableOrdering {
 	public int getLast() {
 		return this.ordList.getLast();
 	}
+	
+	
+	/**
+	 * @param index
+	 * @return the VariableOrdering's variable at the given index
+	 */
+	public int get(int index) {
+		return this.ordList.get(index);
+	}
 
 }
