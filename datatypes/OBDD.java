@@ -211,37 +211,51 @@ public class OBDD {
 	 * @return the new node
 	 */
 	public OBDD cons(int variable, OBDD lowChild, VariableOrdering varOrd) {
-		// initializing the new node
-		OBDD newNode = new OBDD();
-		// setting the new node's ID to the counter's current value and
-		// increasing it by one
-		newNode.id = idCount++;
-		// The new node isn't a terminal since it's created with children.
-		newNode.terminal = false;
-		// The new node's variable ordering is the same as this node's.
-		newNode.varOrd = this.varOrd;
-		// The given variable becomes the new node's one.
-		newNode.var = variable;
-		// The new node's VariableOrdering is "cut off" 
-		// before the node's variable.
-		newNode.varOrd = varOrd.removeBefore(variable);
-		// This node becomes the new node's high child.
-		newNode.highChild = this;
-		// The given node becomes the new node's low child.
-		newNode.lowChild = lowChild;
-		// The new node's parent list is initialized.
-		newNode.parents = new LinkedList<OBDD>();
-		// The new node becomes a parent of this node
-		// if this node isn't a terminal.
-		if (!this.terminal) {
-			this.parents.add(newNode);			
+		// creating a VariableOrderingComparator for the complete 
+		// VariableOrdering
+		VariableOrderingComparator complVarOrdComp = 
+				new VariableOrderingComparator(varOrd);
+		// If the given variable is higher than the variables of both this and 
+		// the given node, the new node can be created.
+		if ((complVarOrdComp.compare(variable, this.var) > 0) && 
+				(complVarOrdComp.compare(variable, lowChild.var) > 0)) {
+			// initializing the new node
+			OBDD newNode = new OBDD();
+			// setting the new node's ID to the counter's current value and
+			// increasing it by one
+			newNode.id = idCount++;
+			// The new node isn't a terminal since it's created with children.
+			newNode.terminal = false;
+			// The new node's variable ordering is the same as this node's.
+			newNode.varOrd = this.varOrd;
+			// The given variable becomes the new node's one.
+			newNode.var = variable;
+			// The new node's VariableOrdering is "cut off" 
+			// before the node's variable.
+			newNode.varOrd = varOrd.removeBefore(variable);
+			// This node becomes the new node's high child.
+			newNode.highChild = this;
+			// The given node becomes the new node's low child.
+			newNode.lowChild = lowChild;
+			// The new node's parent list is initialized.
+			newNode.parents = new LinkedList<OBDD>();
+			// The new node becomes a parent of this node
+			// if this node isn't a terminal.
+			if (!this.terminal) {
+				this.parents.add(newNode);			
+			}
+			// The new node becomes a parent of the given node.
+			// if this node isn't a terminal.
+			if (!lowChild.terminal) {
+				lowChild.parents.add(newNode);			
+			}
+			return newNode;
+		} else {
+			// Otherwise the node can't be created.
+			// TODO user message
+			return null;
 		}
-		// The new node becomes a parent of the given node.
-		// if this node isn't a terminal.
-		if (!lowChild.terminal) {
-			lowChild.parents.add(newNode);			
-		}
-		return newNode;
+		
 	}
 	
 	
@@ -406,30 +420,15 @@ public class OBDD {
 					return newNode;
 				}
 				else {
-					// boolean for comparing the two nodes' variables by means 
-					// of the VariableOrdering
-					boolean thisVarIsHigher;
-					// getting the entire OBDD's complete VariableOrdering
-					VariableOrdering complVarOrd = this.getRoot().varOrd;
-					if (complVarOrd.isEmpty()) {
-						// If there is no given VariableOrdering, the variables 
-						// are assumed to be sorted ascending with the lowest 
-						// number on the first/highest position.
-						thisVarIsHigher = (this.var < b.var);
-					} else {
-						// creating a VariableOrderingComparator for the complete 
-						// VariableOrdering
-						VariableOrderingComparator complVarOrdComp = 
-								new VariableOrderingComparator(complVarOrd);
-						// If there is a given VariableOrdering, the two 
-						// variables can be compared by its means.
-						thisVarIsHigher = (complVarOrdComp.compare(this.var, b.var) > 0);
-					}
+					// creating a VariableOrderingComparator for the complete 
+					// VariableOrdering
+					VariableOrderingComparator complVarOrdComp = 
+							new VariableOrderingComparator(varOrd);
 					// If this OBDD node isn't a terminal and it's variable has 
 					// a higher position in the variable ordering than the 
 					// other node's one, only this node's children are called 
 					// recursively (here).
-					if (!this.terminal && thisVarIsHigher) {
+					if (!this.terminal && (complVarOrdComp.compare(this.var, b.var) > 0)) {
 					// applying the operation on this node's high child
 					// and the other node
 					OBDD applyHighChild = 
