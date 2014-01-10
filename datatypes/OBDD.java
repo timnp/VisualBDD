@@ -960,7 +960,7 @@ public class OBDD {
 	 */
 	public boolean isQOBDD() {
 		if (!(this.findEquivalent() == null)) {
-			// If there are equivalent nodes, the OBDD isn't a QOBDD.
+			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
 			return false;
 		} else {
 			// In a QOBDD each path from the root to a terminal has to include 
@@ -994,5 +994,20 @@ public class OBDD {
 		// Otherwise the node's children are checked recursively.
 		else return (this.highChild.noVarMissing(varOrdList) && 
 				this.lowChild.noVarMissing(varOrdList));
+	}
+	
+	
+	/**
+	 * method that states, whether the entire OBDD is an ROBDD
+	 * @return
+	 */
+	public boolean isROBDD() {
+		if (!(this.findEquivalent() == null)) {
+			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
+			return false;
+		}
+		// An OBDD is an ROBBD if there are no equivalent nodes and no 
+		// redundant nodes.
+		else return ((this.findRedundant() == null));
 	}
 }
