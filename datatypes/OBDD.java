@@ -170,6 +170,11 @@ public class OBDD {
 				new HashMap<Integer,LinkedList<OBDD>>();
 		// retrieving the OBDD's root node to begin with
 		OBDD root = this.getRoot();
+		// For each variable in the complete VariableOrdering a layer 
+		// represented by a LinkedList is initialized.
+		for (int var : root.varOrd.getOrdList()) {
+			layers.put(var, new LinkedList<OBDD>());
+		}
 		// adding all of the OBBD's non-terminal nodes to the layer HashMap
 		layers = root.addToLayerHashMap(layers);
 		// saving the updated layer HashMap for this node
@@ -825,7 +830,8 @@ public class OBDD {
 						candidates.add(secondCandidate);
 						return candidates;
 					}
-					// otherwise checking other nodes from the list
+					// clearing the candidate list
+					candidates.clear();
 				}
 				// If no equivalent node could be found for this one,
 				// check for other ones.
@@ -945,5 +951,48 @@ public class OBDD {
 		// A node is redundant, if it's children are the same (which can be 
 		// indicated by their IDs).
 		return (this.highChild.id == this.lowChild.id);
+	}
+	
+	
+	/**
+	 * method that states, whether the entire OBDD is a QOBDD
+	 * @return 
+	 */
+	public boolean isQOBDD() {
+		if (!(this.findEquivalent() == null)) {
+			// If there are equivalent nodes, the OBDD isn't a QOBDD.
+			return false;
+		} else {
+			// In a QOBDD each path from the root to a terminal has to include 
+			// each variable of the complete VariableOrdering.
+			// The checking is started at the root.
+			OBDD root = this.getRoot();
+			// an ordered list of "all" variables
+			LinkedList<Integer> varOrdList = root.varOrd.getOrdList();
+			// checking, whether all variables are on each path from the root 
+			// to a terminal
+			return root.noVarMissing(varOrdList);
+		}
+	}
+	
+	
+	/**
+	 * auxiliary function that states, whether in all paths from this node on 
+	 * there is no variable of a given list missing
+	 * @param varOrdList
+	 * @return
+	 */
+	private boolean noVarMissing(LinkedList<Integer> varOrdList) {
+		// If the node is a terminal, no variable is missing on this path.
+		if (this.terminal) {
+			return true;
+		} else if (!(this.var == varOrdList.poll())) {
+			// If the first variable in the ordered variable list isn't the one 
+			// of this node, it is missing on this path.
+			return false;
+		}
+		// Otherwise the node's children are checked recursively.
+		else return (this.highChild.noVarMissing(varOrdList) && 
+				this.lowChild.noVarMissing(varOrdList));
 	}
 }
