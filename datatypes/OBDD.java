@@ -1010,4 +1010,129 @@ public class OBDD {
 		// redundant nodes.
 		else return ((this.findRedundant() == null));
 	}
+	
+	
+	/**
+	 * method that provides a QOBDD equivalent to this entire OBDD
+	 * @return the QOBDD
+	 */
+	public OBDD toQOBDD() {
+		// retrieving the entire OBDD's root
+		OBDD root = this.getRoot();
+		// getting the root's VariableOrdering's ordering list
+		LinkedList<Integer> varOrdList = root.varOrd.getOrdList();
+		// constructing an equivalent OBDD with all missing variables added for 
+		// each path
+		OBDD rootMVA = root.addMissingVars(varOrdList);
+		// trying to find a pair of equivalent nodes in the new OBDD
+		LinkedList<OBDD> equivalentFind = rootMVA.findEquivalent();
+		// While there are equivalent nodes in the OBDD, they have to be merged 
+		// to create a QOBDD.
+		while(!(equivalentFind == null)) {
+			// merging the two found equivalent nodes
+			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
+			// searching for more equivalent nodes
+			equivalentFind = rootMVA.findEquivalent();
+		}
+		// After adding all missing variables and merging all equivalent 
+		// variables, the new OBDD is a QOBDD.
+		return rootMVA;
+	}
+	
+	
+	/**
+	 * auxiliary function that constructs a new OBDD like this one, adding all 
+	 * missing variables on each path
+	 * @param varOrdList - list of variables to be used in the new OBDD
+	 * @return the new OBDD
+	 */
+	private OBDD addMissingVars(LinkedList<Integer> varOrdList) {
+		if (this.terminal) {
+			// If the node is a terminal, it is returned.
+			return this;
+		} else {
+			// retrieving the current variable
+			int currentVar = varOrdList.poll();
+			// constructing the high child with all missing variables added
+			OBDD highChildMVA = this.highChild.addMissingVars(varOrdList);
+			// constructing the low child with all missing variables added
+			OBDD lowChildMVA = this.lowChild.addMissingVars(varOrdList);
+			// constructing this node with all missing variables added
+			OBDD thisMVA = 
+					highChildMVA.cons(this.var, lowChildMVA, this.varOrd);
+			if (this.var == currentVar) {
+				// If this node has the current variable, its correspondent 
+				// node is returned.
+				return thisMVA;
+			}
+			else {
+				// If there is a variable missing, a redundant node with that 
+				// variable is inserted above the node corresponding to this 
+				// one.
+				return thisMVA.cons(currentVar, lowChildMVA, 
+						new VariableOrdering(varOrdList));
+			}
+		}
+	}
+	
+	
+	/**
+	 * removes this node from the entire OBDD if it's redundant
+	 */
+	public void removeRedundant() {
+		// The node only gets removed if it's redundant.
+		if (this.isRedundant()) {
+			// adding all of this node's parents to this node's (high) child's 
+			// one's
+			this.highChild.parents.addAll(this.parents);
+			// removing this node from it's child's parents
+			this.highChild.parents.remove(this);
+			// for each of this node's parents replacing it as a child by it's 
+			// own child
+			for (OBDD p : this.parents) {
+				if (p.highChild == this) {
+					// If this node was the parent's high child, this one's 
+					// child becomes it instead.
+					p.highChild = this.highChild;
+				}
+				if (p.lowChild == this) {
+					// If this node was the parent's low child, this one's 
+					// child becomes it instead.
+					p.lowChild = this.highChild;
+				}
+			}
+		} else {
+			// TODO user message
+		}
+	}
+	
+	
+	/**
+	 * method that merges two nodes if they're equivalent
+	 * @param otherNode
+	 */
+	public void mergeEquivalent(OBDD otherNode) {
+		// The two nodes only get merged if they're equivalent and no 
+		// terminal(s).
+		if (this.isEquivalent(otherNode) && !this.terminal) {
+			// adding all of the other node's parents to this one's
+			this.parents.addAll(otherNode.parents);
+			// for each of the other node's parents replacing it as a child 
+			// by this one
+			for (OBDD p : otherNode.parents) {
+				if (p.highChild == otherNode) {
+					// If the other node was the parent's high child, this 
+					// one becomes it instead.
+					p.highChild = this;
+				}
+				if (p.lowChild == otherNode) {
+					// If the other node was the parent's low child, this 
+					// one becomes it instead.
+					p.lowChild = this;
+				}
+			}
+		} else {
+			// TODO user message
+		}
+	}
 }
