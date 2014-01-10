@@ -1034,8 +1034,8 @@ public class OBDD {
 			// searching for more equivalent nodes
 			equivalentFind = rootMVA.findEquivalent();
 		}
-		// After adding all missing variables and merging all equivalent 
-		// variables, the new OBDD is a QOBDD.
+		// After adding all missing variables and merging all equivalent nodes, 
+		// the new OBDD is a QOBDD.
 		return rootMVA;
 	}
 	
@@ -1073,6 +1073,39 @@ public class OBDD {
 						new VariableOrdering(varOrdList));
 			}
 		}
+	}
+	
+	
+	/**
+	 * method that provides an ROBDD equivalent to this entire OBDD
+	 * @return the ROBDD
+	 */
+	public OBDD toROBDD() {
+		// getting the entire OBDD's root
+		OBDD root = this.getRoot();
+		// trying to find a pair of equivalent nodes
+		LinkedList<OBDD> equivalentFind = root.findEquivalent();
+		// While there are equivalent nodes in the OBDD, they have to be merged 
+		// to create an ROBDD.
+		while (!(equivalentFind == null)) {
+			// merging the two found equivalent nodes
+			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
+			// searching for more equivalent nodes
+			equivalentFind = root.findEquivalent();
+		}
+		// trying to find a redundant node
+		OBDD redundantFind = root.findRedundant();
+		// while there are redundant nodes in the OBDD, they have to be removed 
+		// to create an ROBBD.
+		while (!(redundantFind == null)) {
+			// removing the found redundant node
+			redundantFind.removeRedundant();
+			// searching for another redundant node
+			redundantFind = root.findRedundant();
+		}
+		// After merging all equivalent nodes and removing all redundant ones, 
+		// the OBDD is an ROBDD.
+		return root;
 	}
 	
 	
