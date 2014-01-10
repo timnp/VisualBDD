@@ -916,10 +916,8 @@ public class OBDD {
 			return null;
 		}
 		// Otherwise the node has children.
-		else if (this.highChild.id == this.lowChild.id) {
-			// If the node's high child and low child have the same ID and 
-			// therefore are the same, the node is redundant and therefore 
-			// returned.
+		else if (this.isRedundant()) {
+			// If the node is redundant, it is returned.
 			return this;
 		}
 		// If the node itself isn't redundant, the search is continued for its
@@ -936,5 +934,16 @@ public class OBDD {
 			// returning the "find"
 			return redundantFind;
 		}
+	}
+	
+	
+	/**
+	 * method that states whether the OBDD node is redundant
+	 * @return
+	 */
+	public boolean isRedundant() {
+		// A node is redundant, if it's children are the same (which can be 
+		// indicated by their IDs).
+		return (this.highChild.id == this.lowChild.id);
 	}
 }
