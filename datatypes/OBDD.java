@@ -1,5 +1,6 @@
 package datatypes;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -538,7 +539,7 @@ public class OBDD {
 				// negating the low child
 				OBDD negLC = this.lowChild.negate();
 				// combining the two negated children
-				OBDD neg = negHC.cons(this.var, negLC, varOrd);
+				OBDD neg = negHC.cons(this.var, negLC, this.varOrd);
 				// putting the negated node into the computed table
 				negCT.put(this.id, neg);
 				// returning the negated node
@@ -603,11 +604,8 @@ public class OBDD {
 	public Formula toFormula() {
 		// clearing the computed table
 		formulaCT.clear();
-		// retrieving the entire OBDD's root's VariableOrdering and therefore 
-		// the complete one
-		VariableOrdering completeVarOrd = this.getRoot().varOrd;
 		// calling the actual (recursive) toFormula method
-		Formula result = toFormulaRec(completeVarOrd);
+		Formula result = toFormulaRec(this.varOrd);
 		// reducing constants
 		Formula resultRC = result.reduceConstants();
 		// returning the result
@@ -665,28 +663,55 @@ public class OBDD {
 	
 	
 	/**
+	 * method that provides the evaluation of the Formula represented by the 
+	 * OBDD relating to a given assignment but sorts the assignment list before
+	 * @param assignedOne
+	 * @return the value of the Formula
+	 */
+	public boolean valueByOBDD(LinkedList<Integer> assignedOne) {
+		// creating a comparator for the complete VariableOrdering
+		VariableOrderingComparator complVarOrdComp = 
+				new VariableOrderingComparator(this.varOrd);
+		// sorting the list of variables assigned one by means of the 
+		// VariableOrdering
+		Collections.sort(assignedOne, complVarOrdComp);
+		// calling the actual (recursive) algorithm
+		return valueByOBDDRec(assignedOne, complVarOrdComp);
+	}
+	
+	
+	/**
 	 * Evaluates the formula represented by the OBDD relating to a given
 	 * assignment.
 	 * (3.2.1)
 	 * @param assignedOne - list of all variables assigned one
 	 * @return the value of the formula as a boolean
 	 */
-	public boolean valueByOBDD(LinkedList<Integer> assignedOne) {
+	public boolean valueByOBDDRec(LinkedList<Integer> assignedOne, 
+			VariableOrderingComparator complVarOrdComp) {
 		if (this.terminal) {
 			// If the node is a terminal, its value is returned.
 			return this.value;
 		}
 		// Otherwise the OBDD is run through as directed by the assignment.
 		else {
-			if (assignedOne.contains(this.var)) {
-				// If the node's variable is assigned one, the high child gets
-				// to continue the calculation.
-				return this.highChild.valueByOBDD(assignedOne);
+			// As long as the first variable in the list of the variables 
+			// assigned one is higher by means of the VariableOrdering than 
+			// this node's one, it is removed from the list.
+			while (complVarOrdComp.compare(assignedOne.getFirst(), this.var) > 0) {
+				assignedOne.removeFirst();
+			}
+			if (assignedOne.getFirst() == this.var) {
+				// If the node's variable is assigned one, first it is removed 
+				// from the list.
+				assignedOne.removeFirst();
+				// Then the high child gets to continue the calculation.
+				return this.highChild.valueByOBDDRec(assignedOne, complVarOrdComp);
 			}
 			else {
 				// Otherwise the node's variable is assigned zero and therefore
 				// the low child gets to continue the calculation.
-				return this.lowChild.valueByOBDD(assignedOne);
+				return this.lowChild.valueByOBDDRec(assignedOne, complVarOrdComp);
 			}
 		}
 	}
@@ -866,4 +891,50 @@ public class OBDD {
 		}
 	}
 	
+	
+	/**
+	 * method that provides the recursive findRedundantRec method for the 
+	 * entire OBDD
+	 * @return
+	 */
+	public OBDD findRedundant() {
+		// starting the (recursive) search at the entire OBDD's root
+		return this.getRoot().findRedundantRec();
+	}
+	
+	
+	/**
+	 * method that provides a redundant node of this OBDD node's sub-OBDD
+	 * (if possible)
+	 * @return a redundant node (if possible)
+	 */
+	public OBDD findRedundantRec() {
+		// If the node is a terminal, the search has failed.
+		if (this.terminal) {
+			// TODO user message
+			// tentative value: null
+			return null;
+		}
+		// Otherwise the node has children.
+		else if (this.highChild.id == this.lowChild.id) {
+			// If the node's high child and low child have the same ID and 
+			// therefore are the same, the node is redundant and therefore 
+			// returned.
+			return this;
+		}
+		// If the node itself isn't redundant, the search is continued for its
+		// children recursively.
+		else {
+			// trying to find a redundant node along the high child's paths
+			OBDD redundantFind = this.highChild.findRedundantRec();
+			// If the search along the high child's paths didn't provide a 
+			// redundant node, the search is continued along the low child's
+			// paths.
+			if ((redundantFind == null)) {
+				redundantFind = this.lowChild.findRedundantRec();
+			}
+			// returning the "find"
+			return redundantFind;
+		}
+	}
 }
