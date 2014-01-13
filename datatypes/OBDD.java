@@ -125,6 +125,12 @@ public class OBDD {
 	 */
 	private static boolean satVal;
 	
+	/**
+	 * computed table for the "allSat" algorithm
+	 */
+	private static HashMap<Integer, LinkedList<LinkedList<Integer>>> allSatCT = 
+			new HashMap<Integer, LinkedList<LinkedList<Integer>>>();
+	
 	
 	
 	/**
@@ -277,9 +283,7 @@ public class OBDD {
 		// clearing the computed table
 		applyCT.clear();
 		// calling the actual (recursive) apply algorithm
-		OBDD result = applyRec(b, op, varOrd);
-		// returning the result
-		return result;
+		return applyRec(b, op, varOrd);
 	}
 	
 	
@@ -516,9 +520,7 @@ public class OBDD {
 		// clearing the computed table
 		negCT.clear();
 		// calling the actual (recursive) negate algorithm
-		OBDD result = negateRec();
-		// returning the result
-		return result;
+		return negateRec();
 	}
 	
 	
@@ -854,9 +856,7 @@ public class OBDD {
 		// clearing the computed table
 		equivCT.clear();
 		// calling the actual (recursive) equivalence test
-		boolean result = isEquivalentRec(otherNode);
-		// returning the result
-		return result;
+		return isEquivalentRec(otherNode);
 	}
 	
 	
@@ -1167,5 +1167,142 @@ public class OBDD {
 		} else {
 			// TODO user message
 		}
+	}
+	
+	
+	/**
+	 * method that provides the "allSat" algorithm and clears the computed 
+	 * table before
+	 * @return
+	 */
+	public LinkedList<LinkedList<Integer>> allSat() {
+		// clearing the computed table
+		allSatCT.clear();
+		// getting the variable ordering of the OBDD
+		LinkedList<Integer> varOrdList = this.varOrd.getOrdList();
+		// calling the actual (recursive) algorithm
+		return allSatRec(varOrdList);
+	}
+	
+	
+	/**
+	 * algorithm that provides all satisfying assignments for an OBDD
+	 * @param varOrdList - the list of "all" variables
+	 * @return
+	 */
+	private LinkedList<LinkedList<Integer>> allSatRec(LinkedList<Integer> varOrdList) {
+		if (this.terminal) {
+			LinkedList<LinkedList<Integer>> emptyList = new LinkedList<LinkedList<Integer>>();
+			if (this.value) {
+				// If the node is the 1-terminal, a list containing an empty 
+				// list is returned.
+				emptyList.add(new LinkedList<Integer>());
+			}
+			// If the node is the 0-terminal, only an empty list is returned.
+			return emptyList;
+		}
+		// returning the list stated in the computed table for this node
+		// (if there is one)
+		if (allSatCT.containsKey(this.id)) {
+			return allSatCT.get(this.id);
+		} else {
+			// getting the position of the node's variable in the given variable list
+			int varPos = varOrdList.indexOf(this.var);
+			// initializing a list for all variables that were "missing" before the 
+			// node's one
+			LinkedList<Integer> missingVars = new LinkedList<Integer>();
+			// moving all variables in the list before the node's one to the list 
+			// of "missing" variables
+			for (int i = 0; i < varPos; i++) {
+				 missingVars.add(varOrdList.poll());
+			}
+			// creating the "power list" of the list of "missing" variables
+			LinkedList<LinkedList<Integer>> missingVarsPL = powerList(missingVars);
+			// removing this node's variable form the variable list
+			varOrdList.poll();
+			// getting all satisfying assignments for the node's high child
+			LinkedList<LinkedList<Integer>> allSatList = 
+					this.highChild.allSatRec(varOrdList);
+			// initializing a variable for satisfying assignments for the node's 
+			// high child
+			LinkedList<Integer> satHC;
+			// for each satisfying assignment of the node's high child, adding the 
+			// node's variable to the beginning of the list
+			for (int i = 0; i < allSatList.size(); i++) {
+				satHC = allSatList.get(i);
+				satHC.addFirst(this.var);
+				allSatList.set(i, satHC);
+			}
+			// getting all satisfying assignments for the node's low child
+			allSatList.addAll(this.lowChild.allSatRec(varOrdList));
+			// initializing an empty list for all satisfying assignments including 
+			// the "missing" variables" 
+			LinkedList<LinkedList<Integer>> allSatWithMissing = 
+					new LinkedList<LinkedList<Integer>>();
+			// initializing a variable for the individual satisfying assignments 
+			// with "missing" variables
+			LinkedList<Integer> satWithMissing;
+			// for each list of "missing" variables and each satisfying assignment 
+			// so far, adding each possible combination of elements of the two sets 
+			// to the list of satisfying assignments with "missing" variables
+			for (LinkedList<Integer> mVList : missingVarsPL) {
+				for (LinkedList<Integer> satList : allSatList) {
+					// setting the new assignment to the current list of "missing" 
+					// variables
+					satWithMissing = mVList;
+					// adding the current satisfying assignment
+					satWithMissing.addAll(satList);
+					// adding the "complete" assignment to the list
+					allSatWithMissing.add(satWithMissing);
+				}
+			}
+			// putting all satisfying assignments including "missing" variables 
+			// for this node into the computed table
+			allSatCT.put(this.id, allSatWithMissing);
+			// returning the assignments
+			return allSatWithMissing;
+		}
+	}
+	
+	
+	/**
+	 * method that provides a "power list" for a given list of variables 
+	 * (integers)
+	 * @param varList - the list of variables (integers)
+	 * @return the "power list"
+	 */
+	private LinkedList<LinkedList<Integer>> powerList(LinkedList<Integer> varList) {
+		// initializing an empty list
+		LinkedList<LinkedList<Integer>> powList = new LinkedList<LinkedList<Integer>>();
+		// adding empty lists equal to the number of lists that have to be in 
+		// the "power list"
+		for (int i = 0; i < Math.pow(2, varList.size()); i++) {
+			powList.add(new LinkedList<Integer>());
+		}
+		// for each variable (integer) adding it to half of the lists in the 
+		// "power list", each up to a different sample
+		// (inspired by truth tables)
+		for (int var = 0 ; var < varList.size() ; var++) {
+			// A row of lists with the variable and then lists without the 
+			// variable before the next list with the variable is considered a 
+			// "run".
+			int maxRun = (int) Math.pow(2, var);
+			// A list with the variable after another one with the variable is 
+			// considered a "repeat".
+			int maxRepeat = (int) Math.pow(2, varList.size() - var - 1);
+			for (int run = 0 ; run < maxRun ; run++) {
+				for (int repeat = 0 ; repeat < maxRepeat; repeat++) {
+					// first retrieving the list from the "power list"
+					LinkedList<Integer> listToAdd = 
+							powList.get((2 * maxRepeat * run + maxRepeat + repeat));
+					// adding the variable
+					listToAdd.add(var);
+					// putting the list pack at its place into the "power list"
+					powList.set((2 * maxRepeat * run + maxRepeat + repeat), listToAdd);
+				}
+			}
+		}
+		// returning the complete "power list"
+		return powList;
 	}
 }
