@@ -32,11 +32,6 @@ public class Formula {
 	 * value (for constants)
 	 */
 	private boolean value;
-	/**
-	 * the variable ordering
-	 * used when an OBDD representing the Formula is created
-	 */
-	private VariableOrdering varOrd;
 	
 	/**
 	 * constant numbers for all possible constructors
@@ -57,38 +52,30 @@ public class Formula {
 	/**
 	 * constructor for constants
 	 * @param val
-	 * @param varOrd
 	 */
-	public Formula(boolean val, VariableOrdering varOrd) {
-		this.value = val;
-		this.varOrd = varOrd;
-		this.constructor = CONSTANT;
+	public Formula(boolean val) {
+		value = val;
+		constructor = CONSTANT;
 	}
 	
 	
 	/**
 	 * constructor for variables
 	 * @param varNr
-	 * @param varOrd
 	 */
-	public Formula (int varNr, VariableOrdering varOrd) {
+	public Formula (int varNr) {
 		this.varNr = varNr;
-		this.varOrd = varOrd;
-		this.constructor = VARIABLE;
+		constructor = VARIABLE;
 	}
 	
 	
 	/**
 	 * smart "constructor" for logical negation
-	 * @param successor
-	 * @param varOrd
-	 * @return Formula representing a logical negation
-	 * 			between this node and the given one
+	 * @return Formula representing a logical negation of this node
 	 */
-	public Formula not(VariableOrdering varOrd) {
+	public Formula not() {
 		Formula not = new Formula();
 		not.firstSuccessor = this;
-		not.varOrd = varOrd;
 		not.constructor = NOT;
 		return not;
 	}
@@ -97,15 +84,13 @@ public class Formula {
 	/**
 	 * smart "constructor" for logical conjunction
 	 * @param secondSuccessor
-	 * @param varOrd
-	 * @return Formula representing a logical conjunction
+	 * @return Formula representing a logical conjunction 
 	 * 			between this node and the given one
 	 */
-	public Formula and(Formula secondSuccessor, VariableOrdering varOrd) {
+	public Formula and(Formula secondSuccessor) {
 		Formula and = new Formula();
 		and.firstSuccessor = this;
 		and.secondSuccessor = secondSuccessor;
-		and.varOrd = varOrd;
 		and.constructor = AND;
 		return and;
 	}
@@ -114,14 +99,13 @@ public class Formula {
 	/**
 	 * smart "constructor" for logical disjunction
 	 * @param secondSuccessor
-	 * @param varOrd
-	 * @return Formula representing a logical disjunction
+	 * @return Formula representing a logical disjunction 
+	 * 			between this node and the given one
 	 */
 	public Formula or(Formula secondSuccessor) {
 		Formula or = new Formula();
 		or.firstSuccessor = this;
 		or.secondSuccessor = secondSuccessor;
-		or.varOrd = varOrd;
 		or.constructor = OR;
 		return or;
 	}
@@ -218,58 +202,52 @@ public class Formula {
 		// matching the input String to the constant Pattern
 		this.matcher = constantPattern.matcher(formulaString);
 		if (matcher.matches()) {
-			// If the constant is 0, its value is "false".
-			if (formulaString == "0") {
-				this.value = false;
-			}
-			// The only other way, the input String could match the constant 
-			// Pattern, is that its a 1 and therefore its value is "true".
-			else {
-				this.value = true;
-			}
+			// If the constant is 1, its value is "true".
+			// Otherwise it is 0, and its value is "false".
+			value = (formulaString == "1");
 			// setting the constructor
-			this.constructor = CONSTANT;
+			constructor = CONSTANT;
 		}
 		// matching the input String to the variable Pattern
-		this.matcher = variablePattern.matcher(formulaString);
+		matcher = variablePattern.matcher(formulaString);
 		if (matcher.matches()) {
 			// retrieving the variable number from the String
-			this.varNr = Integer.parseInt(matcher.group(1));
+			varNr = Integer.parseInt(matcher.group(1));
 			// setting the constructor
-			this.constructor = VARIABLE;
+			constructor = VARIABLE;
 		}
 		// matching the input String to the logical negation Pattern
-		this.matcher = notPattern.matcher(formulaString);
+		matcher = notPattern.matcher(formulaString);
 		if (matcher.matches()) {
 			// retrieving the String that represents the successor
 			String successorString = matcher.group(1);
 			// creating the successor
-			this.firstSuccessor = new Formula(successorString);
+			firstSuccessor = new Formula(successorString);
 			// setting the constructor
-			this.constructor = NOT;
+			constructor = NOT;
 		}
 		// matching the input String to the binary operation Pattern
-		this.matcher = binOpPattern.matcher(formulaString);
+		matcher = binOpPattern.matcher(formulaString);
 		if (matcher.matches()) {
 			// retrieving the String that represents the first successor
 			String firstSuccessorString = matcher.group(1);
 			// creating the first successor
-			this.firstSuccessor = new Formula(firstSuccessorString);
+			firstSuccessor = new Formula(firstSuccessorString);
 			// retrieving the String that represents the operation
 			String opString = matcher.group(2);
 			// retrieving the String that represents the first successor
 			String secondSuccessorString = matcher.group(3);
 			// creating the first successor
-			this.secondSuccessor = new Formula(secondSuccessorString);
+			secondSuccessor = new Formula(secondSuccessorString);
 			// switch for the possible binary operations
 			switch (opString) {
 			// "*" stands for a logical conjunction
 			case "*":
-				this.constructor = AND;
+				constructor = AND;
 				break;
 			// "+" stands for a logical disjunction
 			case "+":
-				this.constructor = OR;
+				constructor = OR;
 				break;
 			default:
 				//TODO user message
@@ -279,14 +257,12 @@ public class Formula {
 	
 	
 	/**
-	 * method that provides 
+	 * provides TODO
 	 * @return
 	 */
 	public OBDD toOBDD() {
-		// the number of variables in the VariableOrdering
-		int varOrdSize = this.varOrd.size();
 		// a switch for the possible constructors
-		switch (this.constructor) {
+		switch (constructor) {
 		// Zeroth case: The Formula represents a constant.
 		case 0:
 			// If this constant Formula is tautological, the OBDD has to be too.
@@ -489,42 +465,42 @@ public class Formula {
 	 * @return the value of the Formula as a boolean
 	 */
 	public boolean assign(LinkedList<Integer> assignedOne) {
+		// initializing variables for the values of the successors
+		boolean firstSucVal;
+		boolean secondSucVal;
 		// a switch for the possible constructors for this Formula
 		switch (constructor) {
 		// Zeroth case: The Formula represents a constant.
 		case 0:
 			// simply returning the constant's value
-			return this.value;
+			return value;
 		// First case: The Formula represents a variable.
 		case 1:
 			// If the variable is assigned the logical value one,
 			// true is returned.
-			if(assignedOne.contains(this.varNr)) {
-				return true;
-			}
 			// Otherwise the variable is assigned the logical value zero
 			// or it isn't assigned anything. Therefore false is returned.
-			return false;
+			return (assignedOne.contains(varNr));
 		// Second case: The Formula represents a logical negation.
 		case 2:
 			// calculating the value of the successor
-			boolean firstSucVal = this.firstSuccessor.assign(assignedOne);
+			firstSucVal = firstSuccessor.assign(assignedOne);
 			// returning the negated value of the successor
 			return !firstSucVal;
 		// Third case: The Formula represents a logical conjunction.
 		case 3:
 			// calculating the value of the first successor
-			firstSucVal = this.firstSuccessor.assign(assignedOne);
+			firstSucVal = firstSuccessor.assign(assignedOne);
 			// calculating the value of the second successor
-			boolean secondSucVal = this.secondSuccessor.assign(assignedOne);
+			secondSucVal = secondSuccessor.assign(assignedOne);
 			// returning the conjunction of the two successor values
 			return firstSucVal && secondSucVal;
 		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
 			// calculating the value of the first successor
-			firstSucVal = this.firstSuccessor.assign(assignedOne);
+			firstSucVal = firstSuccessor.assign(assignedOne);
 			// calculating the value of the second successor
-			secondSucVal = this.secondSuccessor.assign(assignedOne);
+			secondSucVal = secondSuccessor.assign(assignedOne);
 			// returning the disjunction of the two successor values
 			return firstSucVal || secondSucVal;
 		// Default case: None of the given constructors was used.
@@ -556,7 +532,7 @@ public class Formula {
 			// clearing the list
 			vars.clear();
 			// adding the variable's number to the list
-			vars.add(this.varNr);
+			vars.add(varNr);
 			// returning the list
 			return vars;
 		// Second case: The Formula represents a logical negation.
@@ -564,7 +540,7 @@ public class Formula {
 			// clearing the list
 			vars.clear();
 			// adding all variable numbers of the successor to the list
-			vars.addAll(this.firstSuccessor.vars());
+			vars.addAll(firstSuccessor.vars());
 			// returning the list
 			return vars;
 		// Third case: The Formula represents a logical conjunction.
@@ -572,9 +548,9 @@ public class Formula {
 			// clearing the list
 			vars.clear();
 			// adding all variable numbers of the first successor to the list
-			vars.addAll(this.firstSuccessor.vars());
+			vars.addAll(firstSuccessor.vars());
 			// getting all variable numbers of the second successor
-			LinkedList<Integer> secondSucVars = this.secondSuccessor.vars();
+			LinkedList<Integer> secondSucVars = secondSuccessor.vars();
 			// merging the list with the second successor's variable numbers
 			for(Integer i : secondSucVars) {
 				// adding the variable number to the list if it isn't already in
@@ -589,9 +565,9 @@ public class Formula {
 			// clearing the list
 			vars.clear();
 			// adding all variable numbers of the first successor to the list
-			vars.addAll(this.firstSuccessor.vars());
+			vars.addAll(firstSuccessor.vars());
 			// getting all variable numbers of the second successor
-			secondSucVars = this.secondSuccessor.vars();
+			secondSucVars = secondSuccessor.vars();
 			// merging the list with the second successor's variable numbers
 			for(Integer i : secondSucVars) {
 				// adding the variable number to the list if it isn't already in
@@ -612,12 +588,12 @@ public class Formula {
 	
 	
 	/**
-	 * 
+	 * @param varOrd - the VariableOrdering
 	 * @return the Formula's entire truth table
 	 */
-	public JTable entireTruthTable() {
+	public JTable entireTruthTable(VariableOrdering varOrd) {
 		// returning the truth table for "all" variables
-		return truthTable(this.varOrd.getOrdList());
+		return truthTable(varOrd.getOrdList());
 	}
 	
 	
@@ -675,7 +651,7 @@ public class Formula {
 			}
 			// function value of this Formula's function under the assignment
 			// represented by the row
-			boolean funVal = this.assign(assignedOne);
+			boolean funVal = assign(assignedOne);
 			// transferring the boolean function value into one/zero and
 			// writing it into the data array
 			if (funVal) {
@@ -696,38 +672,42 @@ public class Formula {
 	 */
 	public String toString() {
 		// switch for the possible constructors
-		switch (this.constructor) {
+		switch (constructor) {
 		// zeroth case: returning either the tautological or the
 		// contradictory Formula respectively
 		case 0:
-			if (this.value) {
+			if (value) {
 				return "0";
 			} else return "1";
 		// first case: returning the variable
 		case 1:
-			return "X" + this.varNr;
+			return "X" + varNr;
 		// second case: returning the negated successor in parentheses
 		case 2:
-			return "(-" + this.firstSuccessor.toString() + ")";
+			return "(-" + firstSuccessor.toString() + ")";
 		// third case: returning the two successors combined by a symbol for
 		// logical conjunction (*) in parentheses
 		case 3:
-			return "(" + this.firstSuccessor.toString() 
-					+ " * " + this.secondSuccessor.toString() + ")";
+			return "(" + firstSuccessor.toString() 
+					+ " * " + secondSuccessor.toString() + ")";
 		// fourth case: returning the two successors combined by a symbol for
 		// logical disjunction (+) in parentheses
 		case 4:
-			return "(" + this.firstSuccessor.toString() 
-					+ " + " + this.secondSuccessor.toString() + ")";
+			return "(" + firstSuccessor.toString() 
+					+ " + " + secondSuccessor.toString() + ")";
 		default:
 			return "";
 		}
 	}
 	
 	
+	/**
+	 * TODO WHY DOESN'T THIS HAVE JAVADOC COMMENTS?
+	 * @return
+	 */
 	public Formula reduceConstants() {
 		// switch for the possible constructors
-		switch (this.constructor) {
+		switch (constructor) {
 		// Zeroth case: The Formula represents a constant and can't be reduced.
 		case 0:
 			return this;
@@ -737,21 +717,21 @@ public class Formula {
 		// Second case: The Formula represents a logical negation.
 		case 2:
 			// First the successor is reduced.
-			Formula rcSuccessor = this.firstSuccessor.reduceConstants();
+			Formula rcSuccessor = firstSuccessor.reduceConstants();
 			// If the reduced successor is a constant,
 			// the opposite constant is returned.
 			if (rcSuccessor.constructor == CONSTANT) {
-				return new Formula(!rcSuccessor.value, this.varOrd);
+				return new Formula(!rcSuccessor.value);
 			}
 			// Otherwise the negation of the reduced successor is returned.
 			else {
-				 return rcSuccessor.not(this.varOrd);
+				 return rcSuccessor.not();
 			}
 		// Third case: The Formula represents a logical conjunction.
 		case 3:
 			// First the two successors are reduced.
-			Formula rcFirstSuccessor = this.firstSuccessor.reduceConstants();
-			Formula rcSecondSuccessor = this.secondSuccessor.reduceConstants();
+			Formula rcFirstSuccessor = firstSuccessor.reduceConstants();
+			Formula rcSecondSuccessor = secondSuccessor.reduceConstants();
 			if (rcFirstSuccessor.constructor == CONSTANT) {
 				// If the first successor is the tautological Formula,
 				// the second successor is returned.
@@ -772,12 +752,12 @@ public class Formula {
 				else return rcSecondSuccessor;
 			// If none of the two successors is a constant, 
 			// their conjunction is returned.
-			} else return rcFirstSuccessor.and(rcSecondSuccessor, this.varOrd);
+			} else return rcFirstSuccessor.and(rcSecondSuccessor);
 		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
 			// First the two successors are reduced.
-			rcFirstSuccessor = this.firstSuccessor.reduceConstants();
-			rcSecondSuccessor = this.secondSuccessor.reduceConstants();
+			rcFirstSuccessor = firstSuccessor.reduceConstants();
+			rcSecondSuccessor = secondSuccessor.reduceConstants();
 			if (rcFirstSuccessor.constructor == CONSTANT) {
 				// If the first successor is the tautological Formula,
 				// it is returned.

@@ -31,10 +31,6 @@ public class OBDD {
 	 */
 	private int var;
 	/**
-	 * list of variable numbers representing the OBDD'a variable ordering
-	 */
-	private VariableOrdering varOrd;
-	/**
 	 * HashMap for all of the OBDD's layers (except the terminal layer)
 	 * Each layer is identified by its nodes' variable.
 	 * Each layer is represented by a list of its nodes.
@@ -128,7 +124,7 @@ public class OBDD {
 	/**
 	 * computed table for the "allSat" algorithm
 	 */
-	private static HashMap<Integer, LinkedList<LinkedList<Integer>>> allSatCT = 
+	private static HashMap<Integer, LinkedList<LinkedList<Integer>>> allSatCT =
 			new HashMap<Integer, LinkedList<LinkedList<Integer>>>();
 	
 	
@@ -144,8 +140,6 @@ public class OBDD {
 		one.value = true;
 		// defining the variable number for comparability
 		one.var = -1;
-		// A terminal has an empty variable ordering.
-		one.varOrd = new VariableOrdering(new LinkedList<Integer>());
 		return one;
 	}
 	
@@ -161,30 +155,25 @@ public class OBDD {
 		zero.value = false;
 		// defining the variable number for comparability
 		zero.var = -1;
-		// A terminal has an empty variable ordering.
-		zero.varOrd = new VariableOrdering(new LinkedList<Integer>());
 		return zero;
 	}
 	
 	
 	/**
-	 * updates the node's layer HashMap
+	 * updates the node's layer HashMap and returns it
+	 * @return 
 	 */
-	private void updateLayers() {
+	private HashMap<Integer, LinkedList<OBDD>> updateLayers() {
 		// initializing the new layer HashMap
 		HashMap<Integer,LinkedList<OBDD>> layers =
 				new HashMap<Integer,LinkedList<OBDD>>();
 		// retrieving the OBDD's root node to begin with
 		OBDD root = this.getRoot();
-		// For each variable in the complete VariableOrdering a layer 
-		// represented by a LinkedList is initialized.
-		for (int var : root.varOrd.getOrdList()) {
-			layers.put(var, new LinkedList<OBDD>());
-		}
 		// adding all of the OBBD's non-terminal nodes to the layer HashMap
 		layers = root.addToLayerHashMap(layers);
 		// saving the updated layer HashMap for this node
 		this.layers = layers;
+		return layers;
 	}
 	
 	
@@ -194,21 +183,27 @@ public class OBDD {
 	 * @param layers
 	 * @return the updated layer HashMap
 	 */
-	private HashMap<Integer,LinkedList<OBDD>> addToLayerHashMap(HashMap<Integer,LinkedList<OBDD>> layers) {
+	private HashMap<Integer,LinkedList<OBDD>> 
+	addToLayerHashMap(HashMap<Integer,LinkedList<OBDD>> layers) {
 		// if the node is a terminal, nothing is done
-		if (!this.terminal) {
+		if (!terminal) {
 			// retrieving this node's layer list
-			LinkedList<OBDD> layerList = layers.get(this.var);
+			LinkedList<OBDD> layerList = layers.get(var);
+			// initializing an empty layer list, if there is none for this 
+			// node's layer
+			if (layerList == null) {
+				layerList = new LinkedList<OBDD>();
+			}
 			// adding the node to its layer list if it isn't already in
 			if(!layerList.contains(this)) {
 				layerList.add(this);
 			}
 			// putting the updated layer list into the layer HashMap
-			layers.put(this.var, layerList);
+			layers.put(var, layerList);
 			// recursively adding the high child
-			layers = this.highChild.addToLayerHashMap(layers);
+			layers = highChild.addToLayerHashMap(layers);
 			// recursively adding the low child
-			layers = this.lowChild.addToLayerHashMap(layers);
+			layers = lowChild.addToLayerHashMap(layers);
 		}
 		return layers;
 	}	
@@ -219,17 +214,16 @@ public class OBDD {
 	 * and a given node as low child
 	 * @param variable
 	 * @param lowChild
-	 * @param varOrd - the complete VariableOrdering
+	 * @param varOrd - the VariableOrdering
 	 * @return the new node
 	 */
 	public OBDD cons(int variable, OBDD lowChild, VariableOrdering varOrd) {
-		// creating a VariableOrderingComparator for the complete 
-		// VariableOrdering
+		// creating a VariableOrderingComparator for the VariableOrdering
 		VariableOrderingComparator complVarOrdComp = 
 				new VariableOrderingComparator(varOrd);
 		// If the given variable is higher than the variables of both this and 
 		// the given node, the new node can be created.
-		if ((complVarOrdComp.compare(variable, this.var) > 0) && 
+		if ((complVarOrdComp.compare(variable, var) > 0) && 
 				(complVarOrdComp.compare(variable, lowChild.var) > 0)) {
 			// initializing the new node
 			OBDD newNode = new OBDD();
@@ -238,13 +232,8 @@ public class OBDD {
 			newNode.id = idCount++;
 			// The new node isn't a terminal since it's created with children.
 			newNode.terminal = false;
-			// The new node's variable ordering is the same as this node's.
-			newNode.varOrd = this.varOrd;
 			// The given variable becomes the new node's one.
 			newNode.var = variable;
-			// The new node's VariableOrdering is "cut off" 
-			// before the node's variable.
-			newNode.varOrd = varOrd.removeBefore(variable);
 			// This node becomes the new node's high child.
 			newNode.highChild = this;
 			// The given node becomes the new node's low child.
@@ -253,8 +242,8 @@ public class OBDD {
 			newNode.parents = new LinkedList<OBDD>();
 			// The new node becomes a parent of this node
 			// if this node isn't a terminal.
-			if (!this.terminal) {
-				this.parents.add(newNode);			
+			if (!terminal) {
+				parents.add(newNode);			
 			}
 			// The new node becomes a parent of the given node.
 			// if this node isn't a terminal.
@@ -267,13 +256,11 @@ public class OBDD {
 			// TODO user message
 			return null;
 		}
-		
 	}
 	
 	
 	/**
-	 * function that provides the apply algorithm
-	 * and clears the computed table before
+	 * provides the apply algorithm and clears the computed table before
 	 * @param b
 	 * @param op
 	 * @param varOrd
@@ -288,17 +275,17 @@ public class OBDD {
 	
 	
 	/**
-	 * function that applies a boolean operation on two OBDDs
+	 * applies a boolean operation on two OBDDs
 	 * (3.5.4)
 	 * @param b - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
-	 * @param varOrd - the complete VariableOrdering
+	 * @param varOrd - the VariableOrdering
 	 * @return the resulting OBDD
 	 */
 	private OBDD applyRec(OBDD b, int op, VariableOrdering varOrd) {
 		// If both OBDD nodes are terminals, the resulting terminal can be
 		// calculated by means of the boolean operation.
-		if (this.terminal && b.terminal) {
+		if (terminal && b.terminal) {
 			// switch for the sixteen possible boolean operations
 			switch (op) {
 			// case 0
@@ -310,14 +297,14 @@ public class OBDD {
 				// applying "and":
 				// returning the 1-terminal if both nodes are the 1-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(this.value && b.value);
+				return booleanToOBDD(value && b.value);
 			// case 2
 			case A_GREATER_THAN_B:
 				// applying "a greater than b":
 				// returning the 1-terminal if this node is the 1-terminal and
 				// the other one is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(this.value && !b.value);
+				return booleanToOBDD(value && !b.value);
 			// case 3
 			case IDENTITY_OF_A:
 				// "applying" the "identity of a": returning this node
@@ -328,7 +315,7 @@ public class OBDD {
 				// returning the 1-terminal if this node is the 0-terminal and
 				// the other one is the 1-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!this.value && b.value);
+				return booleanToOBDD(!value && b.value);
 			// case 5
 			case IDENTITY_OF_B:
 				// "applying" the "identity of b": returning the other node
@@ -339,25 +326,25 @@ public class OBDD {
 				// returning the 1-terminal if one of the two nodes is the
 				// 1-terminal and the other one is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(this.value ^ b.value);
+				return booleanToOBDD(value ^ b.value);
 			// case 7
 			case OR:
 				// applying "or":
 				// returning the 1-terminal if at least one of the two nodes
 				// is the 1-terminal, and otherwise the 0-terminal
-				return booleanToOBDD(this.value || b.value);
+				return booleanToOBDD(value || b.value);
 			// case 8
 			case NOR:
 				// applying "nor":
 				// returning the 1-terminal if none of the two nodes is the
 				// 1-terminal, and otherwise the 0-terminal
-				return booleanToOBDD(!(this.value || b.value));
+				return booleanToOBDD(!(value || b.value));
 			// case 9
 			case EQUIVALENCE:
 				// applying "equivalence"
 				// return the 1-terminal if the two nodes are the same,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(this.value == b.value);
+				return booleanToOBDD(value == b.value);
 			// case 10
 			case NOT_B:
 				// applying "not b":
@@ -370,26 +357,26 @@ public class OBDD {
 				// returning the 1-terminal if this node is the 1-terminal or
 				// the other one is the 0-terminal (or both),
 				// and otherwise the 0-terminal
-				return booleanToOBDD(this.value || !b.value);
+				return booleanToOBDD(value || !b.value);
 			// case 12
 			case NOT_A:
 				// applying "not a":
 				// returning the 1-terminal if this node is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!this.value);
+				return booleanToOBDD(!value);
 			// case 13
 			case A_IMPLIES_B:
 				// applying "a implies b":
 				// returning the 1-terminal if this node is the 0-terminal
 				// or the other one is the 1-terminal (or both),
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!this.value || b.value);
+				return booleanToOBDD(!value || b.value);
 			// case 14
 			case NAND:
 				// applying "nand":
 				// returning the 1-terminal if at least one of the two
 				// nodes is the 0-terminal, and otherwise the 0-terminal
-				return booleanToOBDD(!(this.value && b.value));
+				return booleanToOBDD(!(value && b.value));
 			// case 15
 			case TAUTOLOGY:
 				 // "applying" the tautology: returning the 1-terminal
@@ -405,7 +392,7 @@ public class OBDD {
 		// first the computed table is checked.
 		else {
 			// initializing a pair of the two OBDD nodes
-			Pair<Integer> applyPair = new Pair<Integer>(this.id, b.id);
+			Pair<Integer> applyPair = new Pair<Integer>(id, b.id);
 			// Return the OBDD stated for the two nodes in the computed table
 			// if there is one.
 			if (applyCT.containsKey(applyPair)) {
@@ -413,16 +400,17 @@ public class OBDD {
 			} else {
 				// If both nodes have the same variable,
 				// both nodes' children can be called recursively.
-				if (!this.terminal && !b.terminal && this.var == b.var) {
+				if (!terminal && !b.terminal && var == b.var) {
 					// applying the operation on the both nodes' high children
 					OBDD applyHighChildren = 
-							this.highChild.applyRec(b.highChild, op, varOrd);
+							highChild.applyRec(b.highChild, op, varOrd);
 					// applying the operation on the both nodes' low children
 					OBDD applyLowChildren = 
-							this.lowChild.applyRec(b.lowChild, op, varOrd);
+							lowChild.applyRec(b.lowChild, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
-							applyHighChildren.cons(this.var, applyLowChildren, varOrd);
+							applyHighChildren.cons
+							(var, applyLowChildren, varOrd);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
@@ -430,46 +418,46 @@ public class OBDD {
 					return newNode;
 				}
 				else {
-					// creating a VariableOrderingComparator for the complete 
+					// creating a VariableOrderingComparator for the 
 					// VariableOrdering
 					VariableOrderingComparator complVarOrdComp = 
 							new VariableOrderingComparator(varOrd);
-					// If this OBDD node isn't a terminal and it's variable has 
+					// If this OBDD node isn't a terminal and it's variable has
 					// a higher position in the variable ordering than the 
 					// other node's one, only this node's children are called 
 					// recursively (here).
-					if (!this.terminal && (complVarOrdComp.compare(this.var, b.var) > 0)) {
+					if (!terminal && 
+							(complVarOrdComp.compare(var, b.var) > 0)) {
 					// applying the operation on this node's high child
 					// and the other node
-					OBDD applyHighChild = 
-							this.highChild.applyRec(b, op, varOrd);
+					OBDD applyHighChild = highChild.applyRec(b, op, varOrd);
 					// applying the operation on this node's low child
 					// and the other node
-					OBDD applyLowChild = this.lowChild.applyRec(b, op, varOrd);
+					OBDD applyLowChild = lowChild.applyRec(b, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
-							applyHighChild.cons(this.var, applyLowChild, varOrd);
+							applyHighChild.cons(var, applyLowChild, varOrd);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
 					// returning the node
 					return newNode;
 					}
-					// Otherwise the other node isn't a terminal and it's variable 
-					// has a higher position in the variable ordering than this 
-					// node's one. So only the other node's children are called 
-					// recursively (here).
+					// Otherwise the other node isn't a terminal and it's 
+					// variable has a higher position in the variable ordering 
+					// than this node's one. So only the other node's children 
+					// are called recursively (here).
 					else {
 						// applying the operation on this node
 						// and the other node's high child
 						OBDD applyHighChild = 
-								this.applyRec(b.highChild, op, varOrd);
+								applyRec(b.highChild, op, varOrd);
 						// applying the operation on this node
 						// and the other node's low child
-						OBDD applyLowChild = this.applyRec(b.lowChild, op, varOrd);
+						OBDD applyLowChild = applyRec(b.lowChild, op, varOrd);
 						// combining the two resulting nodes
-						OBDD newNode = 
-								applyHighChild.cons(this.var, applyLowChild, varOrd);
+						OBDD newNode = applyHighChild.cons
+								(var, applyLowChild, varOrd);
 						// putting the resulting node for the two nodes
 						// into the computed table
 						applyCT.put(applyPair, newNode);
@@ -512,43 +500,44 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides the negation algorithm on OBDDs
+	 * provides the negation algorithm on OBDDs
 	 * and clears the computed table before
+	 * @param varOrd
 	 * @return
 	 */
-	public OBDD negate() {
+	public OBDD negate(VariableOrdering varOrd) {
 		// clearing the computed table
 		negCT.clear();
 		// calling the actual (recursive) negate algorithm
-		return negateRec();
+		return negateRec(varOrd);
 	}
 	
 	
 	/**
-	 * method that negates an OBDD
+	 * negates an OBDD
 	 * (3.4.5)
+	 * @param varOrd - the VariableOrdering
 	 * @return the negated OBDD
 	 */
-	private OBDD negateRec() {
+	private OBDD negateRec(VariableOrdering varOrd) {
 		// If the node is a terminal, it's negation is the opposite terminal.
-		if (this.terminal) {
-			OBDD oppositeTerminal = booleanToOBDD(!this.value);
-			return oppositeTerminal;
+		if (terminal) {
+			return booleanToOBDD(!value);
 		}
 		else {
 			// Return the OBDD stated for this node in the computed table 
 			// (if there is one).
-			if (negCT.containsKey(this.id)) {
-				return negCT.get(this.id);
+			if (negCT.containsKey(id)) {
+				return negCT.get(id);
 			} else {
 				// negating the high child
-				OBDD negHC = this.highChild.negate();
+				OBDD negHC = highChild.negateRec(varOrd);
 				// negating the low child
-				OBDD negLC = this.lowChild.negate();
+				OBDD negLC = lowChild.negateRec(varOrd);
 				// combining the two negated children
-				OBDD neg = negHC.cons(this.var, negLC, this.varOrd);
+				OBDD neg = negHC.cons(var, negLC, varOrd);
 				// putting the negated node into the computed table
-				negCT.put(this.id, neg);
+				negCT.put(id, neg);
 				// returning the negated node
 				return neg;
 			}
@@ -557,8 +546,8 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides the satisfaction algorithm 
-	 * and clears the assignment and the value before
+	 * provides the satisfaction algorithm and 
+	 * clears the assignment and the value before
 	 * @return
 	 */
 	public LinkedList<Integer> satisfy() {
@@ -580,39 +569,41 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides a satisfying assignment for this OBDD (if possible)
+	 * provides a satisfying assignment for this OBDD (if possible)
 	 * (3.2.3)
 	 */
 	private void satisfyRec() {
 		// If the node is a terminal, it's value is returned.
-		if (this.terminal) {
-			satVal = this.value;
+		if (terminal) {
+			satVal = value;
 		} else {
 			// First the node's variable is assigned one
-			satAO.add(this.var);
+			if (!satAO.contains(var)) {
+				// adding the variable only if it isn't in there yet
+				satAO.add(var);
+			}
 			// The search continues from the high child on.
 			this.highChild.satisfyRec();
 			if (!satVal) {
 				// If the current assignment isn't a satisfying one,
 				// zero is tested for this node's variable.
-				satAO.removeFirstOccurrence(this.var);
+				satAO.removeFirstOccurrence(var);
 				// The search then continues from the low child on.
-				this.lowChild.satisfyRec();
+				lowChild.satisfyRec();
 			}
 		}
 	}
 	
 	
 	/**
-	 * function that provides the toFormula method 
-	 * and clears the computed table before
+	 * provides the toFormula method and clears the computed table before
 	 * @return
 	 */
 	public Formula toFormula() {
 		// clearing the computed table
 		formulaCT.clear();
 		// calling the actual (recursive) toFormula method
-		Formula result = toFormulaRec(this.varOrd);
+		Formula result = toFormulaRec();
 		// reducing constants
 		Formula resultRC = result.reduceConstants();
 		// returning the result
@@ -621,47 +612,44 @@ public class OBDD {
 	
 	
 	/**
-	 * @param completeVarOrd - the complete VariableOrdering
 	 * @return the Formula represented by the OBDD 
 	 */
-	private Formula toFormulaRec(VariableOrdering completeVarOrd) {
+	private Formula toFormulaRec() {
 		// In the case of a terminal, a constant Formula is constructed.
-		if (this.terminal) {
-			if (this.value) {
+		if (terminal) {
+			if (value) {
 				// returning the tautological Formula if the node is the
 				// 1-terminal
-				return new Formula(true, completeVarOrd);
+				return new Formula(true);
 			}
 			else {
 				// returning the contradictory Formula if the node is the
 				// 0-terminal
-				return new Formula(false, completeVarOrd);
+				return new Formula(false);
 			}
 		}
 		else {
 			// Return the Formula stated in the computed table for this node
 			// (if there is one).
-			if (formulaCT.containsKey(this.id)) {
-				return formulaCT.get(this.id);
+			if (formulaCT.containsKey(id)) {
+				return formulaCT.get(id);
 			} else {
 				// Formula representing the node's variable
-				Formula xn = new Formula(this.var, completeVarOrd);
+				Formula xn = new Formula(var);
 				// Formula represented by the OBDD induced by the node's 
 				// high child
-				Formula hcFormula = 
-						this.highChild.toFormulaRec(completeVarOrd);
+				Formula hcFormula = highChild.toFormulaRec();
 				// Formula represented by the OBDD induced by the node's 
 				// low child
-				Formula lcFormula = this.lowChild.toFormulaRec(completeVarOrd);
+				Formula lcFormula = lowChild.toFormulaRec();
 				// the left half of the Shannon expansion
-				Formula shannonLeft = xn.and(hcFormula, completeVarOrd);
+				Formula shannonLeft = xn.and(hcFormula);
 				// the right half of the Shannon expansion
-				Formula shannonRight = 
-						xn.not(completeVarOrd).and(lcFormula, completeVarOrd);
+				Formula shannonRight = xn.not().and(lcFormula);
 				// Shannon expansion
 				Formula shannon = shannonLeft.or(shannonRight);
 				// putting the Formula into the computed table
-				formulaCT.put(this.id, shannon);
+				formulaCT.put(id, shannon);
 				// returning the Formula
 				return shannon;
 			}
@@ -670,15 +658,16 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides the evaluation of the Formula represented by the 
-	 * OBDD relating to a given assignment but sorts the assignment list before
+	 * provides the evaluation of the Formula represented by the OBDD relating 
+	 * to a given assignment but sorts the assignment list before
 	 * @param assignedOne
 	 * @return the value of the Formula
 	 */
-	public boolean valueByOBDD(LinkedList<Integer> assignedOne) {
+	public boolean valueByOBDD(LinkedList<Integer> assignedOne, 
+			VariableOrdering varOrd) {
 		// creating a comparator for the complete VariableOrdering
 		VariableOrderingComparator complVarOrdComp = 
-				new VariableOrderingComparator(this.varOrd);
+				new VariableOrderingComparator(varOrd);
 		// sorting the list of variables assigned one by means of the 
 		// VariableOrdering
 		Collections.sort(assignedOne, complVarOrdComp);
@@ -696,29 +685,29 @@ public class OBDD {
 	 */
 	public boolean valueByOBDDRec(LinkedList<Integer> assignedOne, 
 			VariableOrderingComparator complVarOrdComp) {
-		if (this.terminal) {
+		if (terminal) {
 			// If the node is a terminal, its value is returned.
-			return this.value;
+			return value;
 		}
 		// Otherwise the OBDD is run through as directed by the assignment.
 		else {
 			// As long as the first variable in the list of the variables 
 			// assigned one is higher by means of the VariableOrdering than 
 			// this node's one, it is removed from the list.
-			while (complVarOrdComp.compare(assignedOne.getFirst(), this.var) > 0) {
+			while (complVarOrdComp.compare(assignedOne.getFirst(), var) > 0) {
 				assignedOne.removeFirst();
 			}
-			if (assignedOne.getFirst() == this.var) {
+			if (assignedOne.getFirst() == var) {
 				// If the node's variable is assigned one, first it is removed 
 				// from the list.
 				assignedOne.removeFirst();
 				// Then the high child gets to continue the calculation.
-				return this.highChild.valueByOBDDRec(assignedOne, complVarOrdComp);
+				return highChild.valueByOBDDRec(assignedOne, complVarOrdComp);
 			}
 			else {
 				// Otherwise the node's variable is assigned zero and therefore
 				// the low child gets to continue the calculation.
-				return this.lowChild.valueByOBDDRec(assignedOne, complVarOrdComp);
+				return lowChild.valueByOBDDRec(assignedOne, complVarOrdComp);
 			}
 		}
 	}
@@ -737,29 +726,28 @@ public class OBDD {
 
 	
 	/**
-	 * function that provides the number algorithm 
-	 * and clears the computed table before
+	 * provides the number algorithm and clears the computed table before
+	 * @param varOrd
 	 * @return
 	 */
-	public int number() {
+	public int number(VariableOrdering varOrd) {
 		// clearing the computed table
 		numberCT.clear();
 		// calling the actual (recursive) number algorithm
-		int result = numberRec();
-		// returning the result
-		return result;
+		return numberRec(varOrd);
 	}
 	
 	
 	/**
-	 * function that provides the number of satisfying assignments for the OBDD
+	 * provides the number of satisfying assignments for the OBDD
+	 * @param varOrd - the VariableOrdering
 	 * @return the number of satisfying assignments
 	 */
-	private int numberRec() {
+	private int numberRec(VariableOrdering varOrd) {
 		// If the node is a terminal, the number of satisfying assignments can
 		// easily be returned.
-		if (this.terminal) {
-			if (this.value) {
+		if (terminal) {
+			if (value) {
 				// The 1-terminal has exactly one satisfying assignment: the
 				// empty one.
 				return 1;
@@ -772,28 +760,28 @@ public class OBDD {
 		else {
 			// Return the number stated for this node in the computed table
 			// (if there is one).
-			if (numberCT.containsKey(this.id)) {
-				return numberCT.get(this.id);
+			if (numberCT.containsKey(id)) {
+				return numberCT.get(id);
 			}
 			// Otherwise the number of satisfying assignments is calculated by 
 			// summing the numbers of satisfying assignments for both children.
 			else {
 				// position of this node's variable in the variable ordering
-				int varPos = this.varOrd.indexOf(this.var);
+				int varPos = varOrd.indexOf(var);
 				// position of the high child's variable in the variable ordering
 				// (The variable ordering has to be the same in the entire OBDD.)
-				int hcVarPos = this.varOrd.indexOf(this.highChild.var);
+				int hcVarPos = varOrd.indexOf(highChild.var);
 				// position of the low child's variable in the variable ordering
-				int lcVarPos = this.varOrd.indexOf(this.lowChild.var);
+				int lcVarPos = varOrd.indexOf(lowChild.var);
 				// the high child's number of satisfying assignments 
-				int hcNumber = this.highChild.numberRec();
+				int hcNumber = highChild.numberRec(varOrd);
 				// the low child's number of satisfying assignments
-				int lcNumber = this.lowChild.numberRec();
+				int lcNumber = lowChild.numberRec(varOrd);
 				// Satz 3.2.6
 				int number = (int) ((hcNumber * Math.pow(2, hcVarPos - varPos) 
 						+ lcNumber * Math.pow(2, lcVarPos - varPos)) / 2);
 				// putting the number for this node into the computed table
-				numberCT.put(this.id, number);
+				numberCT.put(id, number);
 				// returning the number
 				return number;
 			}
@@ -807,16 +795,16 @@ public class OBDD {
 	 */
 	public LinkedList<OBDD> findEquivalent() {
 		// updating the layer HashMap
-		this.updateLayers();
+		updateLayers();
 		// initializing the list for the equivalent nodes
 		LinkedList<OBDD> candidates = new LinkedList<OBDD>();
 		// initializing the list of the current layer's nodes
 		// which are possibly equivalent to another one
 		LinkedList<OBDD> residualLayerList;
 		// trying to find equivalent nodes in each layer individually
-		for (int var : this.varOrd.getOrdList()) {
+		for (int var : varOrd.getOrdList()) {
 			// getting the current layer list
-			residualLayerList = this.layers.get(var);
+			residualLayerList = layers.get(var);
 			// While there are two or more nodes in the layer list,
 			// they might be equivalent.
 			while (residualLayerList.size()>=2) {
@@ -847,8 +835,7 @@ public class OBDD {
 	
 	
 	/**
-	 * function that provides the equivalence test 
-	 * and clears the computed table before
+	 * provides the equivalence test and clears the computed table before
 	 * @param otherNode
 	 * @return
 	 */
@@ -867,12 +854,12 @@ public class OBDD {
 	private boolean isEquivalentRec(OBDD otherNode) {
 		// If at least one of the two nodes is a terminal,
 		// they aren't equivalent unless they're the same.
-		if (this.terminal || otherNode.terminal) {
-			return (this.id == otherNode.id);
+		if (terminal || otherNode.terminal) {
+			return (id == otherNode.id);
 		}
 		else {
 			// initializing a pair of the two OBDDs
-			Pair<Integer> checkPair = new Pair<Integer>(this.id,otherNode.id);
+			Pair<Integer> checkPair = new Pair<Integer>(id,otherNode.id);
 			// Return the value stated for the two nodes in the computed table
 			// if there is one.
 			if (equivCT.containsKey(checkPair)) {
@@ -880,12 +867,12 @@ public class OBDD {
 			} else {
 				// For equivalence the two high children have to be equivalent.
 				boolean equivalentHC =
-						this.highChild.isEquivalentRec(otherNode.highChild);
+						highChild.isEquivalentRec(otherNode.highChild);
 				// For equivalence the two low children have to be equivalent.
 				boolean equivalentLC =
-						this.lowChild.isEquivalentRec(otherNode.lowChild);
+						lowChild.isEquivalentRec(otherNode.lowChild);
 				// For equivalence the two variables have to be equivalent.
-				boolean equivalentVar = this.var == otherNode.var;
+				boolean equivalentVar = var == otherNode.var;
 				// combining all three criteria
 				boolean equivalent =
 						(equivalentHC && equivalentLC && equivalentVar);
@@ -899,30 +886,28 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides the recursive findRedundantRec method for the 
-	 * entire OBDD
+	 * provides the recursive findRedundantRec method for the entire OBDD
 	 * @return
 	 */
 	public OBDD findRedundant() {
 		// starting the (recursive) search at the entire OBDD's root
-		return this.getRoot().findRedundantRec();
+		return getRoot().findRedundantRec();
 	}
 	
 	
 	/**
-	 * method that provides a redundant node of this OBDD node's sub-OBDD
-	 * (if possible)
+	 * provides a redundant node of this OBDD node's sub-OBDD (if possible)
 	 * @return a redundant node (if possible)
 	 */
 	public OBDD findRedundantRec() {
 		// If the node is a terminal, the search has failed.
-		if (this.terminal) {
+		if (terminal) {
 			// TODO user message
 			// tentative value: null
 			return null;
 		}
 		// Otherwise the node has children.
-		else if (this.isRedundant()) {
+		else if (isRedundant()) {
 			// If the node is redundant, it is returned.
 			return this;
 		}
@@ -930,12 +915,12 @@ public class OBDD {
 		// children recursively.
 		else {
 			// trying to find a redundant node along the high child's paths
-			OBDD redundantFind = this.highChild.findRedundantRec();
+			OBDD redundantFind = highChild.findRedundantRec();
 			// If the search along the high child's paths didn't provide a 
 			// redundant node, the search is continued along the low child's
 			// paths.
 			if ((redundantFind == null)) {
-				redundantFind = this.lowChild.findRedundantRec();
+				redundantFind = lowChild.findRedundantRec();
 			}
 			// returning the "find"
 			return redundantFind;
@@ -944,29 +929,29 @@ public class OBDD {
 	
 	
 	/**
-	 * method that states whether the OBDD node is redundant
+	 * states whether the OBDD node is redundant
 	 * @return
 	 */
 	public boolean isRedundant() {
 		// A node is redundant, if it's children are the same (which can be 
 		// indicated by their IDs).
-		return (this.highChild.id == this.lowChild.id);
+		return (highChild.id == lowChild.id);
 	}
 	
 	
 	/**
-	 * method that states, whether the entire OBDD is a QOBDD
+	 * states, whether the entire OBDD is a QOBDD
 	 * @return 
 	 */
 	public boolean isQOBDD() {
-		if (!(this.findEquivalent() == null)) {
+		if (!(findEquivalent() == null)) {
 			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
 			return false;
 		} else {
 			// In a QOBDD each path from the root to a terminal has to include 
 			// each variable of the complete VariableOrdering.
 			// The checking is started at the root.
-			OBDD root = this.getRoot();
+			OBDD root = getRoot();
 			// an ordered list of "all" variables
 			LinkedList<Integer> varOrdList = root.varOrd.getOrdList();
 			// checking, whether all variables are on each path from the root 
@@ -984,49 +969,49 @@ public class OBDD {
 	 */
 	private boolean noVarMissing(LinkedList<Integer> varOrdList) {
 		// If the node is a terminal, no variable is missing on this path.
-		if (this.terminal) {
+		if (terminal) {
 			return true;
-		} else if (!(this.var == varOrdList.poll())) {
+		} else if (!(var == varOrdList.poll())) {
 			// If the first variable in the ordered variable list isn't the one 
 			// of this node, it is missing on this path.
 			return false;
 		}
 		// Otherwise the node's children are checked recursively.
-		else return (this.highChild.noVarMissing(varOrdList) && 
-				this.lowChild.noVarMissing(varOrdList));
+		else return (highChild.noVarMissing(varOrdList) && 
+				lowChild.noVarMissing(varOrdList));
 	}
 	
 	
 	/**
-	 * method that states, whether the entire OBDD is an ROBDD
+	 * states, whether the entire OBDD is an ROBDD
 	 * @return
 	 */
 	public boolean isROBDD() {
-		if (!(this.findEquivalent() == null)) {
+		if (!(findEquivalent() == null)) {
 			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
 			return false;
 		}
 		// An OBDD is an ROBBD if there are no equivalent nodes and no 
 		// redundant nodes.
-		else return ((this.findRedundant() == null));
+		else return ((findRedundant() == null));
 	}
 	
 	
 	/**
-	 * method that provides a QOBDD equivalent to this entire OBDD
+	 * provides a QOBDD equivalent to this entire OBDD
 	 * @return the QOBDD
 	 */
 	public OBDD toQOBDD() {
 		// retrieving the entire OBDD's root
-		OBDD root = this.getRoot();
+		OBDD root = getRoot();
 		// getting the root's VariableOrdering's ordering list
 		LinkedList<Integer> varOrdList = root.varOrd.getOrdList();
-		// constructing an equivalent OBDD with all missing variables added for 
+		// constructing an equivalent OBDD with all missing variables added for
 		// each path
 		OBDD rootMVA = root.addMissingVars(varOrdList);
 		// trying to find a pair of equivalent nodes in the new OBDD
 		LinkedList<OBDD> equivalentFind = rootMVA.findEquivalent();
-		// While there are equivalent nodes in the OBDD, they have to be merged 
+		// While there are equivalent nodes in the OBDD, they have to be merged
 		// to create a QOBDD.
 		while(!(equivalentFind == null)) {
 			// merging the two found equivalent nodes
@@ -1034,7 +1019,7 @@ public class OBDD {
 			// searching for more equivalent nodes
 			equivalentFind = rootMVA.findEquivalent();
 		}
-		// After adding all missing variables and merging all equivalent nodes, 
+		// After adding all missing variables and merging all equivalent nodes,
 		// the new OBDD is a QOBDD.
 		return rootMVA;
 	}
@@ -1047,20 +1032,20 @@ public class OBDD {
 	 * @return the new OBDD
 	 */
 	private OBDD addMissingVars(LinkedList<Integer> varOrdList) {
-		if (this.terminal) {
+		if (terminal) {
 			// If the node is a terminal, it is returned.
 			return this;
 		} else {
 			// retrieving the current variable
 			int currentVar = varOrdList.poll();
 			// constructing the high child with all missing variables added
-			OBDD highChildMVA = this.highChild.addMissingVars(varOrdList);
+			OBDD highChildMVA = highChild.addMissingVars(varOrdList);
 			// constructing the low child with all missing variables added
-			OBDD lowChildMVA = this.lowChild.addMissingVars(varOrdList);
+			OBDD lowChildMVA = lowChild.addMissingVars(varOrdList);
 			// constructing this node with all missing variables added
 			OBDD thisMVA = 
-					highChildMVA.cons(this.var, lowChildMVA, this.varOrd);
-			if (this.var == currentVar) {
+					highChildMVA.cons(var, lowChildMVA, varOrd);
+			if (var == currentVar) {
 				// If this node has the current variable, its correspondent 
 				// node is returned.
 				return thisMVA;
@@ -1077,12 +1062,12 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides an ROBDD equivalent to this entire OBDD
+	 * provides an ROBDD equivalent to this entire OBDD
 	 * @return the ROBDD
 	 */
 	public OBDD toROBDD() {
 		// getting the entire OBDD's root
-		OBDD root = this.getRoot();
+		OBDD root = getRoot();
 		// trying to find a pair of equivalent nodes
 		LinkedList<OBDD> equivalentFind = root.findEquivalent();
 		// While there are equivalent nodes in the OBDD, they have to be merged 
@@ -1114,24 +1099,24 @@ public class OBDD {
 	 */
 	public void removeRedundant() {
 		// The node only gets removed if it's redundant.
-		if (this.isRedundant()) {
+		if (isRedundant()) {
 			// adding all of this node's parents to this node's (high) child's 
 			// one's
-			this.highChild.parents.addAll(this.parents);
+			highChild.parents.addAll(parents);
 			// removing this node from it's child's parents
-			this.highChild.parents.remove(this);
+			highChild.parents.remove(this);
 			// for each of this node's parents replacing it as a child by it's 
 			// own child
-			for (OBDD p : this.parents) {
+			for (OBDD p : parents) {
 				if (p.highChild == this) {
 					// If this node was the parent's high child, this one's 
 					// child becomes it instead.
-					p.highChild = this.highChild;
+					p.highChild = highChild;
 				}
 				if (p.lowChild == this) {
 					// If this node was the parent's low child, this one's 
 					// child becomes it instead.
-					p.lowChild = this.highChild;
+					p.lowChild = highChild;
 				}
 			}
 		} else {
@@ -1141,13 +1126,13 @@ public class OBDD {
 	
 	
 	/**
-	 * method that merges two nodes if they're equivalent
+	 * merges two nodes if they're equivalent
 	 * @param otherNode
 	 */
 	public void mergeEquivalent(OBDD otherNode) {
 		// The two nodes only get merged if they're equivalent and no 
 		// terminal(s).
-		if (this.isEquivalent(otherNode) && !this.terminal) {
+		if (isEquivalent(otherNode) && !terminal) {
 			// adding all of the other node's parents to this one's
 			this.parents.addAll(otherNode.parents);
 			// for each of the other node's parents replacing it as a child 
@@ -1171,7 +1156,7 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides the "allSat" algorithm and clears the computed 
+	 * provides the "allSat" algorithm and clears the computed 
 	 * table before
 	 * @return
 	 */
@@ -1179,21 +1164,21 @@ public class OBDD {
 		// clearing the computed table
 		allSatCT.clear();
 		// getting the variable ordering of the OBDD
-		LinkedList<Integer> varOrdList = this.varOrd.getOrdList();
+		LinkedList<Integer> varOrdList = varOrd.getOrdList();
 		// calling the actual (recursive) algorithm
 		return allSatRec(varOrdList);
 	}
 	
 	
 	/**
-	 * algorithm that provides all satisfying assignments for an OBDD
+	 * provides all satisfying assignments for an OBDD
 	 * @param varOrdList - the list of "all" variables
 	 * @return
 	 */
 	private LinkedList<LinkedList<Integer>> allSatRec(LinkedList<Integer> varOrdList) {
-		if (this.terminal) {
+		if (terminal) {
 			LinkedList<LinkedList<Integer>> emptyList = new LinkedList<LinkedList<Integer>>();
-			if (this.value) {
+			if (value) {
 				// If the node is the 1-terminal, a list containing an empty 
 				// list is returned.
 				emptyList.add(new LinkedList<Integer>());
@@ -1203,11 +1188,11 @@ public class OBDD {
 		}
 		// returning the list stated in the computed table for this node
 		// (if there is one)
-		if (allSatCT.containsKey(this.id)) {
-			return allSatCT.get(this.id);
+		if (allSatCT.containsKey(id)) {
+			return allSatCT.get(id);
 		} else {
 			// getting the position of the node's variable in the given variable list
-			int varPos = varOrdList.indexOf(this.var);
+			int varPos = varOrdList.indexOf(var);
 			// initializing a list for all variables that were "missing" before the 
 			// node's one
 			LinkedList<Integer> missingVars = new LinkedList<Integer>();
@@ -1222,7 +1207,7 @@ public class OBDD {
 			varOrdList.poll();
 			// getting all satisfying assignments for the node's high child
 			LinkedList<LinkedList<Integer>> allSatList = 
-					this.highChild.allSatRec(varOrdList);
+					highChild.allSatRec(varOrdList);
 			// initializing a variable for satisfying assignments for the node's 
 			// high child
 			LinkedList<Integer> satHC;
@@ -1230,11 +1215,11 @@ public class OBDD {
 			// node's variable to the beginning of the list
 			for (int i = 0; i < allSatList.size(); i++) {
 				satHC = allSatList.get(i);
-				satHC.addFirst(this.var);
+				satHC.addFirst(var);
 				allSatList.set(i, satHC);
 			}
 			// getting all satisfying assignments for the node's low child
-			allSatList.addAll(this.lowChild.allSatRec(varOrdList));
+			allSatList.addAll(lowChild.allSatRec(varOrdList));
 			// initializing an empty list for all satisfying assignments including 
 			// the "missing" variables" 
 			LinkedList<LinkedList<Integer>> allSatWithMissing = 
@@ -1258,7 +1243,7 @@ public class OBDD {
 			}
 			// putting all satisfying assignments including "missing" variables 
 			// for this node into the computed table
-			allSatCT.put(this.id, allSatWithMissing);
+			allSatCT.put(id, allSatWithMissing);
 			// returning the assignments
 			return allSatWithMissing;
 		}
@@ -1266,7 +1251,7 @@ public class OBDD {
 	
 	
 	/**
-	 * method that provides a "power list" for a given list of variables 
+	 * provides a "power list" for a given list of variables 
 	 * (integers)
 	 * @param varList - the list of variables (integers)
 	 * @return the "power list"
