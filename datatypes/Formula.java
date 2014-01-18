@@ -1,6 +1,5 @@
 package datatypes;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.regex.*;
 
@@ -258,15 +257,19 @@ public class Formula {
 	
 	/**
 	 * provides TODO
+	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
-	public OBDD toOBDD() {
+	public OBDD toOBDD(VariableOrdering varOrd) {
+		// the number of variables in the VariableOrdering 
+		int varOrdSize = varOrd.size();
 		// a switch for the possible constructors
 		switch (constructor) {
 		// Zeroth case: The Formula represents a constant.
 		case 0:
-			// If this constant Formula is tautological, the OBDD has to be too.
-			if (this.value) {
+			// If this constant Formula is tautological, 
+			// the OBDD has to be too.
+			if (value) {
 				// Because the Formula has no successors and doesn't represent
 				// a variable itself, the set of its variables is empty.
 				// The node to begin with is the 1-terminal itself.
@@ -278,25 +281,27 @@ public class Formula {
 				// constructed.
 				if (varOrdSize > 0) {
 					// First the lowest (decision node) layer consisting of 
-					// redundant nodes leading to the 1-terminal is constructed.
+					// redundant nodes leading to the 1-terminal is 
+					// constructed.
 					for (int j = 0; j < Math.pow(2, varOrdSize - 1); j++) {
-						// Since the "cons" method is constructive, the current 
+						// Since the "cons" method is constructive, the current
 						// node may be overwritten without losing any node 
 						// constructed this way.
-						currentNode = currentNode.cons(this.varOrd.getLast(), currentNode, this.varOrd);
+						currentNode = currentNode.cons(varOrd.getLast(), 
+								currentNode, varOrd);
 						// adding the nodes to the list of the layer below for 
 						// the layer above
 						layerBelow.add(currentNode);
 					}
-					// The rest of the layers is constructed the same way: Each 
+					// The rest of the layers is constructed the same way: Each
 					// node gets two different nodes of the layer below as 
 					// children.
-					for (int i = this.varOrd.size() - 2; i >= 0; i--) {
-						// The number of nodes decreases each layer from bottom 
+					for (int i = varOrdSize - 2; i >= 0; i--) {
+						// The number of nodes decreases each layer from bottom
 						// to top by half.
 						for (int j = 0; j < Math.pow(2, i); j++) {
-							currentNode = 
-									layerBelow.poll().cons(this.varOrd.get(i), layerBelow.poll(), this.varOrd);
+							currentNode = layerBelow.poll().cons(varOrd.get(i),
+											layerBelow.poll(), varOrd);
 							// adding the new nodes to the layer below list
 							layerBelow.add(currentNode);
 						}
@@ -305,7 +310,8 @@ public class Formula {
 				// The constructed OBDD's root is returned.
 				return currentNode;
 			}
-			// Otherwise the Formula is contradictory and so the OBDD has to be.
+			// Otherwise the Formula is contradictory 
+			// and so the OBDD has to be.
 			else {
 				// In this case the node to begin with is the 0-terminal.
 				OBDD currentNode = OBDD.ZERO;
@@ -316,22 +322,24 @@ public class Formula {
 				// constructed.
 				if (varOrdSize > 0) {
 					// First the lowest (decision node) layer consisting of 
-					// redundant nodes leading to the 0-terminal is constructed.
+					// redundant nodes leading to the 0-terminal is 
+					// constructed.
 					for (int j = 0; j < Math.pow(2, varOrdSize - 1); j++) {
-						currentNode = currentNode.cons(this.varOrd.getLast(), currentNode, this.varOrd);
+						currentNode = currentNode.cons(varOrd.getLast(), 
+								currentNode, varOrd);
 						// adding the nodes to the list of the layer below for 
 						// the layer above
 						layerBelow.add(currentNode);
 					}
-					// The rest of the layers is constructed the same way: Each 
+					// The rest of the layers is constructed the same way: Each
 					// node gets two different nodes of the layer below as 
 					// children.
-					for (int i = this.varOrd.size() - 2; i >= 0; i--) {
-						// The number of nodes decreases each layer from bottom 
+					for (int i = varOrdSize - 2; i >= 0; i--) {
+						// The number of nodes decreases each layer from bottom
 						// to top by half.
 						for (int j = 0; j < Math.pow(2, i); j++) {
-							currentNode = 
-									layerBelow.poll().cons(this.varOrd.get(i), layerBelow.poll(), this.varOrd);
+							currentNode = layerBelow.poll().cons(varOrd.get(i),
+									layerBelow.poll(), varOrd);
 							// adding the new nodes to the layer below list
 							layerBelow.add(currentNode);
 						}
@@ -344,7 +352,7 @@ public class Formula {
 		case 1:
 			// getting the index of the specified variable in the 
 			// VariableOrdering
-			int varIndex = this.varOrd.get(this.varNr);
+			int varIndex = varOrd.get(varNr);
 			// If the specified variable is part of the VariableOrdering, an
 			// OBDD with all of the VariableOrdering's variables can be 
 			// constructed.
@@ -360,8 +368,7 @@ public class Formula {
 					// VariableOrdering, the lowest layer consists of OBDD 
 					// nodes that decide, whether the value is 1 or 0. 
 					for (int j = 0; j < Math.pow(2, varIndex); j++) {
-						currentNode = 
-								OBDD.ONE.cons(this.varNr, OBDD.ZERO, this.varOrd);
+						currentNode = OBDD.ONE.cons(varNr, OBDD.ZERO, varOrd);
 						layerBelow.add(currentNode);
 					}
 				} else {
@@ -378,36 +385,38 @@ public class Formula {
 					LinkedList<OBDD> layerBelowOne = new LinkedList<OBDD>();
 					for (int j = 0; j < Math.pow(2, varOrdSize - 2); j++) {
 						// constructing the lowest "zero" nodes
-						currentNode = 
-								OBDD.ZERO.cons(this.varOrd.getLast(), OBDD.ZERO, this.varOrd);
+						currentNode = OBDD.ZERO.cons(varOrd.getLast(), 
+										OBDD.ZERO, varOrd);
 						// adding the "zero" nodes to their list
 						layerBelowZero.add(currentNode);
 						// constructing the lowest "one" nodes
-						currentNode = 
-								OBDD.ONE.cons(this.varOrd.getLast(), OBDD.ONE, this.varOrd);
+						currentNode = OBDD.ONE.cons(varOrd.getLast(), 
+								OBDD.ONE, varOrd);
 						// adding the "one" nodes to their list
 						layerBelowOne.add(currentNode);
 					}
 					// constructing the other layers below the layer of the 
 					// specified variable
-					for (int i = this.varOrd.size() - 2; i > varIndex; i--) {
+					for (int i = varOrdSize - 2; i > varIndex; i--) {
 						for (int j = 0; j < Math.pow(2, i - 1); j++) {
 							// constructing the "zero" nodes
 							currentNode = 
-									layerBelowZero.poll().cons(this.varOrd.get(i), layerBelowZero.poll(), this.varOrd);
+									layerBelowZero.poll().cons(varOrd.get(i), 
+											layerBelowZero.poll(), varOrd);
 							// adding the "zero" nodes to their list
 							layerBelowZero.add(currentNode);
 							// constructing the "one" nodes
 							currentNode = 
-									layerBelowOne.poll().cons(this.varOrd.get(i), layerBelowOne.poll(), this.varOrd);
+									layerBelowOne.poll().cons(varOrd.get(i), 
+											layerBelowOne.poll(), varOrd);
 							// adding the "one" nodes to their list
 							layerBelowOne.add(currentNode);
 						}
 					}
 					// constructing the layer of the specified variable
 					for (int j = 0; j < Math.pow(2, varIndex); j++) {
-						currentNode = 
-								layerBelowOne.poll().cons(this.varNr, layerBelowZero.poll(), this.varOrd);
+						currentNode = layerBelowOne.poll().cons(varNr, 
+										layerBelowZero.poll(), varOrd);
 						// adding the nodes to the list for the layers above
 						layerBelow.add(currentNode);
 					}
@@ -416,8 +425,8 @@ public class Formula {
 				// nodes from the layer below as its children.
 				for (int i = varIndex - 1; i >= 0; i--) {
 					for (int j = 0; j < Math.pow(2, i); j++) {
-						currentNode = 
-								layerBelow.poll().cons(this.varOrd.get(i), layerBelow.poll(), this.varOrd);
+						currentNode = layerBelow.poll().cons(varOrd.get(i), 
+										layerBelow.poll(), varOrd);
 						// adding the nodes to the layer below list
 						layerBelow.add(currentNode);
 					}
@@ -427,29 +436,31 @@ public class Formula {
 			}
 			// If the specified variable isn't part of the VariableOrdering 
 			// (possibly because it's empty), just one node is constructed.
-			else return OBDD.ONE.cons(this.varNr, OBDD.ZERO, this.varOrd);
+			else return OBDD.ONE.cons(varNr, OBDD.ZERO, varOrd);
 		// Second case: The Formula represents a logical negation.
 		case 2:
 			// First the OBDD for the successor is constructed.
-			OBDD successorOBDD = this.firstSuccessor.toOBDD();
+			OBDD successorOBDD = firstSuccessor.toOBDD(varOrd);
 			// returning the negated successor OBDD
-			return successorOBDD.negate();
+			return successorOBDD.negate(varOrd);
 		// Third case: The Formula represents a logical conjunction.
 		case 3:
 			// First the OBDDs for the two successors are constructed.
-			OBDD firstSuccessorOBDD = this.firstSuccessor.toOBDD();
-			OBDD secondSuccessorOBDD = this.secondSuccessor.toOBDD();
+			OBDD firstSuccessorOBDD = firstSuccessor.toOBDD(varOrd);
+			OBDD secondSuccessorOBDD = secondSuccessor.toOBDD(varOrd);
 			// applying the logical conjunction "and" on the two successor 
 			// OBDDs and returning the result;
-			return firstSuccessorOBDD.apply(secondSuccessorOBDD, OBDD.AND, this.varOrd);
+			return firstSuccessorOBDD.apply(secondSuccessorOBDD, 
+					OBDD.AND, varOrd);
 		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
 			// First the OBDDs for the two successors are constructed.
-			firstSuccessorOBDD = this.firstSuccessor.toOBDD();
-			secondSuccessorOBDD = this.secondSuccessor.toOBDD();
-			// applying the logical disjunction "or" on the two successor OBDDs 
+			firstSuccessorOBDD = firstSuccessor.toOBDD(varOrd);
+			secondSuccessorOBDD = secondSuccessor.toOBDD(varOrd);
+			// applying the logical disjunction "or" on the two successor OBDDs
 			// and returning the result;
-			return firstSuccessorOBDD.apply(secondSuccessorOBDD, OBDD.OR, this.varOrd);
+			return firstSuccessorOBDD.apply(secondSuccessorOBDD, 
+					OBDD.OR, varOrd);
 		// Default case: None of the given constructors was used.
 		default:
 			// tentative value: null
@@ -553,7 +564,8 @@ public class Formula {
 			LinkedList<Integer> secondSucVars = secondSuccessor.vars();
 			// merging the list with the second successor's variable numbers
 			for(Integer i : secondSucVars) {
-				// adding the variable number to the list if it isn't already in
+				// adding the variable number to the list 
+				// if it isn't already in
 				if(!vars.contains(i)) {
 					vars.add(i);
 				}
@@ -570,7 +582,8 @@ public class Formula {
 			secondSucVars = secondSuccessor.vars();
 			// merging the list with the second successor's variable numbers
 			for(Integer i : secondSucVars) {
-				// adding the variable number to the list if it isn't already in
+				// adding the variable number to the list 
+				// if it isn't already in
 				if(!vars.contains(i)) {
 					vars.add(i);
 				}

@@ -660,7 +660,8 @@ public class OBDD {
 	/**
 	 * provides the evaluation of the Formula represented by the OBDD relating 
 	 * to a given assignment but sorts the assignment list before
-	 * @param assignedOne
+	 * @param assignedOne - list of all variables assigned one
+	 * @param varOrd - the VariableOrdering
 	 * @return the value of the Formula
 	 */
 	public boolean valueByOBDD(LinkedList<Integer> assignedOne, 
@@ -681,6 +682,7 @@ public class OBDD {
 	 * assignment.
 	 * (3.2.1)
 	 * @param assignedOne - list of all variables assigned one
+	 * @param varOrd - the VariableOrdering
 	 * @return the value of the formula as a boolean
 	 */
 	public boolean valueByOBDDRec(LinkedList<Integer> assignedOne, 
@@ -790,10 +792,10 @@ public class OBDD {
 	
 	
 	/**
-	 * 
+	 * @param varOrd - the VariableOrdering
 	 * @return a list with two equivalent nodes in the OBDD if possible
 	 */
-	public LinkedList<OBDD> findEquivalent() {
+	public LinkedList<OBDD> findEquivalent(VariableOrdering varOrd) {
 		// updating the layer HashMap
 		updateLayers();
 		// initializing the list for the equivalent nodes
@@ -941,10 +943,11 @@ public class OBDD {
 	
 	/**
 	 * states, whether the entire OBDD is a QOBDD
+	 * @param varOrd - the VariableOrdering
 	 * @return 
 	 */
-	public boolean isQOBDD() {
-		if (!(findEquivalent() == null)) {
+	public boolean isQOBDD(VariableOrdering varOrd) {
+		if (!(findEquivalent(varOrd) == null)) {
 			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
 			return false;
 		} else {
@@ -952,11 +955,9 @@ public class OBDD {
 			// each variable of the complete VariableOrdering.
 			// The checking is started at the root.
 			OBDD root = getRoot();
-			// an ordered list of "all" variables
-			LinkedList<Integer> varOrdList = root.varOrd.getOrdList();
 			// checking, whether all variables are on each path from the root 
 			// to a terminal
-			return root.noVarMissing(varOrdList);
+			return root.noVarMissing(varOrd.getOrdList());
 		}
 	}
 	
@@ -984,10 +985,11 @@ public class OBDD {
 	
 	/**
 	 * states, whether the entire OBDD is an ROBDD
+	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
-	public boolean isROBDD() {
-		if (!(findEquivalent() == null)) {
+	public boolean isROBDD(VariableOrdering varOrd) {
+		if (!(findEquivalent(varOrd) == null)) {
 			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
 			return false;
 		}
@@ -998,26 +1000,25 @@ public class OBDD {
 	
 	
 	/**
-	 * provides a QOBDD equivalent to this entire OBDD
+	 * provides the QOBDD equivalent to this entire OBDD
+	 * @param varOrd - the VariableOrdering
 	 * @return the QOBDD
 	 */
-	public OBDD toQOBDD() {
+	public OBDD toQOBDD(VariableOrdering varOrd) {
 		// retrieving the entire OBDD's root
 		OBDD root = getRoot();
-		// getting the root's VariableOrdering's ordering list
-		LinkedList<Integer> varOrdList = root.varOrd.getOrdList();
 		// constructing an equivalent OBDD with all missing variables added for
 		// each path
-		OBDD rootMVA = root.addMissingVars(varOrdList);
+		OBDD rootMVA = root.addMissingVars(varOrd, varOrd.getOrdList());
 		// trying to find a pair of equivalent nodes in the new OBDD
-		LinkedList<OBDD> equivalentFind = rootMVA.findEquivalent();
+		LinkedList<OBDD> equivalentFind = rootMVA.findEquivalent(varOrd);
 		// While there are equivalent nodes in the OBDD, they have to be merged
 		// to create a QOBDD.
 		while(!(equivalentFind == null)) {
 			// merging the two found equivalent nodes
 			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
 			// searching for more equivalent nodes
-			equivalentFind = rootMVA.findEquivalent();
+			equivalentFind = rootMVA.findEquivalent(varOrd);
 		}
 		// After adding all missing variables and merging all equivalent nodes,
 		// the new OBDD is a QOBDD.
@@ -1028,10 +1029,12 @@ public class OBDD {
 	/**
 	 * auxiliary function that constructs a new OBDD like this one, adding all 
 	 * missing variables on each path
+	 * @param varOrd - the VariableOrdering
 	 * @param varOrdList - list of variables to be used in the new OBDD
 	 * @return the new OBDD
 	 */
-	private OBDD addMissingVars(LinkedList<Integer> varOrdList) {
+	private OBDD addMissingVars(VariableOrdering varOrd, 
+			LinkedList<Integer> varOrdList) {
 		if (terminal) {
 			// If the node is a terminal, it is returned.
 			return this;
@@ -1039,9 +1042,9 @@ public class OBDD {
 			// retrieving the current variable
 			int currentVar = varOrdList.poll();
 			// constructing the high child with all missing variables added
-			OBDD highChildMVA = highChild.addMissingVars(varOrdList);
+			OBDD highChildMVA = highChild.addMissingVars(varOrd, varOrdList);
 			// constructing the low child with all missing variables added
-			OBDD lowChildMVA = lowChild.addMissingVars(varOrdList);
+			OBDD lowChildMVA = lowChild.addMissingVars(varOrd, varOrdList);
 			// constructing this node with all missing variables added
 			OBDD thisMVA = 
 					highChildMVA.cons(var, lowChildMVA, varOrd);
@@ -1062,21 +1065,22 @@ public class OBDD {
 	
 	
 	/**
-	 * provides an ROBDD equivalent to this entire OBDD
+	 * provides the ROBDD equivalent to this entire OBDD
+	 * @param varOrd - the VariableOrdering
 	 * @return the ROBDD
 	 */
-	public OBDD toROBDD() {
+	public OBDD toROBDD(VariableOrdering varOrd) {
 		// getting the entire OBDD's root
 		OBDD root = getRoot();
 		// trying to find a pair of equivalent nodes
-		LinkedList<OBDD> equivalentFind = root.findEquivalent();
+		LinkedList<OBDD> equivalentFind = root.findEquivalent(varOrd);
 		// While there are equivalent nodes in the OBDD, they have to be merged 
 		// to create an ROBDD.
 		while (!(equivalentFind == null)) {
 			// merging the two found equivalent nodes
 			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
 			// searching for more equivalent nodes
-			equivalentFind = root.findEquivalent();
+			equivalentFind = root.findEquivalent(varOrd);
 		}
 		// trying to find a redundant node
 		OBDD redundantFind = root.findRedundant();
@@ -1158,15 +1162,14 @@ public class OBDD {
 	/**
 	 * provides the "allSat" algorithm and clears the computed 
 	 * table before
+	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
-	public LinkedList<LinkedList<Integer>> allSat() {
+	public LinkedList<LinkedList<Integer>> allSat(VariableOrdering varOrd) {
 		// clearing the computed table
 		allSatCT.clear();
-		// getting the variable ordering of the OBDD
-		LinkedList<Integer> varOrdList = varOrd.getOrdList();
 		// calling the actual (recursive) algorithm
-		return allSatRec(varOrdList);
+		return allSatRec(varOrd.getOrdList());
 	}
 	
 	
