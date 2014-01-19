@@ -255,56 +255,14 @@ public class Formula {
 	
 	/**
 	 * provides the complete OBDD representing this Formula
-	 * @param varOrd - the VariableOrdering (used for the OBDD constructors)
+	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
 	public OBDD toOBDD(VariableOrdering varOrd) {
-		// the number of variables in the VariableOrdering 
-		int varOrdSize = varOrd.size();
-		// The variable for the current node has to be initialized, because 
-		// it's the return statement.
-		OBDD currentNode = OBDD.ZERO;
-		// variables for the current node's children
-		OBDD highChild;
-		OBDD lowChild;
-		// initializing a list for the OBDD nodes of the layer below 
-		// the current one
-		LinkedList<OBDD> layerBelow = new LinkedList<OBDD>();
-		// getting the data of the entire TruthTable
-		Boolean[][] truthTableData = entireTruthTable(varOrd).getData();
-		// creating the lowest layer of decision nodes
-		for (int node = (int) Math.pow(2, varOrdSize - 1); node > 0; node--) {
-			// Each of the children of a node of the lowest decision node layer
-			// is a terminal node that can be identified by checking the 
-			// TruthTable.
-			if (truthTableData[(2 * node) - 1][varOrdSize]) {
-				highChild = OBDD.ONE;
-			} else highChild = OBDD.ZERO;
-			if (truthTableData[(2 * node) - 2][varOrdSize]) {
-				lowChild = OBDD.ONE;
-			} else lowChild = OBDD.ZERO;
-			// creating the new node
-			currentNode = highChild.cons(varOrd.getLast(), lowChild, varOrd);
-			// adding the new node to (the end of) the layer below list
-			layerBelow.add(currentNode);
-		}
-		// creating the other layers of decision nodes
-		for (int layer = varOrdSize - 2 ; layer >= 0 ; layer--) {
-			// creating the nodes of the current layer
-			for (int node = (int) Math.pow(2, layer) ; node > 0 ; node--) {
-				// The nodes in the layer below list are ordered the way that 
-				// there is always the high child before the low child.
-				highChild = layerBelow.poll();
-				lowChild = layerBelow.poll();
-				// creating the new node
-				currentNode = 
-						highChild.cons(varOrd.getLast(), lowChild, varOrd);
-				// adding the new node to (the end of) the layer below list
-				layerBelow.add(currentNode);
-			}
-		}
-		// returning the current node which finally is the complete OBDD's root
-		return currentNode;
+		// constructing the entire TruthTable
+		TruthTable entireTruthTable = entireTruthTable(varOrd);
+		// creating the complete OBDD from the TruthTable
+		return entireTruthTable.toOBDD(varOrd);
 	}
 	
 	
