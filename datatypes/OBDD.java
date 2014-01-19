@@ -211,7 +211,8 @@ public class OBDD {
 	
 	/**
 	 * creates a new OBDD with this node as high child, a given variable,
-	 * and a given node as low child
+	 * and a given node as low child (if the given variable is greater than the
+	 * variables of the two nodes by means of the VariableOrdering)
 	 * @param variable
 	 * @param lowChild
 	 * @param varOrd - the VariableOrdering
@@ -261,9 +262,9 @@ public class OBDD {
 	
 	/**
 	 * provides the apply algorithm and clears the computed table before
-	 * @param b
-	 * @param op
-	 * @param varOrd
+	 * @param b - the second OBDD to apply the operation on
+	 * @param op - the boolean operation
+	 * @param varOrd - the VariableOrdering (used for the cons operation)
 	 * @return
 	 */
 	public OBDD apply(OBDD b, int op, VariableOrdering varOrd) {
@@ -279,7 +280,8 @@ public class OBDD {
 	 * (3.5.4)
 	 * @param b - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
-	 * @param varOrd - the VariableOrdering
+	 * @param varOrd - the VariableOrdering (used for the cons operation and 
+	 * 					for comparing the two nodes' variables)
 	 * @return the resulting OBDD
 	 */
 	private OBDD applyRec(OBDD b, int op, VariableOrdering varOrd) {
@@ -502,7 +504,7 @@ public class OBDD {
 	/**
 	 * provides the negation algorithm on OBDDs
 	 * and clears the computed table before
-	 * @param varOrd
+	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
 	public OBDD negate(VariableOrdering varOrd) {
@@ -516,7 +518,7 @@ public class OBDD {
 	/**
 	 * negates an OBDD
 	 * (3.4.5)
-	 * @param varOrd - the VariableOrdering
+	 * @param varOrd - the VariableOrdering (used for the cons operation)
 	 * @return the negated OBDD
 	 */
 	private OBDD negateRec(VariableOrdering varOrd) {
@@ -661,7 +663,7 @@ public class OBDD {
 	 * provides the evaluation of the Formula represented by the OBDD relating 
 	 * to a given assignment but sorts the assignment list before
 	 * @param assignedOne - list of all variables assigned one
-	 * @param varOrd - the VariableOrdering
+	 * @param varOrd - the VariableOrdering (used for sorting the assignment)
 	 * @return the value of the Formula
 	 */
 	public boolean valueByOBDD(LinkedList<Integer> assignedOne, 
@@ -682,7 +684,7 @@ public class OBDD {
 	 * assignment.
 	 * (3.2.1)
 	 * @param assignedOne - list of all variables assigned one
-	 * @param varOrd - the VariableOrdering
+	 * @param complVarOrdComp - the VariableOrderingComparator
 	 * @return the value of the formula as a boolean
 	 */
 	public boolean valueByOBDDRec(LinkedList<Integer> assignedOne, 
@@ -729,7 +731,7 @@ public class OBDD {
 	
 	/**
 	 * provides the number algorithm and clears the computed table before
-	 * @param varOrd
+	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
 	public int number(VariableOrdering varOrd) {
@@ -742,7 +744,8 @@ public class OBDD {
 	
 	/**
 	 * provides the number of satisfying assignments for the OBDD
-	 * @param varOrd - the VariableOrdering
+	 * @param varOrd - the VariableOrdering (used for considering the missing 
+	 * 					layers on each path)
 	 * @return the number of satisfying assignments
 	 */
 	private int numberRec(VariableOrdering varOrd) {
@@ -1260,34 +1263,20 @@ public class OBDD {
 	 * @return the "power list"
 	 */
 	private LinkedList<LinkedList<Integer>> powerList(LinkedList<Integer> varList) {
-		// initializing an empty list
+		// initializing a list with an empty list in it
 		LinkedList<LinkedList<Integer>> powList = new LinkedList<LinkedList<Integer>>();
-		// adding empty lists equal to the number of lists that have to be in 
-		// the "power list"
-		for (int i = 0; i < Math.pow(2, varList.size()); i++) {
-			powList.add(new LinkedList<Integer>());
-		}
-		// for each variable (integer) adding it to half of the lists in the 
-		// "power list", each up to a different sample
-		// (inspired by truth tables)
-		for (int var = 0 ; var < varList.size() ; var++) {
-			// A row of lists with the variable and then lists without the 
-			// variable before the next list with the variable is considered a 
-			// "run".
-			int maxRun = (int) Math.pow(2, var);
-			// A list with the variable after another one with the variable is 
-			// considered a "repeat".
-			int maxRepeat = (int) Math.pow(2, varList.size() - var - 1);
-			for (int run = 0 ; run < maxRun ; run++) {
-				for (int repeat = 0 ; repeat < maxRepeat; repeat++) {
-					// first retrieving the list from the "power list"
-					LinkedList<Integer> listToAdd = 
-							powList.get((2 * maxRepeat * run + maxRepeat + repeat));
-					// adding the variable
-					listToAdd.add(var);
-					// putting the list pack at its place into the "power list"
-					powList.set((2 * maxRepeat * run + maxRepeat + repeat), listToAdd);
-				}
+		powList.add(new LinkedList<Integer>());
+		// iterator for the list of variables
+		java.util.Iterator<Integer> iter = varList.iterator();
+		// iterating over the variables
+		while (iter.hasNext()) {
+			// getting the next variable
+			int nextVar = iter.next();
+			// for each list already in the "power list" adding a new one 
+			// that's a copy of that list except the next variable is also in
+			for (LinkedList<Integer> list : powList) {
+				list.add(nextVar);
+				powList.add(list);
 			}
 		}
 		// returning the complete "power list"
