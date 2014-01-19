@@ -255,7 +255,7 @@ public class Formula {
 	
 	/**
 	 * provides TODO
-	 * @param varOrd - the VariableOrdering
+	 * @param varOrd - the VariableOrdering (used for the OBDD constructors)
 	 * @return
 	 */
 	public OBDD toOBDD(VariableOrdering varOrd) {
@@ -494,8 +494,9 @@ public class Formula {
 	
 	
 	/**
-	 * @return the numbers of the variables used in
-	 * the Formula and its sub-Formulas
+	 * method that provides the numbers of the variables used in the Formula 
+	 * and its sub-Formulas
+	 * @return
 	 */
 	private LinkedList<Integer> vars() {
 		// initializing the LinkedList for the return

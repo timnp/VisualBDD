@@ -41,7 +41,8 @@ public class VariableOrdering {
 			}
 			// adding the variable to this objects list
 			this.ordList.add(movedVar);
-		}	}
+			}
+		}
 	
 	
 	/**
@@ -49,21 +50,8 @@ public class VariableOrdering {
 	 * @param ordList
 	 */
 	public VariableOrdering (LinkedList<Integer> ordList) {
-		// initializing a "storage" for the moved variable
-		int movedVar;
-		// moving variables until the input list is empty
-		while (!ordList.isEmpty()) {
-			// moving the first variable first to keep the order
-			movedVar = ordList.getFirst();
-			// TODO?
-			// tentative solution for multiple appearances of the same integer:
-			// removing all but the first appearance 
-			while (ordList.lastIndexOf(movedVar) >= 0) {
-				ordList.removeLastOccurrence(movedVar);
-			}
-			// adding the variable to this objects list
-			this.ordList.add(movedVar);
-		}
+		// setting the ordering list
+		setOrdList(ordList);
 	}
 	
 	
