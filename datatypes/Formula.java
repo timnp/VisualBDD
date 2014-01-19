@@ -3,8 +3,6 @@ package datatypes;
 import java.util.LinkedList;
 import java.util.regex.*;
 
-import javax.swing.JTable;
-
 /**
  * 
  * @author TimNP
@@ -263,6 +261,11 @@ public class Formula {
 	public OBDD toOBDD(VariableOrdering varOrd) {
 		// the number of variables in the VariableOrdering 
 		int varOrdSize = varOrd.size();
+		// variable for the current node
+		OBDD currentNode;
+		// initializing a list for the OBDD nodes of the layer below 
+		// the current one
+		LinkedList<OBDD> layerBelow = new LinkedList<OBDD>();
 		// a switch for the possible constructors
 		switch (constructor) {
 		// Zeroth case: The Formula represents a constant.
@@ -270,13 +273,17 @@ public class Formula {
 			// If this constant Formula is tautological, 
 			// the OBDD has to be too.
 			if (value) {
-				// Because the Formula has no successors and doesn't represent
+				// Because the Formula has no successors and doesn't represent 
 				// a variable itself, the set of its variables is empty.
 				// The node to begin with is the 1-terminal itself.
-				OBDD currentNode = OBDD.ONE;
-				// initializing a list for the OBDD nodes of the layer below 
-				// the current one
-				LinkedList<OBDD> layerBelow = new LinkedList<OBDD>();
+				currentNode = OBDD.ONE;
+			}
+			// Otherwise the Formula is contradictory 
+			// and so the OBDD has to be.
+			else {
+				// In this case the node to begin with is the 0-terminal.
+				currentNode = OBDD.ZERO;
+			}
 				// If the VariableOrdering isn't empty, more nodes are 
 				// constructed.
 				if (varOrdSize > 0) {
@@ -309,60 +316,23 @@ public class Formula {
 				}
 				// The constructed OBDD's root is returned.
 				return currentNode;
-			}
-			// Otherwise the Formula is contradictory 
-			// and so the OBDD has to be.
-			else {
-				// In this case the node to begin with is the 0-terminal.
-				OBDD currentNode = OBDD.ZERO;
-				// initializing a list for the OBDD nodes of the layer below 
-				// the current one
-				LinkedList<OBDD> layerBelow = new LinkedList<OBDD>();
-				// If the VariableOrdering isn't empty, more nodes are 
-				// constructed.
-				if (varOrdSize > 0) {
-					// First the lowest (decision node) layer consisting of 
-					// redundant nodes leading to the 0-terminal is 
-					// constructed.
-					for (int j = 0; j < Math.pow(2, varOrdSize - 1); j++) {
-						currentNode = currentNode.cons(varOrd.getLast(), 
-								currentNode, varOrd);
-						// adding the nodes to the list of the layer below for 
-						// the layer above
-						layerBelow.add(currentNode);
-					}
-					// The rest of the layers is constructed the same way: Each
-					// node gets two different nodes of the layer below as 
-					// children.
-					for (int i = varOrdSize - 2; i >= 0; i--) {
-						// The number of nodes decreases each layer from bottom
-						// to top by half.
-						for (int j = 0; j < Math.pow(2, i); j++) {
-							currentNode = layerBelow.poll().cons(varOrd.get(i),
-									layerBelow.poll(), varOrd);
-							// adding the new nodes to the layer below list
-							layerBelow.add(currentNode);
-						}
-					}
-				}
-				// The constructed OBDD's root is returned.
-				return currentNode;
-			}
 		// First case: The Formula represents a variable.
 		case 1:
 			// getting the index of the specified variable in the 
 			// VariableOrdering
 			int varIndex = varOrd.get(varNr);
+			// TODO
+			if (varIndex < 0) {
+				varOrd = new VariableOrdering(vars());
+				varIndex = varOrd.get(varNr);
+			}
 			// If the specified variable is part of the VariableOrdering, an
 			// OBDD with all of the VariableOrdering's variables can be 
 			// constructed.
 			if (varIndex >= 0) {
 				// initializing a variable for the nodes that are being 
 				// constructed
-				OBDD currentNode = OBDD.ONE;
-				// initializing a list for the OBDD nodes of the layer below 
-				// the current one
-				LinkedList<OBDD> layerBelow = new LinkedList<OBDD>();
+				currentNode = OBDD.ONE;
 				if (varIndex == varOrdSize - 1) {
 					// If the specified variable is the last in the 
 					// VariableOrdering, the lowest layer consists of OBDD 
@@ -604,78 +574,9 @@ public class Formula {
 	 * @param varOrd - the VariableOrdering
 	 * @return the Formula's entire truth table
 	 */
-	public JTable entireTruthTable(VariableOrdering varOrd) {
+	public TruthTable entireTruthTable(VariableOrdering varOrd) {
 		// returning the truth table for "all" variables
-		return truthTable(varOrd.getOrdList());
-	}
-	
-	
-	/**
-	 * 
-	 * @param vars
-	 * @return the Formula's truth table showing only the given variables
-	 */
-	private JTable truthTable(LinkedList<Integer> vars) {
-		// initializing the column name array
-		String[] columnNames = new String[vars.size() + 1];
-		// making each of the Formula's variables a column name
-		for (int i : vars) {
-			columnNames[vars.indexOf(i)] = "X"+i;
-		}
-		// making the function value the last column name
-		columnNames[vars.size()] =
-				"f(X" + vars.getFirst() + ",...,X" + vars.getLast() + ")";
-		// initializing the data array
-		Integer[][] data = new Integer[(int) Math.pow(2, vars.size())]
-						[vars.size() + 1];
-		// writing zeros and ones for the variable values into the data array 
-		// iterating over the columns
-		for (int column = 0 ; column < vars.size() ; column++) {
-			// A row of zeros and then ones before the next zero
-			// is considered a "run".
-			int maxRun = (int) Math.pow(2, column);
-			// A zero or one after (below) another instance of
-			// the same number is considered a "repeat".
-			int maxRepeat = (int) Math.pow(2, vars.size() - column - 1);
-			for (int run = 0 ; run < maxRun ; run++) {
-				for (int repeat = 0 ; repeat < maxRepeat; repeat++) {
-					// Each "run" first has the repeats of zeros. 
-					data[2 * maxRepeat * run + repeat][column] = 0;
-					// After (below) the zeros there are the repeats of ones.
-					data[2 * maxRepeat * run + maxRepeat + repeat][column] = 1;
-				}
-			}
-		}
-		// initializing the list for the assignments to calculate the values
-		// for the last column
-		LinkedList<Integer> assignedOne = new LinkedList<Integer>();
-		// calculating the values one row after another
-		for (int row = 0 ; row < (int) Math.pow(2, vars.size()) ; row++) {
-			// clearing the assignment list
-			assignedOne.clear();
-			// adding each variable in which's column is a one (in this row)
-			// to the assignment list
-			for (int column = 0 ; column < vars.size() ; column++) {
-				if (data[row][column] == 1) {
-					// If there is a one in the column, the respective variable
-					// is added to the assignment list.
-					assignedOne.add(vars.get(column));
-				}
-			}
-			// function value of this Formula's function under the assignment
-			// represented by the row
-			boolean funVal = assign(assignedOne);
-			// transferring the boolean function value into one/zero and
-			// writing it into the data array
-			if (funVal) {
-				data[row][vars.size()] = 1;
-			}
-			else data[row][vars.size()] = 0;
-		}
-		// creating the truth table as a concrete JTable
-		JTable truthTable = new JTable(data, columnNames);
-		// returning the truth table
-		return truthTable;
+		return new TruthTable(this, varOrd.getOrdList());
 	}
 	
 	
