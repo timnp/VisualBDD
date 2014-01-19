@@ -606,10 +606,10 @@ public class OBDD {
 		formulaCT.clear();
 		// calling the actual (recursive) toFormula method
 		Formula result = toFormulaRec();
-		// reducing constants
-		Formula resultRC = result.reduceConstants();
+		// reducing the Formula
+		Formula resultR = result.reduce();
 		// returning the result
-		return resultRC;
+		return resultR;
 	}
 	
 	
@@ -725,7 +725,7 @@ public class OBDD {
 	 */
 	public boolean valueByFormula(LinkedList<Integer> assignedOne) {
 		// using the "assign" function of the Formula data type
-		return this.toFormula().assign(assignedOne);
+		return this.toFormula().evaluate(assignedOne);
 	}
 
 	

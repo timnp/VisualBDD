@@ -24,7 +24,7 @@ public class Formula {
 	/**
 	 * variable number
 	 */
-	private int varNr;
+	private int var;
 	/**
 	 * value (for constants)
 	 */
@@ -61,7 +61,7 @@ public class Formula {
 	 * @param varNr
 	 */
 	public Formula (int varNr) {
-		this.varNr = varNr;
+		this.var = varNr;
 		constructor = VARIABLE;
 	}
 	
@@ -209,7 +209,7 @@ public class Formula {
 		matcher = variablePattern.matcher(formulaString);
 		if (matcher.matches()) {
 			// retrieving the variable number from the String
-			varNr = Integer.parseInt(matcher.group(1));
+			var = Integer.parseInt(matcher.group(1));
 			// setting the constructor
 			constructor = VARIABLE;
 		}
@@ -287,7 +287,7 @@ public class Formula {
 			// true is returned.
 			// Otherwise the variable is assigned the logical value zero
 			// or it isn't assigned anything. Therefore false is returned.
-			return (assignedOne.contains(varNr));
+			return (assignedOne.contains(var));
 		// Second case: The Formula represents a logical negation.
 		case 2:
 			// calculating the value of the successor
@@ -340,7 +340,7 @@ public class Formula {
 			// clearing the list
 			vars.clear();
 			// adding the variable's number to the list
-			vars.add(varNr);
+			vars.add(var);
 			// returning the list
 			return vars;
 		// Second case: The Formula represents a logical negation.
@@ -422,7 +422,7 @@ public class Formula {
 			} else return "1";
 		// first case: returning the variable
 		case 1:
-			return "X" + varNr;
+			return "X" + var;
 		// second case: returning the negated successor in parentheses
 		case 2:
 			return "(-" + firstSuccessor.toString() + ")";
@@ -443,10 +443,14 @@ public class Formula {
 	
 	
 	/**
-	 * TODO WHY DOESN'T THIS HAVE JAVADOC COMMENTS?
+	 * provides a Formula logically equivalent to this one reduced in relation 
+	 * to constants, double negation, idempotency and tertium non datur
 	 * @return
 	 */
-	public Formula reduceConstants() {
+	public Formula reduce() {
+		// variables for reduced successors
+		Formula rFirstSuc;
+		Formula rSecondSuc;
 		// switch for the possible constructors
 		switch (constructor) {
 		// Zeroth case: The Formula represents a constant and can't be reduced.
@@ -458,73 +462,163 @@ public class Formula {
 		// Second case: The Formula represents a logical negation.
 		case 2:
 			// First the successor is reduced.
-			Formula rcSuccessor = firstSuccessor.reduceConstants();
+			rFirstSuc = firstSuccessor.reduce();
 			// If the reduced successor is a constant,
 			// the opposite constant is returned.
-			if (rcSuccessor.constructor == CONSTANT) {
-				return new Formula(!rcSuccessor.value);
+			if (rFirstSuc.constructor == CONSTANT) {
+				return new Formula(!rFirstSuc.value);
+			}
+			// If the reduced successor is a logical negation, 
+			// its successor is returned.
+			else if (rFirstSuc.constructor == NOT) {
+				return rFirstSuc.firstSuccessor;
 			}
 			// Otherwise the negation of the reduced successor is returned.
-			else {
-				 return rcSuccessor.not();
-			}
+			else return rFirstSuc.not();
 		// Third case: The Formula represents a logical conjunction.
 		case 3:
 			// First the two successors are reduced.
-			Formula rcFirstSuccessor = firstSuccessor.reduceConstants();
-			Formula rcSecondSuccessor = secondSuccessor.reduceConstants();
-			if (rcFirstSuccessor.constructor == CONSTANT) {
+			rFirstSuc = firstSuccessor.reduce();
+			rSecondSuc = secondSuccessor.reduce();
+			if (rFirstSuc.constructor == CONSTANT) {
 				// If the first successor is the tautological Formula,
 				// the second successor is returned.
-				if (rcFirstSuccessor.value) {
-					return rcSecondSuccessor;
+				if (rFirstSuc.value) {
+					return rSecondSuc;
 				}
 				// If the first successor is the contradictory Formula,
 				// it is returned.
-				else return rcFirstSuccessor;
-			} else if (rcSecondSuccessor.constructor == CONSTANT) {
+				else return rFirstSuc;
+			} else if (rSecondSuc.constructor == CONSTANT) {
 				// If the second successor is the tautological Formula,
 				// the first successor is returned.
-				if (rcSecondSuccessor.value) {
-					return rcFirstSuccessor;
+				if (rSecondSuc.value) {
+					return rFirstSuc;
 				}
 				// If the second successor is the contradictory Formula,
 				// it is returned.
-				else return rcSecondSuccessor;
-			// If none of the two successors is a constant, 
-			// their conjunction is returned.
-			} else return rcFirstSuccessor.and(rcSecondSuccessor);
+				else return rSecondSuc;
+			}
+			// If the two successors are equal, the first one is returned.
+			else if (rFirstSuc.isEqual(rSecondSuc)) {
+				return rFirstSuc;
+			}
+			// If the first successor is the negation of the second one, 
+			// the contradictory Formula is returned.
+			else if (rFirstSuc.constructor == NOT && 
+					rFirstSuc.firstSuccessor.isEqual(rSecondSuc)) {
+				return new Formula(false);
+			}
+			// If the second successor is the negation of the first one, 
+			// the contradictory Formula is returned.
+			else if (rSecondSuc.constructor == NOT && 
+					rFirstSuc.isEqual(rSecondSuc.firstSuccessor)) {
+				return new Formula(false);
+			}
+			// Otherwise the conjunction of the two reduced successors is 
+			// returned.
+			else return rFirstSuc.and(rSecondSuc);
 		// Fourth case: The Formula represents a logical disjunction.
 		case 4:
 			// First the two successors are reduced.
-			rcFirstSuccessor = firstSuccessor.reduceConstants();
-			rcSecondSuccessor = secondSuccessor.reduceConstants();
-			if (rcFirstSuccessor.constructor == CONSTANT) {
+			rFirstSuc = firstSuccessor.reduce();
+			rSecondSuc = secondSuccessor.reduce();
+			if (rFirstSuc.constructor == CONSTANT) {
 				// If the first successor is the tautological Formula,
 				// it is returned.
-				if (rcFirstSuccessor.value) {
-					return rcFirstSuccessor;
+				if (rFirstSuc.value) {
+					return rFirstSuc;
 				}
 				// If the first successor is the contradictory Formula,
-				// the second successor is returned.
-				else return rcSecondSuccessor;
-			} else if (rcSecondSuccessor.constructor == CONSTANT) {
+				// the second one is returned.
+				else return rSecondSuc;
+			} else if (rSecondSuc.constructor == CONSTANT) {
 				// If the second successor is the tautological Formula,
 				// it is returned.
-				if (rcSecondSuccessor.value) {
-					return rcSecondSuccessor;
+				if (rSecondSuc.value) {
+					return rSecondSuc;
 				}
 				// If the second successor is the contradictory Formula,
-				// the first successor is returned.
-				else return rcFirstSuccessor;
-			// If none of the two successors is a constant, 
-			// their conjunction is returned.
-			} else return rcFirstSuccessor.or(rcSecondSuccessor);
+				// the second one is returned.
+				else return rFirstSuc;
+			}
+			// If the two successors are equal, the first one is returned.
+			else if (rFirstSuc.isEqual(rSecondSuc)) {
+				return rFirstSuc;
+			}
+			// If the first successor is the negation of the second one, 
+			// the tautological Formula is returned.
+			else if (rFirstSuc.constructor == NOT && 
+					rFirstSuc.firstSuccessor.isEqual(rSecondSuc)) {
+				return new Formula(true);
+			}
+			// If the second successor is the negation of the first one, 
+			// the tautological Formula is returned.
+			else if (rSecondSuc.constructor == NOT && 
+					rFirstSuc.isEqual(rSecondSuc.firstSuccessor)) {
+				return new Formula(true);
+			}
+			// Otherwise the disjunction of the two reduced successors is 
+			// returned.
+			else return rFirstSuc.or(rSecondSuc);
 		// Default case: None of the given constructors was used.
 		default:
 			// tentative value: the Formula itself
 			// TODO user message
 			return this;
 		}
+	}
+
+	
+	/**
+	 * states whether this Formula is equal to a given Formula
+	 * @param g - the other Formula
+	 * @return
+	 */
+	private boolean isEqual(Formula g) {
+		// If the two Formulas' constructors are the same, they may be equal.
+		if (constructor == g.constructor) {
+			// variables for the equality of the successors
+			boolean firstSucEqual;
+			boolean secondSucEqual;
+			// a switch for the possible constructors
+			switch (constructor) {
+			// Zeroth case: The Formula represents a constant.
+			case 0:
+				// If the other Formula also represents a constant, the equality of
+				// their values is checked.
+				return (value == g.value);
+			// First case: The Formula represents a variable.
+			case 1:
+				// If the other Formula also represents a variable, the equality of
+				// the variables is checked.
+				return (var == g.var);
+			// Second case: The Formula represents a logical negation.
+			case 2:
+				// If the other Formula also represents a logical negation, the 
+				// equality of their successors is checked. 
+				return firstSuccessor.isEqual(g.firstSuccessor);
+			// Third case: The Formula represents a logical conjunction.
+			case 3:
+				// If the other Formula also represents a logical conjunction, the 
+				// equality of their successors is checked.
+				firstSucEqual = firstSuccessor.isEqual(g.firstSuccessor);
+				secondSucEqual = secondSuccessor.isEqual(g.secondSuccessor);
+				return (firstSucEqual && secondSucEqual);
+			// Fourth case: The Formula represents a logical disjunction.
+			case 4:
+				// If the other Formula also represents a logical disjunction, the 
+				// equality of their successors is checked.
+				firstSucEqual = firstSuccessor.isEqual(g.firstSuccessor);
+				secondSucEqual = secondSuccessor.isEqual(g.secondSuccessor);
+				return (firstSucEqual && secondSucEqual);
+			// Default case: None of the given constructors was used.
+			default:
+				// Equality can't be checked and false is returned.
+				return false;
+			}
+		}
+		// If the two Formulas' constructors aren't the same, they aren't equal.
+		else return false;
 	}
 }
