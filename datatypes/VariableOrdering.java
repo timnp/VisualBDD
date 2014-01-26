@@ -27,6 +27,8 @@ public class VariableOrdering {
 	 * @param ordList
 	 */
 	public void setOrdList(LinkedList<Integer> ordList) {
+		// initializing the ordering list
+		this.ordList = new LinkedList<Integer>();
 		// initializing a "storage" for the moved variable
 		int movedVar;
 		// moving variables until the input list is empty

@@ -98,7 +98,7 @@ public class TruthTable {
 	
 	/**
 	 * provides an complete OBDD from the TruthTable's data
-	 * @param varOrd - the VariableOrdering (used for the OBDD construction)
+	 * @param varOrd - the VariableOrdering (used for the OBDD constructors)
 	 * @return
 	 */
 	public OBDD toOBDD(VariableOrdering varOrd) {

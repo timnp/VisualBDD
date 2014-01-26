@@ -109,16 +109,13 @@ public class Formula {
 	
 	
 	/**
-	 * String for spaces in Patterns
-	 */
-	private String spaces = "\\s*";
-	
-	/**
 	 * Pattern String for constants
 	 */
 	private String constantPatternString = 
-									// A constant is either 0 or 1;
-									"[01]";
+			// A constant is either 0 or 1.
+			// (parentheses for easier conversion)
+			// group: the constant itself
+			"[(][(01)][)]";
 	/**
 	 * Pattern for constants
 	 */
@@ -128,10 +125,11 @@ public class Formula {
 	 * Pattern String for variables
 	 */
 	private String variablePatternString =
-									// A variable starts with an X.
-									"[Xx]"
-									// group: the variable's number
-									+ "(\\d+)";
+			// A variable starts with an X.
+			// (parentheses for easier conversion)
+			"[(][Xx]"
+			// group: the variable's number
+			+ "(\\d+)[)]";
 	/**
 	 * Pattern for variables
 	 */
@@ -141,18 +139,11 @@ public class Formula {
 	 * Pattern String for logical negation
 	 */
 	private String notPatternString =
-									// left parenthesis
-									"[(]" 
-									+ spaces 
-									// negation symbol
-									+ "[-]" 
-									+ spaces 
-									// successor:
-									// either put in parentheses or a variable
-									+ "([(].+[)]|[Xx]\\d+)" 
-									+ spaces
-									// right parenthesis
-									+ "[)]";
+			// negation symbol
+			// (parentheses for easier conversion)
+			"[(][-]" 
+			// group: the successor
+			+ "(.+)[)]";
 	/**
 	 * Pattern for logical negation
 	 */
@@ -161,24 +152,15 @@ public class Formula {
 	/**
 	 * Pattern String for binary operations
 	 */
-	private String binOpPatternString = 
-									// left parenthesis
-									"[(]" 
-									+ spaces 
-									// first successor:
-									// either put in parentheses or a variable
-									+ "([(].+[)]|[Xx]\\d+)" 
-									+ spaces 
-									// the operation:
-									// logical conjunction or disjunction
-									+ "([*+])" 
-									+ spaces 
-									// second successor:
-									// either put in parentheses or a variable
-									+ "([(].+[)]|[Xx]\\d+)" 
-									+ spaces 
-									// right parenthesis
-									+ "[)]";
+	private String binOpPatternString =
+			// group 1: the first successor
+			// (parentheses for easier conversion)
+			"[(](.+)" 
+			// group 2: the operation:
+			// logical conjunction or disjunction
+			+ "([*+])" 
+			// group 3: the second successor
+			+ "(.+)[)]";
 	/**
 	 * Pattern for binary operations
 	 */
@@ -197,11 +179,11 @@ public class Formula {
 	 */
 	public Formula (String formulaString) {
 		// matching the input String to the constant Pattern
-		this.matcher = constantPattern.matcher(formulaString);
+		matcher = constantPattern.matcher(formulaString);
 		if (matcher.matches()) {
 			// If the constant is 1, its value is "true".
 			// Otherwise it is 0, and its value is "false".
-			value = (formulaString == "1");
+			value = (matcher.group(1) == "1");
 			// setting the constructor
 			constructor = CONSTANT;
 		}

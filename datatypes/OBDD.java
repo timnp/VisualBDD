@@ -606,10 +606,8 @@ public class OBDD {
 		formulaCT.clear();
 		// calling the actual (recursive) toFormula method
 		Formula result = toFormulaRec();
-		// reducing the Formula
-		Formula resultR = result.reduce();
 		// returning the result
-		return resultR;
+		return result;
 	}
 	
 	
