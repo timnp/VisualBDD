@@ -73,26 +73,38 @@ public class FormulaController {
 	private static Pattern variablePattern = Pattern.compile(variablePatternString);
 
 	/**
+	 * auxiliary method that provides a given Formula Pattern String with a 
+	 * possible negation and spaces
+	 * @param formulaPatternString - the Formula Pattern String
+	 * @return the "possibly negated" Formula Pattern String
+	 */
+	private static String possiblyNegated(String formulaPatternString) {
+		return	// possible spaces
+				"\\s*"
+				// possible negation
+				+ "[-]?"
+				// possible spaces
+				+ "\\s*"
+				// the given String
+				+ formulaPatternString
+				// possible spaces
+				+ "\\s*";
+	}
+	
+	/**
 	 * String for simple successors in Patterns
 	 * A simple successor is either completely parenthesized, or a variable, 
 	 * or a constant. In each case it may be negated.
 	 */
 	private static String simpleSuccessor =
-			// possible spaces
-			"\\s*"
-			// possible negation
-			+ "[-]?"
-			// possible spaces
-			+ "[" 	
-					// possibility: completely parenthesized
-					+ "[[(].*[)]]"
-					// possibility: variable
-					+ "|[[Xx]\\d+]" 
-					// possibility: constant
-					+ "|[01]"+
-			"]"
-			// possible spaces
-			+ "\\s*";
+			// possibility: completely parenthesized
+			possiblyNegated("[(].*[)]")
+			+ "|"
+			// possibility: variable
+			+ possiblyNegated("[Xx]\\d+")
+			+ "|"
+			// possibility: constant
+			+ possiblyNegated("[01]");
 	
 	/**
 	 * Pattern String for a logical negation
@@ -122,7 +134,7 @@ public class FormulaController {
 			// group 2: the second successor
 			// The second successor may not be a simple one but a sequence of 
 			// simple ones combined by conjunction symbols.
-			+ "(" + simpleSuccessor + "[[*]" + simpleSuccessor + "]*)";
+			+ "((" + simpleSuccessor + ")([*](" + simpleSuccessor + "))*)";
 	/**
 	 * Pattern for a logical conjunction
 	 */
@@ -135,18 +147,21 @@ public class FormulaController {
 			// group 1: the first successor
 			// The second successor may not be a simple one but a sequence of 
 			// simple ones combined by conjunction symbols.
-			"(" + simpleSuccessor + "[[*]" + simpleSuccessor + "]*)"
+			"((" + simpleSuccessor + ")([*](" + simpleSuccessor + "))*)"
 			// the disjunction symbol
 			+ "+"
 			// group 2: the second successor
 			// The second successor may not be a simple one but a sequence of 
 			// simple ones combined by conjunction or disjunction symbols.
-			+ "(" + simpleSuccessor + "[[*+]" + simpleSuccessor + "]*)";
+			+ "((" + simpleSuccessor + ")([*+](" + simpleSuccessor + "))*)";
 	/**
 	 * Pattern for a logical disjunction
 	 */
 	private static Pattern orPattern = Pattern.compile(orPatternString);
 	
+	/**
+	 * Matcher for the Patterns
+	 */
 	private static Matcher matcher;
 	
 	
@@ -239,4 +254,13 @@ public class FormulaController {
 		}
 		else return "(" + inputString + ")";
 	}
+	
+	private static String toFormulaString(String inputString) {
+		// removing all spaces from the String
+		inputString = inputString.replaceAll("\\s", "");
+		//
+		
+		return inputString;
+	}
+	
 }
