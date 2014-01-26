@@ -2,7 +2,7 @@ package tests;
 
 import java.util.LinkedList;
 
-import datatypes.*;
+import model.*;
 
 /**
  * 
