@@ -113,9 +113,7 @@ public class Formula {
 	 */
 	private String constantPatternString = 
 			// A constant is either 0 or 1.
-			// (parentheses for easier conversion)
-			// group: the constant itself
-			"[(][(01)][)]";
+			"[01]";
 	/**
 	 * Pattern for constants
 	 */
@@ -126,10 +124,7 @@ public class Formula {
 	 */
 	private String variablePatternString =
 			// A variable starts with an X.
-			// (parentheses for easier conversion)
-			"[(][Xx]"
-			// group: the variable's number
-			+ "(\\d+)[)]";
+			"[Xx](\\d+)";
 	/**
 	 * Pattern for variables
 	 */
@@ -140,10 +135,7 @@ public class Formula {
 	 */
 	private String notPatternString =
 			// negation symbol
-			// (parentheses for easier conversion)
-			"[(][-]" 
-			// group: the successor
-			+ "(.+)[)]";
+			"[-](.+)";
 	/**
 	 * Pattern for logical negation
 	 */
@@ -154,7 +146,6 @@ public class Formula {
 	 */
 	private String binOpPatternString =
 			// group 1: the first successor
-			// (parentheses for easier conversion)
 			"[(](.+)" 
 			// group 2: the operation:
 			// logical conjunction or disjunction
