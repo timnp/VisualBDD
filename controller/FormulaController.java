@@ -144,13 +144,8 @@ public class FormulaController {
 				if (!successor.equals("")) {
 					successors.add(successor);
 					inputString = inputString.substring(successor.length());
-				}
-				// Otherwise the String can't be converted into a Formula 
-				// String.
-				// TODO
-				else { 
-					return null;
-				}
+					// TODO user message
+				} else return null;
 			}
 		}
 		// variable for the first appearance of a logical conjunction in the 

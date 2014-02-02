@@ -405,6 +405,49 @@ public class Formula {
 	
 	
 	/**
+	 * method that states whether this Formula is logical equivalent to another
+	 * one
+	 * @param f - the other Formula
+	 * @return
+	 */
+	public boolean logicalEquivalent(Formula f) {
+		// initializing the list of variables of the two Formulas combined
+		LinkedList<Integer> combinedVars = vars();
+		// iterator for the other Formula's list of variables
+		java.util.Iterator<Integer> iter = f.vars().iterator();
+		// iterating over the list to complete the combined variable list
+		while (iter.hasNext()) {
+			// the next variable
+			int nextVar = iter.next();
+			// adding the variable to the combined variable list if it isn't 
+			// already in
+			if (!combinedVars.contains(nextVar)) {
+				combinedVars.add(nextVar);
+			}
+		}
+		// creating a TruthTable for each of the two Formulas
+		TruthTable tt1 = new TruthTable(this, combinedVars);
+		TruthTable tt2 = new TruthTable(f, combinedVars);
+		// retrieving the actual data from the TruthTables
+		Boolean[][] data1 = tt1.getData();
+		Boolean[][] data2 = tt2.getData();
+		// the amount of the combined variables
+		int numberOfVars = combinedVars.size();
+		// checking for each assignment, whether the two Formulas provide the 
+		// same result
+		for (int i = 0; i < Math.pow(2, numberOfVars); i++) {
+			if (!data1[i][numberOfVars].equals(data2[i][numberOfVars])) {
+				// If the two Formulas provide different results under at least
+				// one assignment, they arent's logical equivalent.
+				return false;
+			}
+		}
+		// If no check failed, the two Formulas are logical equivalent.
+		return true;
+	}
+	
+	
+	/**
 	 * method that provides the numbers of the variables used in the Formula 
 	 * and its sub-Formulas
 	 * @return

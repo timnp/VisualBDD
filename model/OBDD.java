@@ -823,9 +823,9 @@ public class OBDD {
 						candidates.add(secondCandidate);
 						return candidates;
 					}
-					// clearing the candidate list
-					candidates.clear();
 				}
+				// clearing the candidate list
+				candidates.clear();
 				// If no equivalent node could be found for this one,
 				// check for other ones.
 			}
@@ -1077,7 +1077,7 @@ public class OBDD {
 		LinkedList<OBDD> equivalentFind = root.findEquivalent(varOrd);
 		// While there are equivalent nodes in the OBDD, they have to be merged 
 		// to create an ROBDD.
-		while (!(equivalentFind == null)) {
+		while (equivalentFind != null) {
 			// merging the two found equivalent nodes
 			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
 			// searching for more equivalent nodes
@@ -1105,11 +1105,14 @@ public class OBDD {
 	public void removeRedundant() {
 		// The node only gets removed if it's redundant.
 		if (isRedundant()) {
-			// adding all of this node's parents to this node's (high) child's 
-			// one's
-			highChild.parents.addAll(parents);
-			// removing this node from it's child's parents
-			highChild.parents.remove(this);
+			// A terminal doesn't "know" its parents.
+			 if (!highChild.terminal) {
+					// adding all of this node's parents to this node's (high) child's 
+					// one's
+					highChild.parents.addAll(parents);
+					// removing this node from it's child's parents
+					highChild.parents.remove(this); 
+			 }
 			// for each of this node's parents replacing it as a child by it's 
 			// own child
 			for (OBDD p : parents) {
@@ -1268,12 +1271,10 @@ public class OBDD {
 		java.util.Iterator<Integer> iter = varList.iterator();
 		// iterating over the variables
 		while (iter.hasNext()) {
-			// getting the next variable
-			int nextVar = iter.next();
 			// for each list already in the "power list" adding a new one 
 			// that's a copy of that list except the next variable is also in
 			for (LinkedList<Integer> list : powList) {
-				list.add(nextVar);
+				list.add(iter.next());
 				powList.add(list);
 			}
 		}
