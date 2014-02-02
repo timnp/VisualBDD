@@ -130,32 +130,32 @@ public class Formula {
 	 */
 	private Pattern variablePattern = Pattern.compile(variablePatternString);
 	
-	/**
-	 * Pattern String for logical negation
-	 */
-	private String notPatternString =
-			// negation symbol
-			"[-](.+)";
-	/**
-	 * Pattern for logical negation
-	 */
-	private Pattern notPattern = Pattern.compile(notPatternString);
-	
-	/**
-	 * Pattern String for binary operations
-	 */
-	private String binOpPatternString =
-			// group 1: the first successor
-			"[(](.+)" 
-			// group 2: the operation:
-			// logical conjunction or disjunction
-			+ "([*+])" 
-			// group 3: the second successor
-			+ "(.+)[)]";
-	/**
-	 * Pattern for binary operations
-	 */
-	private Pattern binOpPattern = Pattern.compile(binOpPatternString);
+//	/**
+//	 * Pattern String for logical negation
+//	 */
+//	private String notPatternString =
+//			// negation symbol
+//			"[-](.+)";
+//	/**
+//	 * Pattern for logical negation
+//	 */
+//	private Pattern notPattern = Pattern.compile(notPatternString);
+//	
+//	/**
+//	 * Pattern String for binary operations
+//	 */
+//	private String binOpPatternString =
+//			// group 1: the first successor
+//			"[(](.+)" 
+//			// group 2: the operation:
+//			// logical conjunction or disjunction
+//			+ "([*+])" 
+//			// group 3: the second successor
+//			+ "(.+)[)]";
+//	/**
+//	 * Pattern for binary operations
+//	 */
+//	private Pattern binOpPattern = Pattern.compile(binOpPatternString);
 	
 	/**
 	 * Matcher for the Patterns
@@ -163,20 +163,78 @@ public class Formula {
 	private Matcher matcher;
 	
 	
-	/**
-	 * constructor for Formulas from a given String that meets the criteria
-	 * defined by the Patterns 
-	 * @param formulaString
-	 */
+//	/**
+//	 * constructor for Formulas from a given String that meets the criteria
+//	 * defined by the Patterns 
+//	 * @param formulaString
+//	 */
+//	public Formula (String formulaString) {
+//		// matching the input String to the constant Pattern
+//		matcher = constantPattern.matcher(formulaString);
+//		if (matcher.matches()) {
+//			// If the constant is 1, its value is "true".
+//			// Otherwise it is 0, and its value is "false".
+//			value = (matcher.group(1) == "1");
+//			// setting the constructor
+//			constructor = CONSTANT;
+//		}
+//		// matching the input String to the variable Pattern
+//		matcher = variablePattern.matcher(formulaString);
+//		if (matcher.matches()) {
+//			// retrieving the variable number from the String
+//			var = Integer.parseInt(matcher.group(1));
+//			// setting the constructor
+//			constructor = VARIABLE;
+//		}
+//		// matching the input String to the logical negation Pattern
+//		matcher = notPattern.matcher(formulaString);
+//		if (matcher.matches()) {
+//			// retrieving the String that represents the successor
+//			String successorString = matcher.group(1);
+//			// creating the successor
+//			firstSuccessor = new Formula(successorString);
+//			// setting the constructor
+//			constructor = NOT;
+//		}
+//		// matching the input String to the binary operation Pattern
+//		matcher = binOpPattern.matcher(formulaString);
+//		if (matcher.matches()) {
+//			// retrieving the String that represents the first successor
+//			String firstSuccessorString = matcher.group(1);
+//			// creating the first successor
+//			firstSuccessor = new Formula(firstSuccessorString);
+//			// retrieving the String that represents the operation
+//			String opString = matcher.group(2);
+//			// retrieving the String that represents the first successor
+//			String secondSuccessorString = matcher.group(3);
+//			// creating the first successor
+//			secondSuccessor = new Formula(secondSuccessorString);
+//			// switch for the possible binary operations
+//			switch (opString) {
+//			// "*" stands for a logical conjunction
+//			case "*":
+//				constructor = AND;
+//				break;
+//			// "+" stands for a logical disjunction
+//			case "+":
+//				constructor = OR;
+//				break;
+//			default:
+//				//TODO user message
+//			}
+//		}
+//	}
+	
+	
 	public Formula (String formulaString) {
 		// matching the input String to the constant Pattern
 		matcher = constantPattern.matcher(formulaString);
 		if (matcher.matches()) {
 			// If the constant is 1, its value is "true".
 			// Otherwise it is 0, and its value is "false".
-			value = (matcher.group(1) == "1");
+			value = (matcher.group() == "1");
 			// setting the constructor
-			constructor = CONSTANT;
+			constructor = CONSTANT;			
 		}
 		// matching the input String to the variable Pattern
 		matcher = variablePattern.matcher(formulaString);
@@ -186,43 +244,97 @@ public class Formula {
 			// setting the constructor
 			constructor = VARIABLE;
 		}
-		// matching the input String to the logical negation Pattern
-		matcher = notPattern.matcher(formulaString);
-		if (matcher.matches()) {
-			// retrieving the String that represents the successor
-			String successorString = matcher.group(1);
-			// creating the successor
-			firstSuccessor = new Formula(successorString);
+		// If a Formula String starts with a logical negation symbol, it 
+		// represents a logical negation.
+		if (formulaString.startsWith("-")) {
+			// creating the successor of the logical negation
+			firstSuccessor = new Formula(formulaString.substring(1));
 			// setting the constructor
 			constructor = NOT;
 		}
-		// matching the input String to the binary operation Pattern
-		matcher = binOpPattern.matcher(formulaString);
-		if (matcher.matches()) {
-			// retrieving the String that represents the first successor
-			String firstSuccessorString = matcher.group(1);
-			// creating the first successor
-			firstSuccessor = new Formula(firstSuccessorString);
-			// retrieving the String that represents the operation
-			String opString = matcher.group(2);
-			// retrieving the String that represents the first successor
-			String secondSuccessorString = matcher.group(3);
-			// creating the first successor
-			secondSuccessor = new Formula(secondSuccessorString);
-			// switch for the possible binary operations
-			switch (opString) {
-			// "*" stands for a logical conjunction
+		// If a Formula String starts with a left parenthesis and ends with a 
+		// right one, it is considered to represent a binary operation.
+		if (formulaString.startsWith("(") && formulaString.endsWith(")")) {
+			// retrieving the three parts of the Formula String:
+			// the Formula String representing the first successor
+			// the String representing the given Formula String's binary 
+			// 		operation symbol
+			// the Formula String representing the second successor
+			String[] formulaParts = binOpParts(formulaString);
+			// creating the first successor of the binary operation
+			firstSuccessor = new Formula(formulaParts[0]);
+			// creating the second successor of the binary operation
+			secondSuccessor = new Formula(formulaParts[2]);
+			// a switch for the possible binary operations
+			switch (formulaParts[1]) {
+			// First case: "*" stands for a logical conjunction.
 			case "*":
 				constructor = AND;
 				break;
-			// "+" stands for a logical disjunction
+			// Second case: "+" stands for a logical disjunction.
 			case "+":
 				constructor = OR;
 				break;
 			default:
-				//TODO user message
+				// TODO user message
 			}
 		}
+	}
+	
+	
+	/**
+	 * auxiliary method that splits a given Formula String representing a 
+	 * binary operation into the operation symbol and the two Formula Strings 
+	 * representing the successors
+	 * @param formulaString - a Formula String representing a binary operation
+	 * @return an Array with the first successor, the operation symbol, and the
+	 * second successor
+	 */
+	private String[] binOpParts(String formulaString) {
+		// initializing the Array for the three parts of the binary operation 
+		// Formula String
+		String[] result = new String[3];
+		// initializing a variable for the number of unclosed left parentheses 
+		// found in the String
+		int leftPars = 0;
+		// looking for the binary operation symbol within the outer parentheses
+		// (The last character within the outer parentheses can't represent the
+		//  binary operation in a Formula String.)
+		for (int i = 1; i < formulaString.length() - 2; i++) {
+			// retrieving the current character
+			char currentChar = formulaString.charAt(i);
+			// If the current character represents a binary operation and there
+			// are no left parentheses left to be closed, it is the given 
+			// Formula String's operation.
+			if ((currentChar == '*' || currentChar == '+') && 
+					leftPars == 0) {
+				// retrieving the Formula String representing the Formula's 
+				// first successor
+				result[0] = formulaString.substring(1, i);
+				// retrieving the String representing the Formula's binary 
+				// operation.
+				result[1] = formulaString.substring(i, i+1);
+				// retrieving the Formula String representing the Formula's 
+				// second successor.
+				result[2] = formulaString.substring(i+1, 
+						formulaString.length() - 1);
+				// breaking the loop since the binary operation has been found
+				break;
+			}
+			// If the current character is a left parenthesis, their number is 
+			// increased by one.
+			else if (currentChar == '(') {
+				leftPars++;
+			} 
+			// If the current character is a right parenthesis, the number of 
+			// left ones is decreased by one since one of them has been closed.
+			else if (currentChar == ')') {
+				leftPars--;
+			}
+			// Otherwise nothing is done.
+		}
+		// returning the result Array
+		return result;
 	}
 	
 	
@@ -398,7 +510,7 @@ public class Formula {
 			return "X" + var;
 		// second case: returning the negated successor in parentheses
 		case 2:
-			return "(-" + firstSuccessor.toString() + ")";
+			return "-" + firstSuccessor.toString();
 		// third case: returning the two successors combined by a symbol for
 		// logical conjunction (*) in parentheses
 		case 3:
