@@ -193,16 +193,25 @@ public class MainGui extends JFrame {
 		
 		// a panel for the right side of the window
 		JPanel rightPane = new JPanel();
-		rightPane.setLayout(new GridLayout(0,1));
+		rightPane.setLayout(new GridBagLayout());
+		GridBagConstraints rightPaneConstraints = new GridBagConstraints();
 		// setting the truth table scroll panel
 		ttScrollPane = new JScrollPane();
-		rightPane.add(ttScrollPane);
+		rightPaneConstraints.gridwidth = 1;
+		rightPaneConstraints.gridheight = 4;
+		rightPaneConstraints.gridx = 1;
+		rightPaneConstraints.gridy = 1;
+		rightPane.add(ttScrollPane, rightPaneConstraints);
 		// setting the truth table showing button
 		ttButton = new JButton("Truth Table Window");
-		rightPane.add(ttButton);
+		rightPaneConstraints.gridheight = 1;
+		rightPaneConstraints.gridy = 4;
+		rightPane.add(ttButton, rightPaneConstraints);
 		// setting the OBDD scroll panel
 		bddScrollPane = new JScrollPane();
-		rightPane.add(bddScrollPane);
+		rightPaneConstraints.gridheight = 4;
+		rightPaneConstraints.gridy = 5;
+		rightPane.add(bddScrollPane, rightPaneConstraints);
 		// a panel for the show and delete buttons
 		JPanel rightBottomPane = new JPanel();
 		rightBottomPane.setLayout(new FlowLayout());
@@ -213,7 +222,9 @@ public class MainGui extends JFrame {
 		deleteButton = new JButton("Delete");
 		rightBottomPane.add(deleteButton);
 		// adding the right bottom panel to the right panel
-		rightPane.add(rightBottomPane);
+		rightPaneConstraints.gridheight = 1;
+		rightPaneConstraints.gridy = 9;
+		rightPane.add(rightBottomPane, rightPaneConstraints);
 		// adding the right panel to the main frame
 		getContentPane().add(rightPane, BorderLayout.LINE_END);
 		
