@@ -13,7 +13,7 @@ public class MainGui extends JFrame {
 	/**
 	 * text field for the name of the OBDD
 	 */
-	private JTextField bddNameField;
+	private JTextField obddNameField;
 	/**
 	 * text field for the formula to be represented by the OBDD
 	 */
@@ -25,11 +25,11 @@ public class MainGui extends JFrame {
 	/**
 	 * drop down menu for the type of OBDD to be generated
 	 */
-	private JComboBox<String> bddTypeCB;
+	private JComboBox<String> obddTypeCB;
 	/**
 	 * drop down menu for the source of the OBDD to be generated from
 	 */
-	private JComboBox<String> bddSourceCB;
+	private JComboBox<String> obddSourceCB;
 	/**
 	 * button to generate a new OBDD
 	 */
@@ -75,6 +75,10 @@ public class MainGui extends JFrame {
 	 * button for retrieving the OBDD's limited truth table
 	 */
 	private JButton limitedTTButton;
+	/**
+	 * button for exporting the OBDD (as a picture)
+	 */
+	private JButton exportButton;
 	
 	/**
 	 * scroll panel for the truth table
@@ -87,7 +91,7 @@ public class MainGui extends JFrame {
 	/**
 	 * scroll panel for all OBDDs created during this "session"
 	 */
-	private JScrollPane bddScrollPane;
+	private JScrollPane obddScrollPane;
 	/**
 	 * button for showing a particular OBDD
 	 */
@@ -97,61 +101,132 @@ public class MainGui extends JFrame {
 	 */
 	private JButton deleteButton;
 	
+	/**
+	 * panel for the OBDD itself
+	 */
+	private JPanel bddPane;
+	
 	
 	
 	public MainGui () {
 		// retrieving the screen size
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		// setting the title
-		setTitle("VisualBDD");
+		setTitle("VisualOBDD");
 		// When the frame is closed, the program is exited.
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
+		// initializing the OBDD panel
+		bddPane = new JPanel();
+		getContentPane().add(bddPane, BorderLayout.CENTER);
+		
+		// the main frame's background color
+		Color background = getBackground();
 		// a panel for the top of window
 		JPanel topPane = new JPanel();
 		topPane.setLayout(new FlowLayout());
 		// creating the OBDD type menu
-		String[] bddTypes = {"Complete OBDD", "QOBDD", "ROBDD"};
-		bddTypeCB = new JComboBox<String>(bddTypes);
+		String[] obddTypes = {"Complete OBDD", "QOBDD", "ROBDD"};
+		obddTypeCB = new JComboBox<String>(obddTypes);
 		// creating the OBDD source menu
-		String[] bddSources = {"Formula", "Truth Table"};
-		bddSourceCB = new JComboBox<String>(bddSources);
+		String[] obddSources = {"Formula", "Truth Table"};
+		obddSourceCB = new JComboBox<String>(obddSources);
 		// creating the generate button
 		generateButton = new JButton("Generate");
 		// calculating the remaining width for the three text fields
-		int remainingWidth = screenSize.width - (bddTypeCB.getWidth() + 
-				bddSourceCB.getWidth() + generateButton.getWidth());
+		int remainingWidth = screenSize.width - (obddTypeCB.getWidth() + 
+				obddSourceCB.getWidth() + generateButton.getWidth());
 		// dividing the remaining width among the text fields
-		int bddNameFieldWidth = (int) (remainingWidth / 90);
-		int formulaFieldWidth = (int) (remainingWidth / 30);
-		int varOrdFieldWidth = (int) (remainingWidth / 45);
-		// setting the OBDD name field 
-		bddNameField = new JTextField(bddNameFieldWidth);
-		TextPrompt bddNameFieldPrompt = 
-				new TextPrompt("Name for the BDD", bddNameField);
-		bddNameFieldPrompt.setShow(TextPrompt.Show.FOCUS_LOST);
-		bddNameField.setMinimumSize(bddNameField.getPreferredSize());
-		topPane.add(bddNameField);
+		int obddNameFieldWidth = (int) (remainingWidth / 100);
+		int formulaFieldWidth = (int) (remainingWidth / 34);
+		int varOrdFieldWidth = (int) (remainingWidth / 50);
+		// creating the OBDD name panel
+		JPanel obddNamePane = new JPanel();
+		obddNamePane.setLayout(new BoxLayout(obddNamePane, BoxLayout.Y_AXIS));
+		// creating the OBDD name text panel
+		JTextPane obddNameText = new JTextPane();
+		obddNameText.setText("OBDD Name");
+		obddNameText.setEditable(false);
+		obddNameText.setBackground(background);
+		obddNamePane.add(obddNameText);
+		// setting the OBDD name field
+		obddNameField = new JTextField(obddNameFieldWidth);
+//		TextPrompt bddNameFieldPrompt = 
+//				new TextPrompt("Name for the BDD", bddNameField);
+//		bddNameFieldPrompt.setShow(TextPrompt.Show.FOCUS_LOST);
+//		bddNameField.setMinimumSize(bddNameField.getPreferredSize());
+		obddNamePane.add(obddNameField);
+		topPane.add(obddNamePane);
+		// creating the Formula panel
+		JPanel formulaPane = new JPanel();
+		formulaPane.setLayout(new BoxLayout(formulaPane, BoxLayout.Y_AXIS));
+		// creating the Formula text panel
+		JTextPane formulaText = new JTextPane();
+		formulaText.setText("Formula to be represented");
+		formulaText.setEditable(false);
+		formulaText.setBackground(background);
+		formulaPane.add(formulaText);
 		// setting the Formula field
 		formulaField = new JTextField(formulaFieldWidth);
-		TextPrompt formulaFieldPrompt = 
-				new TextPrompt("Formula to be represented", formulaField);
-		formulaFieldPrompt.setShow(TextPrompt.Show.FOCUS_LOST);
-		formulaField.setMinimumSize(formulaField.getPreferredSize());
-		topPane.add(formulaField);
+//		TextPrompt formulaFieldPrompt = 
+//				new TextPrompt("Formula to be represented", formulaField);
+//		formulaFieldPrompt.setShow(TextPrompt.Show.FOCUS_LOST);
+//		formulaField.setMinimumSize(formulaField.getPreferredSize());
+		formulaPane.add(formulaField);
+		topPane.add(formulaPane);
+		// creating the variable ordering panel
+		JPanel varOrdPane = new JPanel();
+		varOrdPane.setLayout(new BoxLayout(varOrdPane, BoxLayout.Y_AXIS));
+		// creating the variable ordering text panel
+		JTextPane varOrdText = new JTextPane();
+		varOrdText.setText("Variable Ordering");
+		varOrdText.setEditable(false);
+		varOrdText.setBackground(background);
+		varOrdPane.add(varOrdText);
 		// setting the variable ordering field
 		varOrdField = new JTextField(varOrdFieldWidth);
-		TextPrompt varOrdFieldPrompt = 
-				new TextPrompt("Variable Ordering", varOrdField);
-		varOrdFieldPrompt.setShow(TextPrompt.Show.FOCUS_LOST);
-		varOrdField.setMinimumSize(varOrdField.getPreferredSize());
-		topPane.add(varOrdField);
+//		TextPrompt varOrdFieldPrompt = 
+//				new TextPrompt("Variable Ordering", varOrdField);
+//		varOrdFieldPrompt.setShow(TextPrompt.Show.FOCUS_LOST);
+//		varOrdField.setMinimumSize(varOrdField.getPreferredSize());
+		varOrdPane.add(varOrdField);
+		topPane.add(varOrdPane);
+		// creating the OBDD type panel
+		JPanel obddTypePane = new JPanel();
+		obddTypePane.setLayout(new BoxLayout(obddTypePane, BoxLayout.Y_AXIS));
+		// creating the OBDD type text panel
+		JTextPane obddTypeText = new JTextPane();
+		obddTypeText.setText("OBDD Type");
+		obddTypeText.setEditable(false);
+		obddTypeText.setBackground(background);
+		obddTypePane.add(obddTypeText);
 		// adding the OBDD type menu
-		topPane.add(bddTypeCB);
+		obddTypePane.add(obddTypeCB);
+		topPane.add(obddTypePane);
+		// creating the OBDD source panel
+		JPanel obddSourcePane = new JPanel();
+		obddSourcePane.setLayout
+				(new BoxLayout(obddSourcePane, BoxLayout.Y_AXIS));
+		// creating the OBDD source text panel
+		JTextPane obddSourceText = new JTextPane();
+		obddSourceText.setText("OBDD source");
+		obddSourceText.setEditable(false);
+		obddSourceText.setBackground(background);
+		obddSourcePane.add(obddSourceText);
 		// adding the OBDD source menu
-		topPane.add(bddSourceCB);
+		obddSourcePane.add(obddSourceCB);
+		topPane.add(obddSourcePane);
+		// creating the generate panel
+		JPanel generatePane = new JPanel();
+		generatePane.setLayout(new BoxLayout(generatePane, BoxLayout.Y_AXIS));
+		// creating the empty generate text panel
+		JTextPane generateText = new JTextPane();
+		generateText.setEditable(false);
+		generateText.setBackground(background);
+		generatePane.add(generateText);
 		// adding the generate button
-		topPane.add(generateButton);
+		generatePane.add(generateButton);
+		topPane.add(generatePane);
 		// adding the top panel to the main frame
 		getContentPane().add(topPane, BorderLayout.PAGE_START);
 		
@@ -188,30 +263,37 @@ public class MainGui extends JFrame {
 		// setting the limited truth table button
 		limitedTTButton = new JButton("limited Truth Table");
 		leftPane.add(limitedTTButton);
+		// setting the export button
+		exportButton = new JButton("export OBDD");
+		leftPane.add(exportButton);
 		// adding the left panel to the main frame
 		getContentPane().add(leftPane, BorderLayout.LINE_START);
 		
 		// a panel for the right side of the window
 		JPanel rightPane = new JPanel();
-		rightPane.setLayout(new GridBagLayout());
-		GridBagConstraints rightPaneConstraints = new GridBagConstraints();
+		rightPane.setLayout(new GridLayout(0,1));
+//		rightPane.setLayout(new GridBagLayout());
+//		GridBagConstraints rightPaneConstraints = new GridBagConstraints();
 		// setting the truth table scroll panel
 		ttScrollPane = new JScrollPane();
-		rightPaneConstraints.gridwidth = 1;
-		rightPaneConstraints.gridheight = 4;
-		rightPaneConstraints.gridx = 1;
-		rightPaneConstraints.gridy = 1;
-		rightPane.add(ttScrollPane, rightPaneConstraints);
+		rightPane.add(ttScrollPane);
+//		rightPaneConstraints.gridwidth = 1;
+//		rightPaneConstraints.gridheight = 4;
+//		rightPaneConstraints.gridx = 1;
+//		rightPaneConstraints.gridy = 1;
+//		rightPane.add(ttScrollPane, rightPaneConstraints);
 		// setting the truth table showing button
 		ttButton = new JButton("Truth Table Window");
-		rightPaneConstraints.gridheight = 1;
-		rightPaneConstraints.gridy = 4;
-		rightPane.add(ttButton, rightPaneConstraints);
+		rightPane.add(ttButton);
+//		rightPaneConstraints.gridheight = 1;
+//		rightPaneConstraints.gridy = 4;
+//		rightPane.add(ttButton, rightPaneConstraints);
 		// setting the OBDD scroll panel
-		bddScrollPane = new JScrollPane();
-		rightPaneConstraints.gridheight = 4;
-		rightPaneConstraints.gridy = 5;
-		rightPane.add(bddScrollPane, rightPaneConstraints);
+		obddScrollPane = new JScrollPane();
+		rightPane.add(obddScrollPane);
+//		rightPaneConstraints.gridheight = 4;
+//		rightPaneConstraints.gridy = 5;
+//		rightPane.add(bddScrollPane, rightPaneConstraints);
 		// a panel for the show and delete buttons
 		JPanel rightBottomPane = new JPanel();
 		rightBottomPane.setLayout(new FlowLayout());
@@ -222,9 +304,10 @@ public class MainGui extends JFrame {
 		deleteButton = new JButton("Delete");
 		rightBottomPane.add(deleteButton);
 		// adding the right bottom panel to the right panel
-		rightPaneConstraints.gridheight = 1;
-		rightPaneConstraints.gridy = 9;
-		rightPane.add(rightBottomPane, rightPaneConstraints);
+		rightPane.add(rightBottomPane);
+//		rightPaneConstraints.gridheight = 1;
+//		rightPaneConstraints.gridy = 9;
+//		rightPane.add(rightBottomPane, rightPaneConstraints);
 		// adding the right panel to the main frame
 		getContentPane().add(rightPane, BorderLayout.LINE_END);
 		
