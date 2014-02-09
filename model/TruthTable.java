@@ -101,7 +101,7 @@ public class TruthTable {
 	 * @param varOrd - the VariableOrdering (used for the OBDD constructors)
 	 * @return
 	 */
-	public OBDD toOBDD(VariableOrdering varOrd) {
+	public OBDD toObdd(VariableOrdering varOrd) {
 		// the number of variables in the VariableOrdering 
 		int varOrdSize = vars.size();
 		// The variable for the current node has to be initialized, because 

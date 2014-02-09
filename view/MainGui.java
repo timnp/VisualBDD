@@ -58,11 +58,11 @@ public class MainGui extends JFrame {
 	/**
 	 * button for converting the current OBDD into a QOBDD
 	 */
-	private JButton toQOBDDButton;
+	private JButton toQobddButton;
 	/**
 	 * button for converting the current OBDD into an ROBDD
 	 */
-	private JButton toROBDDButton;
+	private JButton toRobddButton;
 	/**
 	 * button for retrieving the Formula represented by the OBDD
 	 */
@@ -249,11 +249,11 @@ public class MainGui extends JFrame {
 		removeRedButton = new JButton("Remove redundant Node");
 		leftPane.add(removeRedButton);
 		// setting the to QOBDD button
-		toQOBDDButton = new JButton("to QOBDD");
-		leftPane.add(toQOBDDButton);
+		toQobddButton = new JButton("to QOBDD");
+		leftPane.add(toQobddButton);
 		// setting the toROBDD button
-		toROBDDButton = new JButton("to ROBDD");
-		leftPane.add(toROBDDButton);
+		toRobddButton = new JButton("to ROBDD");
+		leftPane.add(toRobddButton);
 		// setting the formula button
 		formulaButton = new JButton("get Formula");
 		leftPane.add(formulaButton);

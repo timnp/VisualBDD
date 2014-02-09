@@ -8,8 +8,6 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 
 /**
- * @author Rob Camick
- * (http://tips4java.wordpress.com/2009/11/29/text-prompt/)
  * 
  *  The TextPrompt class will display a prompt over top of a text component when
  *  the Document of the text field is empty. The Show property is used to
@@ -18,6 +16,11 @@ import javax.swing.text.*;
  *  The Font and foreground Color of the prompt will default to those properties
  *  of the parent text component. You are free to change the properties after
  *  class construction.
+ * 
+ *  
+ *  @author Rob Camick
+ * 	(http://tips4java.wordpress.com/2009/11/29/text-prompt/)
+ * 
  */
 public class TextPrompt extends JLabel
 	implements FocusListener, DocumentListener

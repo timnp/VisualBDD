@@ -343,11 +343,11 @@ public class Formula {
 	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
-	public OBDD toOBDD(VariableOrdering varOrd) {
+	public OBDD toObdd(VariableOrdering varOrd) {
 		// constructing the entire TruthTable
 		TruthTable entireTruthTable = entireTruthTable(varOrd);
 		// creating the complete OBDD from the TruthTable
-		return entireTruthTable.toOBDD(varOrd);
+		return entireTruthTable.toObdd(varOrd);
 	}
 	
 	

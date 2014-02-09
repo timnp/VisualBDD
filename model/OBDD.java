@@ -299,14 +299,14 @@ public class OBDD {
 				// applying "and":
 				// returning the 1-terminal if both nodes are the 1-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(value && b.value);
+				return booleanToObdd(value && b.value);
 			// case 2
 			case A_GREATER_THAN_B:
 				// applying "a greater than b":
 				// returning the 1-terminal if this node is the 1-terminal and
 				// the other one is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(value && !b.value);
+				return booleanToObdd(value && !b.value);
 			// case 3
 			case IDENTITY_OF_A:
 				// "applying" the "identity of a": returning this node
@@ -317,7 +317,7 @@ public class OBDD {
 				// returning the 1-terminal if this node is the 0-terminal and
 				// the other one is the 1-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!value && b.value);
+				return booleanToObdd(!value && b.value);
 			// case 5
 			case IDENTITY_OF_B:
 				// "applying" the "identity of b": returning the other node
@@ -328,57 +328,57 @@ public class OBDD {
 				// returning the 1-terminal if one of the two nodes is the
 				// 1-terminal and the other one is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(value ^ b.value);
+				return booleanToObdd(value ^ b.value);
 			// case 7
 			case OR:
 				// applying "or":
 				// returning the 1-terminal if at least one of the two nodes
 				// is the 1-terminal, and otherwise the 0-terminal
-				return booleanToOBDD(value || b.value);
+				return booleanToObdd(value || b.value);
 			// case 8
 			case NOR:
 				// applying "nor":
 				// returning the 1-terminal if none of the two nodes is the
 				// 1-terminal, and otherwise the 0-terminal
-				return booleanToOBDD(!(value || b.value));
+				return booleanToObdd(!(value || b.value));
 			// case 9
 			case EQUIVALENCE:
 				// applying "equivalence"
 				// return the 1-terminal if the two nodes are the same,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(value == b.value);
+				return booleanToObdd(value == b.value);
 			// case 10
 			case NOT_B:
 				// applying "not b":
 				// returning the 1-terminal if b is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!b.value);
+				return booleanToObdd(!b.value);
 			// case 11
 			case B_IMPLIES_A:
 				// applying "b implies a":
 				// returning the 1-terminal if this node is the 1-terminal or
 				// the other one is the 0-terminal (or both),
 				// and otherwise the 0-terminal
-				return booleanToOBDD(value || !b.value);
+				return booleanToObdd(value || !b.value);
 			// case 12
 			case NOT_A:
 				// applying "not a":
 				// returning the 1-terminal if this node is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!value);
+				return booleanToObdd(!value);
 			// case 13
 			case A_IMPLIES_B:
 				// applying "a implies b":
 				// returning the 1-terminal if this node is the 0-terminal
 				// or the other one is the 1-terminal (or both),
 				// and otherwise the 0-terminal
-				return booleanToOBDD(!value || b.value);
+				return booleanToObdd(!value || b.value);
 			// case 14
 			case NAND:
 				// applying "nand":
 				// returning the 1-terminal if at least one of the two
 				// nodes is the 0-terminal, and otherwise the 0-terminal
-				return booleanToOBDD(!(value && b.value));
+				return booleanToObdd(!(value && b.value));
 			// case 15
 			case TAUTOLOGY:
 				 // "applying" the tautology: returning the 1-terminal
@@ -477,7 +477,7 @@ public class OBDD {
 	 * @param bool
 	 * @return the corresponding terminal
 	 */
-	private OBDD booleanToOBDD(boolean bool) {
+	private OBDD booleanToObdd(boolean bool) {
 		if (bool) {
 			return ONE;
 		} else return ZERO;
@@ -524,7 +524,7 @@ public class OBDD {
 	private OBDD negateRec(VariableOrdering varOrd) {
 		// If the node is a terminal, it's negation is the opposite terminal.
 		if (terminal) {
-			return booleanToOBDD(!value);
+			return booleanToObdd(!value);
 		}
 		else {
 			// Return the OBDD stated for this node in the computed table 
@@ -664,7 +664,7 @@ public class OBDD {
 	 * @param varOrd - the VariableOrdering (used for sorting the assignment)
 	 * @return the value of the Formula
 	 */
-	public boolean valueByOBDD(LinkedList<Integer> assignedOne, 
+	public boolean valueByObdd(LinkedList<Integer> assignedOne, 
 			VariableOrdering varOrd) {
 		// creating a comparator for the complete VariableOrdering
 		VariableOrderingComparator complVarOrdComp = 
@@ -673,7 +673,7 @@ public class OBDD {
 		// VariableOrdering
 		Collections.sort(assignedOne, complVarOrdComp);
 		// calling the actual (recursive) algorithm
-		return valueByOBDDRec(assignedOne, complVarOrdComp);
+		return valueByObddRec(assignedOne, complVarOrdComp);
 	}
 	
 	
@@ -685,7 +685,7 @@ public class OBDD {
 	 * @param complVarOrdComp - the VariableOrderingComparator
 	 * @return the value of the formula as a boolean
 	 */
-	public boolean valueByOBDDRec(LinkedList<Integer> assignedOne, 
+	public boolean valueByObddRec(LinkedList<Integer> assignedOne, 
 			VariableOrderingComparator complVarOrdComp) {
 		if (terminal) {
 			// If the node is a terminal, its value is returned.
@@ -704,12 +704,12 @@ public class OBDD {
 				// from the list.
 				assignedOne.removeFirst();
 				// Then the high child gets to continue the calculation.
-				return highChild.valueByOBDDRec(assignedOne, complVarOrdComp);
+				return highChild.valueByObddRec(assignedOne, complVarOrdComp);
 			}
 			else {
 				// Otherwise the node's variable is assigned zero and therefore
 				// the low child gets to continue the calculation.
-				return lowChild.valueByOBDDRec(assignedOne, complVarOrdComp);
+				return lowChild.valueByObddRec(assignedOne, complVarOrdComp);
 			}
 		}
 	}
@@ -947,7 +947,7 @@ public class OBDD {
 	 * @param varOrd - the VariableOrdering
 	 * @return 
 	 */
-	public boolean isQOBDD(VariableOrdering varOrd) {
+	public boolean isQobdd(VariableOrdering varOrd) {
 		if (!(findEquivalent(varOrd) == null)) {
 			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
 			return false;
@@ -989,7 +989,7 @@ public class OBDD {
 	 * @param varOrd - the VariableOrdering
 	 * @return
 	 */
-	public boolean isROBDD(VariableOrdering varOrd) {
+	public boolean isRobdd(VariableOrdering varOrd) {
 		if (!(findEquivalent(varOrd) == null)) {
 			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
 			return false;
@@ -1005,7 +1005,7 @@ public class OBDD {
 	 * @param varOrd - the VariableOrdering
 	 * @return the QOBDD
 	 */
-	public OBDD toQOBDD(VariableOrdering varOrd) {
+	public OBDD toQobdd(VariableOrdering varOrd) {
 		// retrieving the entire OBDD's root
 		OBDD root = getRoot();
 		// constructing an equivalent OBDD with all missing variables added for
@@ -1070,7 +1070,7 @@ public class OBDD {
 	 * @param varOrd - the VariableOrdering
 	 * @return the ROBDD
 	 */
-	public OBDD toROBDD(VariableOrdering varOrd) {
+	public OBDD toRobdd(VariableOrdering varOrd) {
 		// getting the entire OBDD's root
 		OBDD root = getRoot();
 		// trying to find a pair of equivalent nodes

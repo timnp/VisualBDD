@@ -33,7 +33,7 @@ public class ModelTests {
 		// Formula f's entire TruthTable
 		TruthTable fTruthTable = f.entireTruthTable(varOrd);
 		// constructing a complete OBDD from the TruthTable
-		OBDD fOBDD = fTruthTable.toOBDD(varOrd);
+		OBDD fOBDD = fTruthTable.toObdd(varOrd);
 		// constructing a Formula from the OBDD
 		Formula f2 = fOBDD.toFormula();
 		// turning Formula f2 into a String
