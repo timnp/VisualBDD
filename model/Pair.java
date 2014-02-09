@@ -4,9 +4,8 @@ package model;
  * 
  * @author TimNP
  *
- * @param <E>
  */
-public class Pair<E> {
+public class Pair<E,F> {
 	/**
 	 * the pair's first element
 	 */
@@ -14,14 +13,14 @@ public class Pair<E> {
 	/**
 	 * the pair's second element
 	 */
-	private E second;
+	private F second;
 	
 	/**
 	 * constructor for a pair
 	 * @param first
 	 * @param second
 	 */
-	public Pair(E first,E second) {
+	public Pair(E first, F second) {
 		this.first = first;
 		this.second = second;
 	}
@@ -44,7 +43,7 @@ public class Pair<E> {
 	/**
 	 * @return the pair's second element
 	 */
-	public E getSecond() {
+	public F getSecond() {
 		return this.second;
 	}
 	
@@ -52,7 +51,7 @@ public class Pair<E> {
 	 * set the pair's second element
 	 * @param second
 	 */
-	public void setSecond(E second) {
+	public void setSecond(F second) {
 		this.second = second;
 	}
 }
