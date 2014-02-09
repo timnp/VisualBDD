@@ -84,8 +84,8 @@ public class OBDD {
 	/**
 	 * computed table for the apply algorithm
 	 */
-	private static HashMap<Pair<Integer>, OBDD> applyCT = 
-			new HashMap<Pair<Integer>, OBDD>();
+	private static HashMap<Pair<Integer, Integer>, OBDD> applyCT = 
+			new HashMap<Pair<Integer, Integer>, OBDD>();
 	
 	/**
 	 * computed table for the negation algorithm
@@ -108,8 +108,8 @@ public class OBDD {
 	/**
 	 * computed table for the equivalence test
 	 */
-	private static HashMap<Pair<Integer>,Boolean> equivCT = 
-			new HashMap<Pair<Integer>,Boolean>();
+	private static HashMap<Pair<Integer, Integer>,Boolean> equivCT = 
+			new HashMap<Pair<Integer, Integer>,Boolean>();
 	
 	/**
 	 * list of variables assigned one for the satisfaction algorithm
@@ -394,7 +394,8 @@ public class OBDD {
 		// first the computed table is checked.
 		else {
 			// initializing a pair of the two OBDD nodes
-			Pair<Integer> applyPair = new Pair<Integer>(id, b.id);
+			Pair<Integer, Integer> applyPair = 
+					new Pair<Integer, Integer>(id, b.id);
 			// Return the OBDD stated for the two nodes in the computed table
 			// if there is one.
 			if (applyCT.containsKey(applyPair)) {
@@ -862,7 +863,8 @@ public class OBDD {
 		}
 		else {
 			// initializing a pair of the two OBDDs
-			Pair<Integer> checkPair = new Pair<Integer>(id,otherNode.id);
+			Pair<Integer, Integer> checkPair = 
+					new Pair<Integer, Integer>(id,otherNode.id);
 			// Return the value stated for the two nodes in the computed table
 			// if there is one.
 			if (equivCT.containsKey(checkPair)) {
