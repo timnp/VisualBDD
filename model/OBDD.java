@@ -206,7 +206,16 @@ public class OBDD {
 			layers = lowChild.addToLayerHashMap(layers);
 		}
 		return layers;
-	}	
+	}
+	
+	
+	/**
+	 * getter for the OBDD's ID
+	 * @return
+	 */
+	public int getId() {
+		return id;
+	}
 
 	
 	/**
