@@ -216,6 +216,15 @@ public class OBDD {
 	public int getId() {
 		return id;
 	}
+	
+	
+	/**
+	 * getter for the OBDD's layer HashMap
+	 * @return
+	 */
+	public HashMap<Integer, LinkedList<OBDD>> getLayers() {
+		return layers;
+	}
 
 	
 	/**
