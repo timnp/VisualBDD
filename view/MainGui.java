@@ -11,6 +11,11 @@ public class MainGui extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
 	/**
+	 * the menu bar
+	 */
+	private JMenuBar menuBar = new JMenuBar();
+	
+	/**
 	 * text field for the name of the OBDD
 	 */
 	private JTextField obddNameField = new JTextField();
@@ -99,23 +104,28 @@ public class MainGui extends JFrame {
 	/**
 	 * scroll panel for the truth table
 	 */
-	private JScrollPane ttScrollPane;
+	private JScrollPane ttScrollPane = new JScrollPane();
+	/**
+	 * button for clearing the truth table
+	 */
+	private JButton clearTtButton = new JButton("Clear Truth Table");
 	/**
 	 * button for showing the truth table in a new window
 	 */
-	private JButton ttButton;
+	private JButton ttWindowButton = new JButton("Truth Table Window");
 	/**
 	 * scroll panel for all OBDDs created during this "session"
 	 */
-	private JScrollPane obddScrollPane;
+	private JScrollPane obddScrollPane = new JScrollPane();
 	/**
 	 * button for showing a particular OBDD
 	 */
-	private JButton showButton;
+	private JButton showObddButton = new JButton("Show chosen OBDD");
 	/**
-	 * button for deleting a particular OBDD
+	 * button for applying a binary operation on the current OBDD and the 
+	 * chosen one
 	 */
-	private JButton deleteButton;
+	private JButton applyObddsButton = new JButton("Apply with chosen OBDD");
 	
 	/**
 	 * panel for the OBDD itself
@@ -138,78 +148,105 @@ public class MainGui extends JFrame {
 		// setting the layout to GridBagLayout 
 		setLayout(new GridBagLayout());
 		
-		// retrieving the GUI's horizontal and vertical numbers of grids
-		int horizontalGrids = 9;
-		int verticalGrids = firstColumnButtons.length + 2;
-		// calculating the GUI's horizontal and vertical weights of a single 
-		// grid
-		double horizontalGridWeight = 1 / horizontalGrids;
-		double verticalGridWeight = 1 / verticalGrids;
+		// adding the menu bar
+		setJMenuBar(menuBar);
+		
+//		// retrieving the GUI's horizontal and vertical numbers of grids
+//		int horizontalGrids = 9;
+//		int verticalGrids = firstColumnButtons.length + 2;
+//		// calculating the GUI's horizontal and vertical weights of a single 
+//		// grid
+//		double horizontalWeight = 1 / horizontalGrids;
+//		double verticalWeight = 1 / verticalGrids;
 		
 		// adding the OBDD name label
 		addToMainFrame(new JLabel("OBDD Name"), 0, 0, 1, 1, 
 				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(1, 1, 0, 1), 
-				GridBagConstraints.PAGE_END, horizontalGridWeight, 
-				verticalGridWeight);
-		// setting the OBDD name text field
+				GridBagConstraints.PAGE_END, 0.1, 0.1);
+		// adding the OBDD name text field
 		addToMainFrame(obddNameField, 0, 1, 1, 1, 
 				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(0, 1, 1, 1), 
-				GridBagConstraints.CENTER, horizontalGridWeight, 
-				verticalGridWeight);
+				GridBagConstraints.PAGE_START, 0.1, 0.1);
 		// adding the Formula label
 		addToMainFrame(new JLabel("Formula"), 1, 0, 3, 1, 
 				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(1, 1, 0, 1), 
-				GridBagConstraints.PAGE_END, 3 * horizontalGridWeight, 
-				verticalGridWeight);
-		// setting the Formula text field
+				GridBagConstraints.PAGE_END, 3 * 0.4, 0.1);
+		// adding the Formula text field
 		addToMainFrame(formulaField, 1, 1, 3, 1, GridBagConstraints.HORIZONTAL,
-				2, 2, new Insets(0, 1, 1, 1), GridBagConstraints.CENTER, 
-				3 * horizontalGridWeight, verticalGridWeight);
+				2, 2, new Insets(0, 1, 1, 1), GridBagConstraints.PAGE_START, 
+				0.4, 0.1);
 		// adding the VariableOrdering label
 		addToMainFrame(new JLabel("Variable Ordering"), 4, 0, 2, 1, 
 				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(1, 1, 0, 1), 
-				GridBagConstraints.PAGE_END, 2 * horizontalGridWeight, 
-				verticalGridWeight);
-		// setting the VariableOrdering text field
+				GridBagConstraints.PAGE_END, 0.2, 0.1);
+		// adding the VariableOrdering text field
 		addToMainFrame(varOrdField, 4, 1, 2, 1, GridBagConstraints.HORIZONTAL, 
-				2, 2, new Insets(0, 1, 1, 1), GridBagConstraints.CENTER, 
-				2 * horizontalGridWeight, verticalGridWeight);
+				2, 2, new Insets(0, 1, 1, 1), GridBagConstraints.PAGE_START, 
+				0.2, 0.1);
 		// adding the OBDD type label
 		addToMainFrame(new JLabel("OBDD Type"), 6, 0, 1, 1, 
 				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(1, 1, 0, 1), 
-				GridBagConstraints.PAGE_END, horizontalGridWeight, 
-				verticalGridWeight);
-		// setting the OBDD type drop down menu
+				GridBagConstraints.PAGE_END, 0.1, 0.1);
+		// adding the OBDD type drop down menu
 		addToMainFrame(obddTypeCB, 6, 1, 1, 1, GridBagConstraints.HORIZONTAL, 
-				2, 2, new Insets(0, 1, 1, 1), GridBagConstraints.PAGE_START, 
-				horizontalGridWeight, verticalGridWeight);
+				1, 1, new Insets(0, 1, 1, 1), GridBagConstraints.PAGE_START, 
+				0.1, 0.1);
 		// adding the OBDD source label
 		addToMainFrame(new JLabel("OBDD Source"), 7, 0, 1, 1, 
 				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(1, 1, 0, 1), 
-				GridBagConstraints.PAGE_END, horizontalGridWeight, 
-				verticalGridWeight);
-		// setting the OBDD source drop down menu
+				GridBagConstraints.PAGE_END, 0.1, 0.1);
+		// adding the OBDD source drop down menu
 		addToMainFrame(obddSourceCB, 7, 1, 1, 1, GridBagConstraints.HORIZONTAL,
-				2, 2, new Insets(0, 1, 1, 1), GridBagConstraints.PAGE_START, 
-				horizontalGridWeight, verticalGridWeight);
-		// setting the generate button
+				1, 1, new Insets(0, 1, 1, 1), GridBagConstraints.PAGE_START, 
+				0.1, 0.1);
+		// adding the generate button
 		addToMainFrame(generateButton, 8, 1, 1, 1, 
-				GridBagConstraints.HORIZONTAL, 2, 2, new Insets(0, 1, 1, 1), 
-				GridBagConstraints.PAGE_START, horizontalGridWeight, 
-				verticalGridWeight);
+				GridBagConstraints.HORIZONTAL, 1, 1, new Insets(0, 1, 1, 1), 
+				GridBagConstraints.PAGE_START, 0.1, 0.1);
 		
-		// setting the GUI's first column's buttons
+		// adding the GUI's first column's buttons
 		for (int i = 0; i < firstColumnButtons.length; i++) {
 			addToMainFrame(firstColumnButtons[i], 0, i + 2, 1, 1, 
-					GridBagConstraints.HORIZONTAL, 2, 2, 
+					GridBagConstraints.HORIZONTAL, 1, 1, 
 					new Insets(1, 1, 1, 1), GridBagConstraints.CENTER, 
-					horizontalGridWeight, verticalGridWeight);
+					0.2, 0.1);
 		}
 		
-		// initializing the OBDD panel
-		addToMainFrame(obddPane, 1, 1, 6, 8, GridBagConstraints.BOTH, 2, 2, 
+		// adding the OBDD panel
+		addToMainFrame(obddPane, 1, 2, 6, 8, GridBagConstraints.BOTH, 1, 1, 
 				new Insets(2, 2, 2, 2), GridBagConstraints.NORTH, 
-				6 * horizontalGridWeight, 8 * verticalGridWeight);
+				1.0, 1.0);
+		
+		// adding the truth table scroll panel
+		addToMainFrame(ttScrollPane, 7, 2, 2, 3, GridBagConstraints.BOTH, 1, 1,
+				new Insets(1, 1, 1, 1), GridBagConstraints.CENTER, 
+				0.2, 0.3);
+		
+		// adding the truth table clearing button
+		addToMainFrame(clearTtButton, 7, 5, 1, 1, 
+				GridBagConstraints.HORIZONTAL, 1, 1, new Insets(1, 1, 1, 1), 
+				GridBagConstraints.PAGE_START, 0.1, 0.1);
+		
+		// adding the truth table window button
+		addToMainFrame(ttWindowButton, 8, 5, 1, 1, 
+				GridBagConstraints.HORIZONTAL, 1, 1, new Insets(1, 1, 1, 1), 
+				GridBagConstraints.PAGE_START, 0.1, 0.1);
+		
+		// adding the OBDD scroll panel
+		addToMainFrame(obddScrollPane, 7, 6, 2, 3, GridBagConstraints.BOTH, 
+				1, 1, new Insets(1, 1, 1, 1), GridBagConstraints.CENTER, 
+				0.2, 0.3);
+		
+		// adding the OBDD showing button
+		addToMainFrame(showObddButton, 7, 9, 1, 1, 
+				GridBagConstraints.HORIZONTAL, 1, 1, new Insets(1, 1, 1, 1), 
+				GridBagConstraints.PAGE_START, 0.1, 0.1);
+		
+		// adding the OBDD applying button
+		addToMainFrame(applyObddsButton, 8, 9, 1, 1, 
+				GridBagConstraints.HORIZONTAL, 1, 1, new Insets(1, 1, 1, 1), 
+				GridBagConstraints.PAGE_START, 0.1, 0.1);
+		
 		
 //		// initializing the OBDD panel
 //		getContentPane().add(obddPane, BorderLayout.CENTER);
