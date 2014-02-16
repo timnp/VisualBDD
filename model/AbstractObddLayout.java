@@ -22,12 +22,39 @@ public class AbstractObddLayout {
 	
 	
 	/**
+	 * getter for the OBDD's layer HashMap
+	 * @return
+	 */
+	public HashMap<Integer, LinkedList<OBDD>> getObddLayers() {
+		return obddLayers;
+	}
+	
+	/**
+	 * getter for the OBDD's nodes's positions
+	 * @return
+	 */
+	public HashMap<Integer, Pair<Double, Double>> getPositionMap() {
+		return positionMap;
+	}
+	
+	/**
+	 * getter for the OBDD nodes' size
+	 * @return
+	 */
+	public double getNodeSizeToHeight() {
+		return nodeSizeToHeight;
+	}
+	
+	
+	/**
 	 * constructor for an OBDD to be displayed for the first time
 	 * @param obdd
 	 */
 	public AbstractObddLayout(OBDD obdd) {
 		// retrieving the OBDD's layers
 		obddLayers = obdd.getLayers();
+		// initializing the position map
+		positionMap = new HashMap<Integer, Pair<Double, Double>>();
 		// the OBDD's number of layers (including the terminal layer)
 		int numberOfLayers = obddLayers.size() + 1;
 		// initializing a the current node's "position" 

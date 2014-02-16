@@ -15,7 +15,7 @@ public class OBDD {
 	 */
 	private int id;
 	/**
-	 * counter for the identifiers (0 and 1 are the terminals (constants)
+	 * counter for the identifiers (0 and 1 are the terminals (constants))
 	 */
 	private static int idCount = 2;
 	/**
