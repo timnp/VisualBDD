@@ -180,15 +180,15 @@ public class OBDD {
 	/**
 	 * adds the node to its respective layer in a layer HashMap and
 	 * lets it's children do the same if the node isn't a terminal 
-	 * @param layers
+	 * @param layerMap
 	 * @return the updated layer HashMap
 	 */
 	private HashMap<Integer,LinkedList<OBDD>> 
-	addToLayerHashMap(HashMap<Integer,LinkedList<OBDD>> layers) {
+	addToLayerHashMap(HashMap<Integer,LinkedList<OBDD>> layerMap) {
 		// if the node is a terminal, nothing is done
 		if (!terminal) {
 			// retrieving this node's layer list
-			LinkedList<OBDD> layerList = layers.get(var);
+			LinkedList<OBDD> layerList = layerMap.get(var);
 			// initializing an empty layer list, if there is none for this 
 			// node's layer
 			if (layerList == null) {
@@ -199,13 +199,13 @@ public class OBDD {
 				layerList.add(this);
 			}
 			// putting the updated layer list into the layer HashMap
-			layers.put(var, layerList);
+			layerMap.put(var, layerList);
 			// recursively adding the high child
-			layers = highChild.addToLayerHashMap(layers);
+			layerMap = highChild.addToLayerHashMap(layerMap);
 			// recursively adding the low child
-			layers = lowChild.addToLayerHashMap(layers);
+			layerMap = lowChild.addToLayerHashMap(layerMap);
 		}
-		return layers;
+		return layerMap;
 	}
 	
 	
@@ -272,7 +272,6 @@ public class OBDD {
 			return newNode;
 		} else {
 			// Otherwise the node can't be created.
-			// TODO user message
 			return null;
 		}
 	}
@@ -403,9 +402,8 @@ public class OBDD {
 				return ONE;
 			// Default case: None of the sixteen boolean operations was given.
 			default:
-				// tentative default value: the 0-terminal
-				//TODO user message
-				return ZERO;
+				// tentative default value: null
+				return null;
 			}
 		}
 		// If neither OBDD node is a terminal, 
@@ -583,7 +581,6 @@ public class OBDD {
 			return satAO;
 		} else {
 			// tentative value: null
-			// TODO user message
 			return null;
 		}
 	}
@@ -851,7 +848,6 @@ public class OBDD {
 			// otherwise checking other layers
 		}
 		// At this point there are no equivalent nodes.
-		//TODO user message
 		return null;
 	}
 	
@@ -925,7 +921,6 @@ public class OBDD {
 	public OBDD findRedundantRec() {
 		// If the node is a terminal, the search has failed.
 		if (terminal) {
-			// TODO user message
 			// tentative value: null
 			return null;
 		}
@@ -1121,8 +1116,9 @@ public class OBDD {
 	
 	/**
 	 * removes this node from the entire OBDD if it's redundant
+	 * @return true, if the node was removed, false otherwise
 	 */
-	public void removeRedundant() {
+	public boolean removeRedundant() {
 		// The node only gets removed if it's redundant.
 		if (isRedundant()) {
 			// A terminal doesn't "know" its parents.
@@ -1147,17 +1143,18 @@ public class OBDD {
 					p.lowChild = highChild;
 				}
 			}
-		} else {
-			// TODO user message
-		}
-	}
+			return true;
+		// Otherwise nothing but the return happens.
+		} else return false;
+	}	
 	
-	
+
 	/**
 	 * merges two nodes if they're equivalent
 	 * @param otherNode
+	 * @return true, if the nodes were merged, false otherwise
 	 */
-	public void mergeEquivalent(OBDD otherNode) {
+	public boolean mergeEquivalent(OBDD otherNode) {
 		// The two nodes only get merged if they're equivalent and no 
 		// terminal(s).
 		if (isEquivalent(otherNode) && !terminal) {
@@ -1177,9 +1174,9 @@ public class OBDD {
 					p.lowChild = this;
 				}
 			}
-		} else {
-			// TODO user message
-		}
+			return true;
+		// Otherwise nothing but the return happens.			
+		} else return false;
 	}
 	
 	

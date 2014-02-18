@@ -275,8 +275,9 @@ public class Formula {
 			case "+":
 				constructor = OR;
 				break;
+			// tentative default value: -1
 			default:
-				// TODO user message
+				constructor = -1;
 			}
 		}
 	}
@@ -398,7 +399,6 @@ public class Formula {
 		// Default case: None of the given constructors was used.
 		default:
 			// tentative default value: false
-			// TODO user message
 			return false;
 		}
 	}
@@ -518,7 +518,6 @@ public class Formula {
 		// Default case: None of the given constructors was used.
 		default:
 			// tentative default value: the empty list
-			// TODO user message
 			vars.clear();
 			return vars;
 		}
@@ -692,7 +691,6 @@ public class Formula {
 		// Default case: None of the given constructors was used.
 		default:
 			// tentative value: the Formula itself
-			// TODO user message
 			return this;
 		}
 	}
