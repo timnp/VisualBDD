@@ -49,6 +49,10 @@ public class OBDD {
 	 * the (decision) node's low child
 	 */
 	private OBDD lowChild;
+	/**
+	 * the node's (optional) name
+	 */
+	private String name;
 	
 	
 	/**
@@ -140,6 +144,8 @@ public class OBDD {
 		one.value = true;
 		// defining the variable number for comparability
 		one.var = -1;
+		// defining the name for outputs
+		one.name = "1";
 		return one;
 	}
 	
@@ -155,6 +161,8 @@ public class OBDD {
 		zero.value = false;
 		// defining the variable number for comparability
 		zero.var = -1;
+		// defining the name for outputs
+		zero.name = "0";
 		return zero;
 	}
 	
@@ -223,7 +231,18 @@ public class OBDD {
 	 * @return
 	 */
 	public HashMap<Integer, LinkedList<OBDD>> getLayers() {
+		// updating the layer HashMap first
+		updateLayers();
 		return layers;
+	}
+	
+	
+	/**
+	 * getter for the node's (optional) name
+	 * @return
+	 */
+	public String getName() {
+		return name;
 	}
 
 	
@@ -279,32 +298,32 @@ public class OBDD {
 	
 	/**
 	 * provides the apply algorithm and clears the computed table before
-	 * @param b - the second OBDD to apply the operation on
+	 * @param otherNode - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
 	 * @param varOrd - the VariableOrdering (used for the cons operation)
 	 * @return
 	 */
-	public OBDD apply(OBDD b, int op, VariableOrdering varOrd) {
+	public OBDD apply(OBDD otherNode, int op, VariableOrdering varOrd) {
 		// clearing the computed table
 		applyCT.clear();
 		// calling the actual (recursive) apply algorithm
-		return applyRec(b, op, varOrd);
+		return applyRec(otherNode, op, varOrd);
 	}
 	
 	
 	/**
 	 * applies a boolean operation on two OBDDs
 	 * (3.5.4)
-	 * @param b - the second OBDD to apply the operation on
+	 * @param otherNode - the second OBDD to apply the operation on
 	 * @param op - the boolean operation
 	 * @param varOrd - the VariableOrdering (used for the cons operation and 
 	 * 					for comparing the two nodes' variables)
 	 * @return the resulting OBDD
 	 */
-	private OBDD applyRec(OBDD b, int op, VariableOrdering varOrd) {
+	private OBDD applyRec(OBDD otherNode, int op, VariableOrdering varOrd) {
 		// If both OBDD nodes are terminals, the resulting terminal can be
 		// calculated by means of the boolean operation.
-		if (terminal && b.terminal) {
+		if (terminal && otherNode.terminal) {
 			// switch for the sixteen possible boolean operations
 			switch (op) {
 			// case 0
@@ -316,14 +335,14 @@ public class OBDD {
 				// applying "and":
 				// returning the 1-terminal if both nodes are the 1-terminal,
 				// and otherwise the 0-terminal
-				return booleanToObdd(value && b.value);
+				return booleanToObdd(value && otherNode.value);
 			// case 2
 			case A_GREATER_THAN_B:
 				// applying "a greater than b":
 				// returning the 1-terminal if this node is the 1-terminal and
 				// the other one is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToObdd(value && !b.value);
+				return booleanToObdd(value && !otherNode.value);
 			// case 3
 			case IDENTITY_OF_A:
 				// "applying" the "identity of a": returning this node
@@ -331,52 +350,52 @@ public class OBDD {
 			// case 4
 			case B_GREATER_THAN_A:
 				// applying "b greater than a":
-				// returning the 1-terminal if this node is the 0-terminal and
+				// returning the 1-terminal if this node is the 0-terminal and 
 				// the other one is the 1-terminal,
 				// and otherwise the 0-terminal
-				return booleanToObdd(!value && b.value);
+				return booleanToObdd(!value && otherNode.value);
 			// case 5
 			case IDENTITY_OF_B:
 				// "applying" the "identity of b": returning the other node
-				return b;
+				return otherNode;
 			// case 6
 			case XOR:
 				// applying "xor":
 				// returning the 1-terminal if one of the two nodes is the
 				// 1-terminal and the other one is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToObdd(value ^ b.value);
+				return booleanToObdd(value ^ otherNode.value);
 			// case 7
 			case OR:
 				// applying "or":
 				// returning the 1-terminal if at least one of the two nodes
 				// is the 1-terminal, and otherwise the 0-terminal
-				return booleanToObdd(value || b.value);
+				return booleanToObdd(value || otherNode.value);
 			// case 8
 			case NOR:
 				// applying "nor":
 				// returning the 1-terminal if none of the two nodes is the
 				// 1-terminal, and otherwise the 0-terminal
-				return booleanToObdd(!(value || b.value));
+				return booleanToObdd(!(value || otherNode.value));
 			// case 9
 			case EQUIVALENCE:
 				// applying "equivalence"
 				// return the 1-terminal if the two nodes are the same,
 				// and otherwise the 0-terminal
-				return booleanToObdd(value == b.value);
+				return booleanToObdd(value == otherNode.value);
 			// case 10
 			case NOT_B:
 				// applying "not b":
 				// returning the 1-terminal if b is the 0-terminal,
 				// and otherwise the 0-terminal
-				return booleanToObdd(!b.value);
+				return booleanToObdd(!otherNode.value);
 			// case 11
 			case B_IMPLIES_A:
 				// applying "b implies a":
-				// returning the 1-terminal if this node is the 1-terminal or
+				// returning the 1-terminal if this node is the 1-terminal or 
 				// the other one is the 0-terminal (or both),
 				// and otherwise the 0-terminal
-				return booleanToObdd(value || !b.value);
+				return booleanToObdd(value || !otherNode.value);
 			// case 12
 			case NOT_A:
 				// applying "not a":
@@ -389,13 +408,13 @@ public class OBDD {
 				// returning the 1-terminal if this node is the 0-terminal
 				// or the other one is the 1-terminal (or both),
 				// and otherwise the 0-terminal
-				return booleanToObdd(!value || b.value);
+				return booleanToObdd(!value || otherNode.value);
 			// case 14
 			case NAND:
 				// applying "nand":
 				// returning the 1-terminal if at least one of the two
 				// nodes is the 0-terminal, and otherwise the 0-terminal
-				return booleanToObdd(!(value && b.value));
+				return booleanToObdd(!(value && otherNode.value));
 			// case 15
 			case TAUTOLOGY:
 				 // "applying" the tautology: returning the 1-terminal
@@ -411,7 +430,7 @@ public class OBDD {
 		else {
 			// initializing a pair of the two OBDD nodes
 			Pair<Integer, Integer> applyPair = 
-					new Pair<Integer, Integer>(id, b.id);
+					new Pair<Integer, Integer>(id, otherNode.id);
 			// Return the OBDD stated for the two nodes in the computed table
 			// if there is one.
 			if (applyCT.containsKey(applyPair)) {
@@ -419,17 +438,19 @@ public class OBDD {
 			} else {
 				// If both nodes have the same variable,
 				// both nodes' children can be called recursively.
-				if (!terminal && !b.terminal && var == b.var) {
+				if (!terminal && !otherNode.terminal && var == otherNode.var) {
 					// applying the operation on the both nodes' high children
-					OBDD applyHighChildren = 
-							highChild.applyRec(b.highChild, op, varOrd);
+					OBDD applyHighChildren = highChild.applyRec
+							(otherNode.highChild, op, varOrd);
 					// applying the operation on the both nodes' low children
 					OBDD applyLowChildren = 
-							lowChild.applyRec(b.lowChild, op, varOrd);
+							lowChild.applyRec(otherNode.lowChild, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChildren.cons
 							(var, applyLowChildren, varOrd);
+					// naming the new node
+					newNode.name = nameApplyNode(op, otherNode);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
@@ -446,16 +467,21 @@ public class OBDD {
 					// other node's one, only this node's children are called 
 					// recursively (here).
 					if (!terminal && 
-							(complVarOrdComp.compare(var, b.var) > 0)) {
+							(complVarOrdComp.compare(var, otherNode.var) > 0))
+					{
 					// applying the operation on this node's high child
 					// and the other node
-					OBDD applyHighChild = highChild.applyRec(b, op, varOrd);
+					OBDD applyHighChild = 
+							highChild.applyRec(otherNode, op, varOrd);
 					// applying the operation on this node's low child
 					// and the other node
-					OBDD applyLowChild = lowChild.applyRec(b, op, varOrd);
+					OBDD applyLowChild = 
+							lowChild.applyRec(otherNode, op, varOrd);
 					// combining the two resulting nodes
 					OBDD newNode = 
 							applyHighChild.cons(var, applyLowChild, varOrd);
+					// naming the new node
+					newNode.name = nameApplyNode(op, otherNode);
 					// putting the resulting node for the two nodes
 					// into the computed table
 					applyCT.put(applyPair, newNode);
@@ -470,13 +496,16 @@ public class OBDD {
 						// applying the operation on this node
 						// and the other node's high child
 						OBDD applyHighChild = 
-								applyRec(b.highChild, op, varOrd);
+								applyRec(otherNode.highChild, op, varOrd);
 						// applying the operation on this node
 						// and the other node's low child
-						OBDD applyLowChild = applyRec(b.lowChild, op, varOrd);
+						OBDD applyLowChild = 
+								applyRec(otherNode.lowChild, op, varOrd);
 						// combining the two resulting nodes
 						OBDD newNode = applyHighChild.cons
 								(var, applyLowChild, varOrd);
+						// naming the new node
+						newNode.name = nameApplyNode(op, otherNode);
 						// putting the resulting node for the two nodes
 						// into the computed table
 						applyCT.put(applyPair, newNode);
@@ -498,6 +527,61 @@ public class OBDD {
 		if (bool) {
 			return ONE;
 		} else return ZERO;
+	}
+
+	
+	/**
+	 * method that provides names for nodes created via the Apply method
+	 * @param op
+	 * @param otherNode
+	 * @return
+	 */
+	private String nameApplyNode(int op, OBDD otherNode) {
+		// stating the use of the Apply method
+		String applyName = "Apply(";
+		// a switch for all possible binary operations to add the used one to 
+		// the String
+		switch(op) {
+		case CONTRADICTION:
+			applyName += "0";
+		case AND:
+			applyName += "A * B";
+		case A_GREATER_THAN_B:
+			applyName += "A > B";
+		case IDENTITY_OF_A:
+			applyName += "A";
+		case B_GREATER_THAN_A:
+			applyName += "A < B";
+		case IDENTITY_OF_B:
+			applyName += "B";
+		case XOR:
+			applyName += "A ^ B";
+		case OR:
+			applyName += "A + B";
+		case NOR:
+			applyName += "-(A + B)";
+		case EQUIVALENCE:
+			applyName += "A = B";
+		case NOT_B:
+			applyName += "-B";
+		case B_IMPLIES_A:
+			applyName += "A <- B";
+		case NOT_A:
+			applyName += "-A";
+		case A_IMPLIES_B:
+			applyName += "a -> B";
+		case NAND:
+			applyName += "-(A * B)";
+		case TAUTOLOGY:
+			applyName += "1";
+		default:
+			// If none of the possible binary operations was given, nothing is 
+			// added.
+		}
+		// adding the other parameters of the Apply method: the two nodes
+		applyName += "," + name + "," + otherNode.name + ")";
+		// returning the complete String
+		return applyName;
 	}
 	
 	
@@ -1297,5 +1381,36 @@ public class OBDD {
 		}
 		// returning the complete "power list"
 		return powList;
+	}
+	
+	
+	/**
+	 * method that provides the (recursive) naming method and updates the layer
+	 * HashMap before
+	 * @param obddName
+	 * @param layerNumber
+	 */
+	public void nameNodes(String obddName, int layerNumber) {
+		updateLayers();
+		nameNodesRec(obddName, 1);
+	}
+	
+	/**
+	 * method that names all nodes of the OBDD by the given name of the entire 
+	 * OBDD and the node's position in it
+	 * @param obddName
+	 * @param layerNumber - the number of the current layer
+	 */
+	private void nameNodesRec(String obddName, int layerNumber) {
+		// Only non-terminal nodes are named.
+		if (!terminal) {
+			// retrieving the position inside the layer
+			int layerPosition = layers.get(var).indexOf(this) + 1;
+			// naming the node
+			name = obddName + "(" + layerNumber + "," + layerPosition + ")";
+			// recursively calling the node's children
+			highChild.nameNodes(obddName, layerNumber + 1);
+			lowChild.nameNodes(obddName, layerNumber + 1);
+		}
 	}
 }
