@@ -96,5 +96,25 @@ public class AbstractObddLayout {
 		// One third of the visual OBDD's height is divided to the nodes.
 		nodeSizeToHeight = ((1 / 3) / numberOfLayers);
 	}
+	
+	
+	/**
+	 * When changing the OBDD, regarding the abstract layout, only the layer 
+	 * HashMap is changed. 
+	 * @param obdd
+	 */
+	public void changeObdd(OBDD obdd) {
+		obddLayers = obdd.getLayers();
+	}
+	
+	
+	/**
+	 * method that changes a node's position
+	 * @param node
+	 * @param pos
+	 */
+	public void changePosition(Integer node, Pair<Double, Double> pos) {
+		positionMap.put(node, pos);
+	}
 
 }
