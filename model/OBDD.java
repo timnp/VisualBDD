@@ -936,6 +936,11 @@ public class OBDD {
 	}
 	
 	
+	/**
+	 * method that provides all nodes in the entire OBDD that are equivalent to
+	 * this node (excluding the node itself)
+	 * @return
+	 */
 	public LinkedList<OBDD> findEquivalent() {
 		// updating the layer HashMap
 		updateLayers();
@@ -1024,7 +1029,7 @@ public class OBDD {
 	 * provides a redundant node of this OBDD node's sub-OBDD (if possible)
 	 * @return a redundant node (if possible)
 	 */
-	public OBDD findRedundantRec() {
+	private OBDD findRedundantRec() {
 		// If the node is a terminal, the search has failed.
 		if (terminal) {
 			// tentative value: null
@@ -1111,7 +1116,7 @@ public class OBDD {
 	 * @return
 	 */
 	public boolean isRobdd(VariableOrdering varOrd) {
-		if (!(findAnyEquivalent(varOrd) == null)) {
+		if (findAnyEquivalent(varOrd) != null) {
 			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
 			return false;
 		}
@@ -1402,9 +1407,8 @@ public class OBDD {
 	 * method that provides the (recursive) naming method and updates the layer
 	 * HashMap before
 	 * @param obddName
-	 * @param layerNumber
 	 */
-	public void nameNodes(String obddName, int layerNumber) {
+	public void nameNodes(String obddName) {
 		updateLayers();
 		nameNodesRec(obddName, 1);
 	}
@@ -1423,8 +1427,8 @@ public class OBDD {
 			// naming the node
 			name = obddName + "(" + layerNumber + "," + layerPosition + ")";
 			// recursively calling the node's children
-			highChild.nameNodes(obddName, layerNumber + 1);
-			lowChild.nameNodes(obddName, layerNumber + 1);
+			highChild.nameNodesRec(obddName, layerNumber + 1);
+			lowChild.nameNodesRec(obddName, layerNumber + 1);
 		}
 	}
 }

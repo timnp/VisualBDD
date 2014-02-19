@@ -26,6 +26,7 @@ public class ObddController {
 					// the node's (relative) position
 					Pair<Double, Double>>>>> obddStacks;
 	
+	
 	private static void obddToLayout(String obddName, int horizontalPixels, 
 			int verticalPixels) {
 		 if (obddStacks.containsKey(obddName)) {

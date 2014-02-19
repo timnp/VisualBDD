@@ -20,7 +20,7 @@ public class MainGuiController {
 	}
 	
 	
-	public void showAbstractObdd(AbstractObddLayout layout) {
+	private void showAbstractObdd(AbstractObddLayout layout) {
 		//TODO
 	}
 }

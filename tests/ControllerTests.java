@@ -28,7 +28,7 @@ public class ControllerTests {
 		// creating the OBDD
 		OBDD f_OBDD = f.toObdd(varOrd);
 		// converting the OBDD into an ROBDD
-		OBDD f_ROBDD = f_OBDD.toRobdd(varOrd);
+		OBDD f_ROBDD = f_OBDD.reduceR(varOrd);
 		// retrieving the reduced Formula represented by the ROBDD
 		Formula f2 = f_ROBDD.toFormula().reduce();
 		// converting the Formula into a Formula String
