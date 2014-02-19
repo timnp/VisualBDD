@@ -896,7 +896,7 @@ public class OBDD {
 	 * @param varOrd - the VariableOrdering
 	 * @return a list with two equivalent nodes in the OBDD if possible
 	 */
-	public LinkedList<OBDD> findEquivalent(VariableOrdering varOrd) {
+	public LinkedList<OBDD> findAnyEquivalent(VariableOrdering varOrd) {
 		// updating the layer HashMap
 		updateLayers();
 		// initializing the list for the equivalent nodes
@@ -933,6 +933,28 @@ public class OBDD {
 		}
 		// At this point there are no equivalent nodes.
 		return null;
+	}
+	
+	
+	public LinkedList<OBDD> findEquivalent() {
+		// updating the layer HashMap
+		updateLayers();
+		// initializing the list of nodes equivalent to this node
+		LinkedList<OBDD> equivNodes = new LinkedList<OBDD>();
+		// the node's layer list
+		LinkedList<OBDD> layerList = layers.get(var);
+		// removing the node itself from the list
+		layerList.remove(this);
+		// iterator over the layer list
+		java.util.Iterator<OBDD> iter = layerList.iterator();
+		// checking each node in the layer list, whether it's equivalent to 
+		// this node
+		while (iter.hasNext()) {
+			OBDD currentNode = iter.next();
+			if (isEquivalent(currentNode)) equivNodes.add(currentNode);
+		}
+		// returning the list of nodes equivalent to this node
+		return equivNodes;
 	}
 	
 	
@@ -1047,7 +1069,7 @@ public class OBDD {
 	 * @return 
 	 */
 	public boolean isQobdd(VariableOrdering varOrd) {
-		if (!(findEquivalent(varOrd) == null)) {
+		if (!(findAnyEquivalent(varOrd) == null)) {
 			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
 			return false;
 		} else {
@@ -1089,7 +1111,7 @@ public class OBDD {
 	 * @return
 	 */
 	public boolean isRobdd(VariableOrdering varOrd) {
-		if (!(findEquivalent(varOrd) == null)) {
+		if (!(findAnyEquivalent(varOrd) == null)) {
 			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
 			return false;
 		}
@@ -1100,40 +1122,39 @@ public class OBDD {
 	
 	
 	/**
-	 * provides the QOBDD equivalent to this entire OBDD
+	 * provides an OBDD equivalent to this one, reduced by merging all 
+	 * equivalent nodes, resulting in a QOBDD if no path from this node to a 
+	 * terminal misses a variable
 	 * @param varOrd - the VariableOrdering
-	 * @return the QOBDD
+	 * @return the reduced (Q)OBDD
 	 */
-	public OBDD toQobdd(VariableOrdering varOrd) {
-		// retrieving the entire OBDD's root
-		OBDD root = getRoot();
-		// constructing an equivalent OBDD with all missing variables added for
-		// each path
-		OBDD rootMVA = root.addMissingVars(varOrd, varOrd.getOrdList());
+	public OBDD reduceQ(VariableOrdering varOrd) {
+		// initializing the reduced (Q)OBDD
+		OBDD qobdd = this;
 		// trying to find a pair of equivalent nodes in the new OBDD
-		LinkedList<OBDD> equivalentFind = rootMVA.findEquivalent(varOrd);
+		LinkedList<OBDD> equivalentFind = qobdd.findAnyEquivalent(varOrd);
 		// While there are equivalent nodes in the OBDD, they have to be merged
 		// to create a QOBDD.
-		while(!(equivalentFind == null)) {
+		while(equivalentFind != null) {
 			// merging the two found equivalent nodes
 			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
 			// searching for more equivalent nodes
-			equivalentFind = rootMVA.findEquivalent(varOrd);
+			equivalentFind = qobdd.findAnyEquivalent(varOrd);
 		}
 		// After adding all missing variables and merging all equivalent nodes,
 		// the new OBDD is a QOBDD.
-		return rootMVA;
+		return qobdd;
 	}
 	
 	
 	/**
-	 * auxiliary function that constructs a new OBDD like this one, adding all 
-	 * missing variables on each path
+	 * method that constructs a new OBDD like this one, adding all missing 
+	 * variables on each path
 	 * @param varOrd - the VariableOrdering
 	 * @param varOrdList - list of variables to be used in the new OBDD
 	 * @return the new OBDD
 	 */
-	private OBDD addMissingVars(VariableOrdering varOrd, 
+	public OBDD addMissingVars(VariableOrdering varOrd, 
 			LinkedList<Integer> varOrdList) {
 		if (terminal) {
 			// If the node is a terminal, it is returned.
@@ -1165,36 +1186,29 @@ public class OBDD {
 	
 	
 	/**
-	 * provides the ROBDD equivalent to this entire OBDD
+	 * provides the ROBDD equivalent to this OBDD by merging all equivalent 
+	 * nodes and removing all redundant ones
 	 * @param varOrd - the VariableOrdering
 	 * @return the ROBDD
 	 */
-	public OBDD toRobdd(VariableOrdering varOrd) {
-		// getting the entire OBDD's root
-		OBDD root = getRoot();
-		// trying to find a pair of equivalent nodes
-		LinkedList<OBDD> equivalentFind = root.findEquivalent(varOrd);
-		// While there are equivalent nodes in the OBDD, they have to be merged 
-		// to create an ROBDD.
-		while (equivalentFind != null) {
-			// merging the two found equivalent nodes
-			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
-			// searching for more equivalent nodes
-			equivalentFind = root.findEquivalent(varOrd);
-		}
+	public OBDD reduceR(VariableOrdering varOrd) {
+		// initializing the ROBDD
+		OBDD robdd = this;
+		// merging all equivalent nodes by using the QOBDD reduction method
+		robdd = robdd.reduceQ(varOrd);
 		// trying to find a redundant node
-		OBDD redundantFind = root.findRedundant();
+		OBDD redundantFind = robdd.findRedundant();
 		// while there are redundant nodes in the OBDD, they have to be removed 
 		// to create an ROBBD.
 		while (!(redundantFind == null)) {
 			// removing the found redundant node
 			redundantFind.removeRedundant();
 			// searching for another redundant node
-			redundantFind = root.findRedundant();
+			redundantFind = robdd.findRedundant();
 		}
 		// After merging all equivalent nodes and removing all redundant ones, 
 		// the OBDD is an ROBDD.
-		return root;
+		return robdd;
 	}
 	
 	
@@ -1236,9 +1250,9 @@ public class OBDD {
 	/**
 	 * merges two nodes if they're equivalent
 	 * @param otherNode
-	 * @return true, if the nodes were merged, false otherwise
+	 * @return the merged node, null if they aren't merged
 	 */
-	public boolean mergeEquivalent(OBDD otherNode) {
+	public OBDD mergeEquivalent(OBDD otherNode) {
 		// The two nodes only get merged if they're equivalent and no 
 		// terminal(s).
 		if (isEquivalent(otherNode) && !terminal) {
@@ -1258,9 +1272,9 @@ public class OBDD {
 					p.lowChild = this;
 				}
 			}
-			return true;
-		// Otherwise nothing but the return happens.			
-		} else return false;
+			return this;
+		// tentative return value in case of no merging: null			
+		} else return null;
 	}
 	
 	
