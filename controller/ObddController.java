@@ -1,10 +1,11 @@
 package controller;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Stack;
+
+import javax.swing.JPanel;
 
 import view.MainGui;
 import model.AbstractObddLayout;
@@ -21,11 +22,11 @@ public class ObddController {
 	/**
 	 * the MainGui the OBDDs are shown in
 	 */
-	private static MainGui mainGui;
+	private MainGui mainGui;
 	/**
 	 * HashMap for storing a stack for each OBDD currently worked with
 	 */
-	private static HashMap<
+	private HashMap<
 		// the name of the OBDD
 		String,
 		// the stack for the OBDD
@@ -43,22 +44,22 @@ public class ObddController {
 	
 	
 	
-	private static void obddToLayout(String obddName, int horizontalPixels, 
-			int verticalPixels) {
-		 if (obddStacks.containsKey(obddName)) {
-			//TODO Is this even needed? 
-		 }
-		 else {
-			 //TODO user message
-		 }
+	/**
+	 * constructor for an OBDD controller
+	 * @param mainGui
+	 */
+	public ObddController(MainGui mainGui) {
+		this.mainGui = mainGui;
 	}
 	
 	
-	private void showObdd(AbstractObddLayout layout) {
-		// removing the previously displayed OBDD
-		mainGui.getObddPane().removeAll();
-		// adding the new OBDD
-		mainGui.getObddPane()
-				.add(new VisualObdd(layout, mainGui.getObddPane().getSize()));
-	}
+//	private static void obddToLayout(String obddName, int horizontalPixels, 
+//			int verticalPixels) {
+//		 if (obddStacks.containsKey(obddName)) {
+//			//TODO Is this even needed? 
+//		 }
+//		 else {
+//			 //TODO user message
+//		 }
+//	}
 }

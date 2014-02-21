@@ -4,6 +4,9 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import model.AbstractObddLayout;
+import model.VisualObdd;
+
 /**
  * 
  * @author TimNP
@@ -500,5 +503,15 @@ public class MainGui extends JFrame {
 		gbc.weighty = weighty;
 		// adding the component to the main frame
 		getContentPane().add(comp, gbc);
+	}
+	
+	
+	/**
+	 * shows an OBDD given by an AbstractObddLayout
+	 * @param layout
+	 */
+	public void showObdd(AbstractObddLayout layout) {
+		obddPane.removeAll();
+		obddPane.add(new VisualObdd(layout, obddPane.getSize()));
 	}
 }
