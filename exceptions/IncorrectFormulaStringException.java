@@ -1,5 +1,10 @@
 package exceptions;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class IncorrectFormulaStringException extends Exception {
 
 	/**

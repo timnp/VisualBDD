@@ -8,7 +8,6 @@ import model.*;
  * 
  * @author TimNP
  * 
- * class for test cases
  *
  */
 public class ModelTests {

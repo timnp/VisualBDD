@@ -1,8 +1,12 @@
 package controller;
 
-import model.AbstractObddLayout;
 import view.MainGui;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class MainGuiController {
 	/**
 	 * the MainGui "controlled" by the controller
@@ -18,9 +22,5 @@ public class MainGuiController {
 		// the controller initializes its own GUI
 		gui = new MainGui();
 	}
-	
-	
-	private void showAbstractObdd(AbstractObddLayout layout) {
-		//TODO
-	}
+
 }

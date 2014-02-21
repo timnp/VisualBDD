@@ -5,6 +5,11 @@ import java.util.LinkedList;
 import model.*;
 import controller.*;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class ControllerTests {
 	public static void main(String[] args) {
 		// a "messy" but possible input String for a Formula

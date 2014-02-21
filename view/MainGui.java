@@ -4,6 +4,11 @@ import java.awt.*;
 
 import javax.swing.*;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class MainGui extends JFrame {
 	/**
 	 * default serial version ID
@@ -132,6 +137,15 @@ public class MainGui extends JFrame {
 	 */
 	private JPanel obddPane = new JPanel();
 	
+	
+	
+	/**
+	 * getter for the OBDD panel
+	 * @return
+	 */
+	public JPanel getObddPane() {
+		return obddPane;
+	}
 	
 	
 	/**

@@ -5,6 +5,11 @@ import model.*;
 import controller.*;
 import view.*;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class ExperimentalTests {
 	
 	public static void main(String[] args) {

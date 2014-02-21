@@ -3,6 +3,11 @@ package model;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class AbstractObddLayout {
 	/**
 	 * the OBDD's layer HashMap
