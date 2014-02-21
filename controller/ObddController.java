@@ -1,12 +1,27 @@
 package controller;
 
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Stack;
 
+import view.MainGui;
+import model.AbstractObddLayout;
 import model.OBDD;
 import model.Pair;
+import model.VisualObdd;
 
+/**
+ * 
+ * @author TimNP
+ *
+ */
 public class ObddController {
+	/**
+	 * the MainGui the OBDDs are shown in
+	 */
+	private static MainGui mainGui;
 	/**
 	 * HashMap for storing a stack for each OBDD currently worked with
 	 */
@@ -27,6 +42,7 @@ public class ObddController {
 					Pair<Double, Double>>>>> obddStacks;
 	
 	
+	
 	private static void obddToLayout(String obddName, int horizontalPixels, 
 			int verticalPixels) {
 		 if (obddStacks.containsKey(obddName)) {
@@ -35,5 +51,14 @@ public class ObddController {
 		 else {
 			 //TODO user message
 		 }
+	}
+	
+	
+	private void showObdd(AbstractObddLayout layout) {
+		// removing the previously displayed OBDD
+		mainGui.getObddPane().removeAll();
+		// adding the new OBDD
+		mainGui.getObddPane()
+				.add(new VisualObdd(layout, mainGui.getObddPane().getSize()));
 	}
 }
