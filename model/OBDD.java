@@ -86,6 +86,12 @@ public class OBDD {
 	public static final int TAUTOLOGY = 15;
 	
 	/**
+	 * computed table for the getNode method
+	 */
+	private static HashMap<Integer,OBDD> getNodeCT = 
+			new HashMap<Integer,OBDD>();
+	
+	/**
 	 * computed table for the apply algorithm
 	 */
 	private static HashMap<Pair<Integer, Integer>, OBDD> applyCT = 
@@ -227,6 +233,15 @@ public class OBDD {
 	
 	
 	/**
+	 * getter that states whether the node is a terminal
+	 * @return
+	 */
+	public boolean isTerminal() {
+		return terminal;
+	}
+	
+	
+	/**
 	 * getter for the OBDD's layer HashMap
 	 * @return
 	 */
@@ -238,11 +253,63 @@ public class OBDD {
 	
 	
 	/**
+	 * getter for the node's high child
+	 * @return
+	 */
+	public OBDD getHighChild() {
+		return highChild;
+	}
+	
+	
+	/**
+	 * getter for the node's low child
+	 * @return
+	 */
+	public OBDD getLowChild() {
+		return lowChild;
+	}
+	
+	
+	/**
 	 * getter for the node's (optional) name
 	 * @return
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	
+	/**
+	 * method that finds a specific node in this entire OBDD (if possible)
+	 * @param id - the node's ID
+	 * @return the node, if it's found; else null
+	 */
+	public OBDD getNode(int id) {
+		if (getNodeCT.containsKey(this.id)) {
+			// If there is already a result for this node, it gets returned.
+			return getNodeCT.get(this.id);
+		}
+		// Otherwise a result for this node has to be found.
+		else {
+			if (this.id == id) {
+				// If this node has the specified ID, it gets returned.
+				return this;
+			}
+			// Initializing a variable for the found node with null.
+			OBDD find = null;
+			if (!this.terminal) {
+				// If the node isn't the specified one and isn't a terminal, 
+				// first the high child gets called recursively.
+				find = highChild.getNode(id);
+				if (find.equals(null)) {
+					// If the high child's call didn't return a node, the low 
+					// child gets called recursively.
+					find = lowChild.getNode(id);
+				}
+			}
+			// returning the find
+			return find;
+		}
 	}
 
 	
