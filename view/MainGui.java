@@ -55,12 +55,12 @@ public class MainGui extends JFrame {
 	 */
 	private JButton[] firstColumnButtons = {
 			new JButton("Undo"),
-			new JButton("Find two Equivalent Nodes"),
+			new JButton("Find Equivalent Nodes"),
 			new JButton("Merge Equivalent Nodes"),
 			new JButton("Find a Redundant Node"),
 			new JButton("Remove Redundant Node"),
-			new JButton("To QOBDD"),
-			new JButton("To ROBDD"),
+			new JButton("Recuce to QOBDD"),
+			new JButton("Reduce to ROBDD"),
 			new JButton("Get Formula")
 	};
 	
