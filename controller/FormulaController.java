@@ -44,7 +44,7 @@ public class FormulaController {
 		inputString = inputString.replaceAll("\\s", "");
 		// clearing the computed table
 		formulaStringCT.clear();
-		// calling the actual recursive method
+		// calling the actual (recursive) method
 		return toFormulaStringRec(inputString);
 	}
 	

@@ -11,16 +11,16 @@ public class MainGuiController {
 	/**
 	 * the MainGui "controlled" by the controller
 	 */
-	private MainGui gui;
+	private MainGui mainGui;
 	
 	
 	
 	/**
 	 * constructor for a MainGuiController
 	 */
-	public MainGuiController() {
+	public MainGuiController(MainGui mainGui) {
 		// the controller initializes its own GUI
-		gui = new MainGui();
+		this.mainGui = mainGui;
 	}
 
 }

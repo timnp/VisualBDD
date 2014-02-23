@@ -17,10 +17,10 @@ public class VisualObdd extends JComponent{
 	 * default serial version ID
 	 */
 	private static final long serialVersionUID = 1L;
-//	/**
-//	 * the represented OBDD
-//	 */
-//	private OBDD obdd;
+	/**
+	 * the represented OBDD
+	 */
+	private OBDD obdd;
 	/**
 	 * a list of the represented OBDD's nodes' IDs
 	 */
@@ -98,9 +98,11 @@ public class VisualObdd extends JComponent{
 	public VisualObdd(AbstractObddLayout layout, Dimension panelSize) {
 		// setting the preferred size to the panel's size
 		setPreferredSize(panelSize);
+		// setting the represented OBDD
+		obdd = layout.getObdd();
 		// adding the represented OBDD's nodes and edges to the respective 
 		// lists
-		addNodesAndEdges(layout.getObdd());
+		addNodesAndEdges(obdd);
 		// splitting the panel size into width and height
 		int panelWidth = panelSize.width;
 		int panelHeight = panelSize.height;
