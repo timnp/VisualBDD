@@ -512,6 +512,7 @@ public class MainGui extends JFrame {
 	 */
 	public void showObdd(AbstractObddLayout layout) {
 		obddPane.removeAll();
-		obddPane.add(new VisualObdd(layout, obddPane.getSize()));
+		obddPane.add(new VisualObdd(layout, obddPane.getPreferredSize()));
+		obddPane.repaint();
 	}
 }

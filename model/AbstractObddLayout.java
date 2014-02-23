@@ -10,9 +10,9 @@ import java.util.LinkedList;
  */
 public class AbstractObddLayout {
 	/**
-	 * the OBDD's layer HashMap
+	 * the represented OBDD
 	 */
-	private HashMap<Integer, LinkedList<OBDD>> obddLayers;
+	private OBDD obdd;
 	/**
 	 * a HashMap for the OBDD's nodes' (identified by their IDs) positions 
 	 * relative to the total size
@@ -27,11 +27,19 @@ public class AbstractObddLayout {
 	
 	
 	/**
-	 * getter for the OBDD's layer HashMap
+	 * getter for the represented OBDD
 	 * @return
 	 */
-	public HashMap<Integer, LinkedList<OBDD>> getObddLayers() {
-		return obddLayers;
+	public OBDD getObdd() {
+		return obdd;
+	}
+	
+	/**
+	 * setter for the represented OBDD
+	 * @param obdd
+	 */
+	public void setObdd(OBDD obdd) {
+		this.obdd = obdd;
 	}
 	
 	/**
@@ -56,8 +64,10 @@ public class AbstractObddLayout {
 	 * @param obdd
 	 */
 	public AbstractObddLayout(OBDD obdd) {
+		// setting the represented OBDD
+		this.obdd = obdd;
 		// retrieving the OBDD's layers
-		obddLayers = obdd.getLayers();
+		HashMap<Integer,LinkedList<OBDD>> obddLayers = obdd.getLayers();
 		// initializing the position map
 		positionMap = new HashMap<Integer, Pair<Double, Double>>();
 		// the OBDD's number of layers (including the terminal layer)
@@ -100,16 +110,6 @@ public class AbstractObddLayout {
 		positionMap.put(0, new Pair<Double, Double>(0.75, verticalPosition));
 		// One third of the visual OBDD's height is divided to the nodes.
 		nodeSizeToHeight = ((1 / 3) / numberOfLayers);
-	}
-	
-	
-	/**
-	 * When changing the OBDD, regarding the abstract layout, only the layer 
-	 * HashMap is changed. 
-	 * @param obdd
-	 */
-	public void changeObdd(OBDD obdd) {
-		obddLayers = obdd.getLayers();
 	}
 	
 	

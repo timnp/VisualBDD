@@ -17,27 +17,60 @@ public class VisualObdd extends JComponent{
 	 * default serial version ID
 	 */
 	private static final long serialVersionUID = 1L;
+//	/**
+//	 * the represented OBDD
+//	 */
+//	private OBDD obdd;
 	/**
-	 * the OBDD's nodes' IDs
+	 * a list of the represented OBDD's nodes' IDs
 	 */
-	private LinkedList<Integer> nodeIds;
+	private LinkedList<Integer> nodeIds = new LinkedList<Integer>();
+	/**
+	 * A HashMap for the represented OBDD's edges:
+	 * For each decision node's ID a pair of its high child's ID and its low 
+	 * child's ID is stored.
+	 */
+	private HashMap<Integer,Pair<Integer,Integer>> edgeMap = 
+			new HashMap<Integer,Pair<Integer,Integer>>();
 	/**
 	 * a HashMap with each node's top left corner's absolute positions
 	 */
-	private HashMap<Integer,Pair<Integer,Integer>> positionMap;
+	private HashMap<Integer,Pair<Integer,Integer>> positionMap = 
+			new HashMap<Integer,Pair<Integer,Integer>>();
 	/**
 	 * each node's absolute size
 	 */
 	private int nodeSize;
+//	/**
+//	 * list of nodes that have already been painted for the paintComponent 
+//	 * method 
+//	 */
+//	private LinkedList<Integer> paintedNodes;
 	
 	
+	
+//	/**
+//	 * getter for the represented OBDD
+//	 * @return
+//	 */
+//	public OBDD getObdd() {
+//		return obdd;
+//	}
 	
 	/**
-	 * getter for the ID list
+	 * getter for the node ID list
 	 * @return
 	 */
 	public LinkedList<Integer> getNodeIds() {
 		return nodeIds;
+	}
+	
+	/**
+	 * getter for the edge HashMap
+	 * @return
+	 */
+	public HashMap<Integer,Pair<Integer,Integer>> getEdgeMap() {
+		return edgeMap;
 	}
 	
 	/**
@@ -65,6 +98,9 @@ public class VisualObdd extends JComponent{
 	public VisualObdd(AbstractObddLayout layout, Dimension panelSize) {
 		// setting the preferred size to the panel's size
 		setPreferredSize(panelSize);
+		// adding the represented OBDD's nodes and edges to the respective 
+		// lists
+		addNodesAndEdges(layout.getObdd());
 		// splitting the panel size into width and height
 		int panelWidth = panelSize.width;
 		int panelHeight = panelSize.height;
@@ -78,8 +114,32 @@ public class VisualObdd extends JComponent{
 			// adding each node's absolute positions to the position map
 			positionMap.put(i, absolutePositions(relPositionMap, panelWidth, 
 					panelHeight, nodeSize, i));
-			// adding each node's ID to the ID list
-			nodeIds.add(i);
+		}
+	}
+	
+	
+	/**
+	 * auxiliary method that adds all nodes of a given OBDD to the node ID list
+	 * and all its edges to the edge list
+	 * @param currentNode
+	 */
+	private void addNodesAndEdges(OBDD currentNode) {
+		// retrieving the node's ID
+		int id = currentNode.getId();
+		// adding the node's ID to the node ID list
+		nodeIds.add(id);
+		// going further if the node isn't a terminal and it hasn't been added 
+		// already
+		if (!(currentNode.isTerminal() || nodeIds.contains(currentNode))) {
+			// retrieving the (decision) node's children
+			OBDD highChild = currentNode.getHighChild();
+			OBDD lowChild = currentNode.getLowChild();
+			// adding the nodes' outgoing edges to the edge list
+			edgeMap.put(id, new Pair<Integer,Integer>(highChild.getId(), 
+					lowChild.getId()));
+			// recursively adding the node's children
+			addNodesAndEdges(highChild);
+			addNodesAndEdges(lowChild);
 		}
 	}
 	
@@ -112,15 +172,43 @@ public class VisualObdd extends JComponent{
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponents(g);
+//		// clearing the list of painted nodes
+//		paintedNodes.clear();
+//		// calling the recursive algorithm
+//		paintComponentRec(g, obdd);
 		// drawing all of the OBDD's nodes
-		for (int i : nodeIds) {
+		for (int id : nodeIds) {
 			// getting the node's positions
-			int horizontalPosition = positionMap.get(i).getFirst();
-			int verticalPosition = positionMap.get(i).getSecond();
-			if (i > 1) {
+			int horizontalPosition = positionMap.get(id).getFirst();
+			int verticalPosition = positionMap.get(id).getSecond();
+			if (id > 1) {
 				// If the node isn't a terminal, it's represented by a circle.
 				g.drawOval(horizontalPosition, verticalPosition, 
 						nodeSize, nodeSize);
+				// retrieving the node's children
+				Pair<Integer,Integer> children = edgeMap.get(id);
+				// retrieving the decision node's children's positions
+				Pair<Integer,Integer> highChildPosition = 
+						positionMap.get(children.getFirst());
+				Pair<Integer,Integer> lowChildPosition = 
+						positionMap.get(children.getSecond());
+				// drawing the node's outgoing edges
+				g.drawLine(
+						// starting the line at the node's lower left "corner"
+						horizontalPosition, 
+						verticalPosition + nodeSize, 
+						// ending the line at the high child's upper right 
+						// "corner"
+						highChildPosition.getFirst() + nodeSize, 
+						highChildPosition.getSecond());
+				g.drawLine(
+						// starting the line at the node's lower right "corner"
+						horizontalPosition + nodeSize, 
+						verticalPosition + nodeSize, 
+						// ending the line at the low child's upper left 
+						// "corner"
+						lowChildPosition.getFirst(), 
+						lowChildPosition.getSecond());
 			}
 			else {
 				// If the node is a terminal, it's represented by a square.
@@ -129,4 +217,48 @@ public class VisualObdd extends JComponent{
 			}
 		}
 	}
+	
+	
+//	/**
+//	 * method that paints an OBDD from the given node down
+//	 * @param currentNode
+//	 */
+//	private void paintComponentRec(Graphics g, OBDD currentNode) {
+//		// retrieving the node's ID
+//		int id = currentNode.getId();
+//		// The node only gets painted, if it hasn't been painted already.
+//		if (!paintedNodes.contains(id)) {
+//			// getting the node's positions
+//			int horizontalPosition = positionMap.get(id).getFirst();
+//			int verticalPosition = positionMap.get(id).getSecond();
+//			if (currentNode.isTerminal()) {
+//				// If the node is a terminal, it's represented by a square.
+//				g.drawRect(horizontalPosition, verticalPosition, 
+//						nodeSize, nodeSize);
+//			}
+//			else {
+//				// If the node isn't a terminal, it's represented by a circle.
+//				g.drawOval(horizontalPosition, verticalPosition, 
+//						nodeSize, nodeSize);
+//				// retrieving the node's children
+//				OBDD highChild = currentNode.getHighChild();
+//				OBDD lowChild = currentNode.getLowChild();
+//				// retrieving their positions
+//				Pair<Integer,Integer> highChildPositions = 
+//						positionMap.get(highChild.getId());
+//				Pair<Integer,Integer> lowChildPositions = 
+//						positionMap.get(lowChild.getId());
+//				// drawing the edge towards the high child
+//				g.drawLine(horizontalPosition, 
+//						verticalPosition + nodeSize, 
+//						highChildPositions.getFirst() + nodeSize, 
+//						highChildPositions.getSecond());
+//				// drawing the edge towards the low child
+//				// TODO
+//				// recursively painting the node's children
+//				paintComponentRec(g, highChild);
+//				paintComponentRec(g, lowChild);
+//			}
+//		}
+//	}
 }
