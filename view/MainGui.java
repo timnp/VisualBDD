@@ -1,12 +1,13 @@
 package view;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.*;
 
 import controller.*;
 import model.AbstractObddLayout;
-import model.Pair;
 import model.VisualObdd;
 
 /**
@@ -49,11 +50,11 @@ public class MainGui extends JFrame {
 	 */
 	private JComboBox<String> obddTypeCB = new JComboBox<String>(new String[]
 					{"Complete OBDD", "QOBDD", "ROBDD"});
-	/**
-	 * drop down menu for the source of the OBDD to be generated from
-	 */
-	private JComboBox<String> obddSourceCB = 
-			new JComboBox<String>(new String[]{"Formula", "Truth Table"});
+//	/**
+//	 * drop down menu for the source of the OBDD to be generated from
+//	 */
+//	private JComboBox<String> obddSourceCB = 
+//			new JComboBox<String>(new String[]{"Formula", "Truth Table"});
 	/**
 	 * button to generate a new OBDD
 	 */
@@ -123,13 +124,13 @@ public class MainGui extends JFrame {
 	
 	
 	
-	/**
-	 * getter for the OBDD panel
-	 * @return
-	 */
-	public JPanel getObddPane() {
-		return obddPane;
-	}
+//	/**
+//	 * getter for the OBDD panel
+//	 * @return
+//	 */
+//	public JPanel getObddPane() {
+//		return obddPane;
+//	}
 	
 	
 	/**
@@ -170,12 +171,29 @@ public class MainGui extends JFrame {
 		addLabel(new JLabel("OBDD Type"), 7, 0, 1, 1);
 		// adding the OBDD type drop down menu
 		addSubLineComboBoxOrButton(obddTypeCB, 7, 1);
-		// adding the OBDD source label
-		addLabel(new JLabel("OBDD Source"), 8, 0, 1, 1);
-		// adding the OBDD source drop down menu
-		addSubLineComboBoxOrButton(obddSourceCB, 8, 1);
+//		// adding the OBDD source label
+//		addLabel(new JLabel("OBDD Source"), 8, 0, 1, 1);
+//		// adding the OBDD source drop down menu
+//		addSubLineComboBoxOrButton(obddSourceCB, 8, 1);
 		// adding the generate button
 		addSubLineComboBoxOrButton(generateButton, 9, 1);
+		// adding a listener to the generate button
+		generateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// If the OBDD should be generated from the given Formula, 
+				// the formula field's text is retrieved.
+				String formulaFieldText = formulaField.getText();
+				if (formulaFieldText != null && formulaFieldText != "") {
+					// If there is a String given, calling the OBDD 
+					// controller to generate an OBDD from that.
+					oController.obddFromFormula(formulaFieldText);
+				}
+				else {
+					// TODO pop-up
+				}
+			}
+		});
 		
 		// adding the truth table scroll panel
 		addScrollPane(ttScrollPane, 0, 2, 2, 3);
@@ -194,6 +212,7 @@ public class MainGui extends JFrame {
 		
 		// adding the OBDD applying button
 		addSubPaneButton(applyObddsButton, 1, 9);
+		
 		// adding the OBDD panel
 		addToMainFrame(obddPane, 2, 2, 7, 8, GridBagConstraints.BOTH, 1, 1, 
 				new Insets(2, 2, 2, 2), GridBagConstraints.NORTH, 
