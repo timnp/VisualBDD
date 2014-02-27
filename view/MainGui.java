@@ -181,13 +181,20 @@ public class MainGui extends JFrame {
 		generateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// If the OBDD should be generated from the given Formula, 
-				// the formula field's text is retrieved.
+				// retrieving the formula field's text
 				String formulaFieldText = formulaField.getText();
-				if (formulaFieldText != null && formulaFieldText != "") {
-					// If there is a String given, calling the OBDD 
-					// controller to generate an OBDD from that.
-					oController.obddFromFormula(formulaFieldText);
+				// If there is a string in the formula text field, the OBDD is 
+				// tried to be generated.
+				if (!formulaFieldText.equals("")) {
+					// retrieving the OBDD name field's text
+					String obddName = obddNameField.getText();
+					// retrieving the variable ordering field's text
+					String varOrdFieldText = varOrdField.getText();
+					// retrieving the chosen OBDD type's number
+					int obddTypeNumber = obddTypeCB.getSelectedIndex();
+					// calling the controller
+					oController.obddFromFormula(obddName, formulaFieldText, 
+							varOrdFieldText, obddTypeNumber, obddPane.getSize());
 				}
 				else {
 					// TODO pop-up
@@ -384,12 +391,12 @@ public class MainGui extends JFrame {
 	
 	
 	/**
-	 * shows an OBDD given by an AbstractObddLayout
-	 * @param layout
+	 * shows an OBDD given as a VisualObdd
+	 * @param vObdd
 	 */
-	public void showObdd(AbstractObddLayout layout) {
+	public void showObdd(VisualObdd vObdd) {
 		obddPane.removeAll();
-		obddPane.add(new VisualObdd(layout, obddPane.getPreferredSize()));
+		obddPane.add(vObdd);
 		obddPane.repaint();
 	}
 }

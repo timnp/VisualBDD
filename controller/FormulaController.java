@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.regex.*;
 
+import view.MainGui;
 import model.Formula;
 
 /**
@@ -13,10 +14,23 @@ import model.Formula;
  */
 public class FormulaController {
 	/**
+	 * the connected MainGui
+	 */
+	private MainGui mainGui;
+	/**
 	 * computed table for the toFormulaString method
 	 */
 	private static HashMap<String, String> formulaStringCT = new HashMap<String, String>();
 	
+	
+	
+	/**
+	 * constructor for a FormulaController
+	 */
+	public FormulaController(MainGui mainGui) {
+		// setting the MainGui
+		this.mainGui = mainGui;
+	}
 	
 	
 	/**
