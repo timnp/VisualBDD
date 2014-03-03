@@ -14,19 +14,10 @@ import model.VariableOrdering;
  */
 public class VarOrdController {
 	/**
-	 * the connected MainGui
-	 */
-	private MainGui mainGui;
-	
-	
-	
-	/**
 	 * constructor for a VarOrdController
-	 * @param mainGui
 	 */
-	public VarOrdController(MainGui mainGui) {
-		// setting the MainGui
-		this.mainGui = mainGui;
+	public VarOrdController() {
+		//TODO?
 	}
 	
 	
@@ -36,7 +27,7 @@ public class VarOrdController {
 	 * @param inputString - the String
 	 * @return
 	 */
-	public VariableOrdering stringToVarOrd(String inputString) {
+	public static VariableOrdering stringToVarOrd(String inputString) {
 		// creating a new VariableOrdering from the ordering list the input 
 		// String represents
 		return new VariableOrdering(stringToOrdList(inputString));
@@ -49,7 +40,7 @@ public class VarOrdController {
 	 * @param inputString
 	 * @return
 	 */
-	private LinkedList<Integer> stringToOrdList(String inputString) {
+	private static LinkedList<Integer> stringToOrdList(String inputString) {
 		// removing all spaces from the String
 		inputString = inputString.replaceAll("\\s", "");
 		// calling the actual (recursive) method
@@ -64,7 +55,7 @@ public class VarOrdController {
 	 * @param partialOrdList
 	 * @return
 	 */
-	private LinkedList<Integer> stringToOrdListRec(String inputString, 
+	private static LinkedList<Integer> stringToOrdListRec(String inputString, 
 			LinkedList<Integer> partialOrdList) {
 		// If the input String is empty, the given ordering list gets returned.
 		if (inputString.isEmpty()) return partialOrdList;
@@ -77,9 +68,11 @@ public class VarOrdController {
 			String varNoString = startingVarNoString(inputString);
 			// If there is no number after the X, the String isn't valid.
 			// TODO user message
-			if (varNoString.equals(null)) return null;
+			if (varNoString.equals("")) return null;
 			// adding the variable number to the ordering list
 			partialOrdList.add(Integer.parseInt(varNoString));
+			// removing the variable number from the input string
+			inputString = inputString.substring(varNoString.length());
 			// recursively adding the rest of the input String
 			return stringToOrdListRec(inputString.
 					substring(varNoString.length()), partialOrdList);
@@ -100,28 +93,28 @@ public class VarOrdController {
 	/**
 	 * Pattern String for a digit
 	 */
-	private String digitPatternString = "\\d";
+	private static String digitPatternString = "\\d";
 	
 	
 	/**
 	 * Pattern for a digit
 	 */
-	private Pattern digitPattern = Pattern.compile(digitPatternString);
+	private static Pattern digitPattern = Pattern.compile(digitPatternString);
 	
 	
 	/**
 	 * Matcher for the Pattern
 	 */
-	private Matcher matcher;
+	private static Matcher matcher;
 	
 	
 	/**
 	 * auxiliary method that retrieves the variable number of a given String's 
 	 * starting variable
 	 * @param inputString
-	 * @return the variable number as a String; null if there is none
+	 * @return the variable number as a String; empty string if there is none
 	 */
-	private String startingVarNoString(String inputString) {
+	private static String startingVarNoString(String inputString) {
 		// initializing the variable String
 		String varString = "";
 		// cutting the starting X from the start of the String
@@ -137,14 +130,14 @@ public class VarOrdController {
 			varString = varString.concat(firstChar);
 			// cutting the digit off the input String
 			inputString = inputString.substring(1);
+			// If the remaining input string is empty, the return happens.
+			if (inputString.isEmpty()) return varString;
 			// retrieving the next character
 			firstChar = inputString.substring(0, 1);
 			// matching to the new character
 			matcher = digitPattern.matcher(firstChar);
 		}
-		// If the variable String is empty, null gets returned.
-		if (varString.equals("")) return null;
-		// Otherwise the variable number gets returned.
-		else return varString;
+		// returning the variable number string
+		return varString;
 	}
 }

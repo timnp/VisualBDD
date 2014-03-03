@@ -14,10 +14,6 @@ import model.Formula;
  */
 public class FormulaController {
 	/**
-	 * the connected MainGui
-	 */
-	private MainGui mainGui;
-	/**
 	 * computed table for the toFormulaString method
 	 */
 	private static HashMap<String, String> formulaStringCT = new HashMap<String, String>();
@@ -27,9 +23,8 @@ public class FormulaController {
 	/**
 	 * constructor for a FormulaController
 	 */
-	public FormulaController(MainGui mainGui) {
-		// setting the MainGui
-		this.mainGui = mainGui;
+	public FormulaController() {
+		//TODO?
 	}
 	
 	

@@ -452,7 +452,7 @@ public class Formula {
 	 * and its sub-Formulas
 	 * @return
 	 */
-	private LinkedList<Integer> vars() {
+	public LinkedList<Integer> vars() {
 		// initializing the LinkedList for the return
 		LinkedList<Integer> vars = new LinkedList<Integer>();
 		// a switch for the possible constructors for this Formula

@@ -19,7 +19,7 @@ public class OBDD {
 	 */
 	private static int idCount = 2;
 	/**
-	 * boolean which determines if the node is a terminal
+	 * boolean which determines whether the node is a terminal
 	 */
 	private boolean terminal;
 	/**
@@ -37,10 +37,6 @@ public class OBDD {
 	 * For reasons of performance this HashMap is only updated when it's used.
 	 */
 	private HashMap<Integer,LinkedList<OBDD>> layers;
-	/**
-	 * list of all parents of the node
-	 */
-	private LinkedList<OBDD> parents;
 	/**
 	 * the (decision) node's high child
 	 */
@@ -132,6 +128,12 @@ public class OBDD {
 	private static boolean satVal;
 	
 	/**
+	 * computed table for the merge method
+	 */
+	private static HashMap<Integer, OBDD> removeAndMergeCT = 
+			new HashMap<Integer, OBDD>();
+	
+	/**
 	 * computed table for the "allSat" algorithm
 	 */
 	private static HashMap<Integer, LinkedList<LinkedList<Integer>>> allSatCT =
@@ -175,14 +177,13 @@ public class OBDD {
 	
 	/**
 	 * updates the node's layer HashMap and returns it
+	 * @param root - the OBDD's root
 	 * @return 
 	 */
-	private HashMap<Integer, LinkedList<OBDD>> updateLayers() {
+	public HashMap<Integer, LinkedList<OBDD>> updateLayers(OBDD root) {
 		// initializing the new layer HashMap
 		HashMap<Integer,LinkedList<OBDD>> layers =
 				new HashMap<Integer,LinkedList<OBDD>>();
-		// retrieving the OBDD's root node to begin with
-		OBDD root = this.getRoot();
 		// adding all of the OBBD's non-terminal nodes to the layer HashMap
 		layers = root.addToLayerHashMap(layers);
 		// saving the updated layer HashMap for this node
@@ -247,7 +248,7 @@ public class OBDD {
 	 */
 	public HashMap<Integer, LinkedList<OBDD>> getLayers() {
 		// updating the layer HashMap first
-		updateLayers();
+		updateLayers(this);
 		return layers;
 	}
 	
@@ -311,21 +312,35 @@ public class OBDD {
 			return find;
 		}
 	}
-
+	
 	
 	/**
-	 * creates a new OBDD with this node as high child, a given variable,
-	 * and a given node as low child (if the given variable is greater than the
-	 * variables of the two nodes by means of the VariableOrdering)
+	 * provides the cons algorithm without the possibility of choosing an ID
 	 * @param variable
 	 * @param lowChild
 	 * @param varOrd - the VariableOrdering
 	 * @return the new node
 	 */
 	public OBDD cons(int variable, OBDD lowChild, VariableOrdering varOrd) {
+		return cons(-1, variable, lowChild, varOrd);
+	}
+
+	
+	/**
+	 * creates a new OBDD with this node as high child, a given ID, 
+	 * a given variable, and a given node as low child (if the given variable 
+	 * is greater than the variables of the two nodes by means of the 
+	 * VariableOrdering)
+	 * @param id
+	 * @param variable
+	 * @param lowChild
+	 * @param varOrd - the VariableOrdering
+	 * @return the new node
+	 */
+	private OBDD cons(int id, int variable, OBDD lowChild, VariableOrdering varOrd) {
 		// creating a VariableOrderingComparator for the VariableOrdering
-		VariableOrderingComparator complVarOrdComp = 
-				new VariableOrderingComparator(varOrd);
+		VarOrdComparator complVarOrdComp = 
+				new VarOrdComparator(varOrd);
 		// If the given variable is higher than the variables of both this and 
 		// the given node, the new node can be created.
 		if ((complVarOrdComp.compare(variable, var) > 0) && 
@@ -333,8 +348,10 @@ public class OBDD {
 			// initializing the new node
 			OBDD newNode = new OBDD();
 			// setting the new node's ID to the counter's current value and
-			// increasing it by one
-			newNode.id = idCount++;
+			// increasing it by one, if there is no adequate ID given
+			if (id < 2) newNode.id = idCount++;
+			// otherwise setting the new node's ID to the given one
+			else newNode.id = id;
 			// The new node isn't a terminal since it's created with children.
 			newNode.terminal = false;
 			// The given variable becomes the new node's one.
@@ -343,18 +360,6 @@ public class OBDD {
 			newNode.highChild = this;
 			// The given node becomes the new node's low child.
 			newNode.lowChild = lowChild;
-			// The new node's parent list is initialized.
-			newNode.parents = new LinkedList<OBDD>();
-			// The new node becomes a parent of this node
-			// if this node isn't a terminal.
-			if (!terminal) {
-				parents.add(newNode);			
-			}
-			// The new node becomes a parent of the given node.
-			// if this node isn't a terminal.
-			if (!lowChild.terminal) {
-				lowChild.parents.add(newNode);			
-			}
 			return newNode;
 		} else {
 			// Otherwise the node can't be created.
@@ -527,8 +532,8 @@ public class OBDD {
 				else {
 					// creating a VariableOrderingComparator for the 
 					// VariableOrdering
-					VariableOrderingComparator complVarOrdComp = 
-							new VariableOrderingComparator(varOrd);
+					VarOrdComparator complVarOrdComp = 
+							new VarOrdComparator(varOrd);
 					// If this OBDD node isn't a terminal and it's variable has
 					// a higher position in the variable ordering than the 
 					// other node's one, only this node's children are called 
@@ -649,23 +654,6 @@ public class OBDD {
 		applyName += "," + name + "," + otherNode.name + ")";
 		// returning the complete String
 		return applyName;
-	}
-	
-	
-	/**
-	 * @return this entire OBDD's root
-	 */
-	private OBDD getRoot() {
-		// initializing the "root" as this node
-		OBDD root = this;
-		// As long as the "root" has any parents, it isn't the real root
-		// and is replaced by one of its parents.
-		while (!root.parents.isEmpty()) {
-			root = root.parents.getFirst();
-		}
-		// returning this entire OBDD's node without parents 
-		// and therefore its root
-		return root;
 	}
 	
 	
@@ -834,8 +822,8 @@ public class OBDD {
 	public boolean valueByObdd(LinkedList<Integer> assignedOne, 
 			VariableOrdering varOrd) {
 		// creating a comparator for the complete VariableOrdering
-		VariableOrderingComparator complVarOrdComp = 
-				new VariableOrderingComparator(varOrd);
+		VarOrdComparator complVarOrdComp = 
+				new VarOrdComparator(varOrd);
 		// sorting the list of variables assigned one by means of the 
 		// VariableOrdering
 		Collections.sort(assignedOne, complVarOrdComp);
@@ -853,7 +841,7 @@ public class OBDD {
 	 * @return the value of the formula as a boolean
 	 */
 	public boolean valueByObddRec(LinkedList<Integer> assignedOne, 
-			VariableOrderingComparator complVarOrdComp) {
+			VarOrdComparator complVarOrdComp) {
 		if (terminal) {
 			// If the node is a terminal, its value is returned.
 			return value;
@@ -965,7 +953,7 @@ public class OBDD {
 	 */
 	public LinkedList<OBDD> findAnyEquivalent(VariableOrdering varOrd) {
 		// updating the layer HashMap
-		updateLayers();
+		updateLayers(this);
 		// initializing the list for the equivalent nodes
 		LinkedList<OBDD> candidates = new LinkedList<OBDD>();
 		// initializing the list of the current layer's nodes
@@ -1006,11 +994,12 @@ public class OBDD {
 	/**
 	 * method that provides all nodes in the entire OBDD that are equivalent to
 	 * this node (excluding the node itself)
+	 * @param root - the OBDD's root
 	 * @return
 	 */
-	public LinkedList<OBDD> findEquivalent() {
+	public LinkedList<OBDD> findEquivalent(OBDD root) {
 		// updating the layer HashMap
-		updateLayers();
+		updateLayers(root);
 		// initializing the list of nodes equivalent to this node
 		LinkedList<OBDD> equivNodes = new LinkedList<OBDD>();
 		// the node's layer list
@@ -1083,20 +1072,10 @@ public class OBDD {
 	
 	
 	/**
-	 * provides the recursive findRedundantRec method for the entire OBDD
-	 * @return
-	 */
-	public OBDD findRedundant() {
-		// starting the (recursive) search at the entire OBDD's root
-		return getRoot().findRedundantRec();
-	}
-	
-	
-	/**
-	 * provides a redundant node of this OBDD node's sub-OBDD (if possible)
+	 * provides a redundant node of this OBDD (if possible)
 	 * @return a redundant node (if possible)
 	 */
-	private OBDD findRedundantRec() {
+	public OBDD findRedundant() {
 		// If the node is a terminal, the search has failed.
 		if (terminal) {
 			// tentative value: null
@@ -1111,12 +1090,12 @@ public class OBDD {
 		// children recursively.
 		else {
 			// trying to find a redundant node along the high child's paths
-			OBDD redundantFind = highChild.findRedundantRec();
+			OBDD redundantFind = highChild.findRedundant();
 			// If the search along the high child's paths didn't provide a 
 			// redundant node, the search is continued along the low child's
 			// paths.
 			if ((redundantFind == null)) {
-				redundantFind = lowChild.findRedundantRec();
+				redundantFind = lowChild.findRedundant();
 			}
 			// returning the "find"
 			return redundantFind;
@@ -1136,7 +1115,7 @@ public class OBDD {
 	
 	
 	/**
-	 * states, whether the entire OBDD is a QOBDD
+	 * states, whether the OBDD is a QOBDD
 	 * @param varOrd - the VariableOrdering
 	 * @return 
 	 */
@@ -1145,13 +1124,9 @@ public class OBDD {
 			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
 			return false;
 		} else {
-			// In a QOBDD each path from the root to a terminal has to include 
-			// each variable of the complete VariableOrdering.
-			// The checking is started at the root.
-			OBDD root = getRoot();
 			// checking, whether all variables are on each path from the root 
 			// to a terminal
-			return root.noVarMissing(varOrd.getOrdList());
+			return noVarMissing(varOrd.getOrdList());
 		}
 	}
 	
@@ -1209,7 +1184,7 @@ public class OBDD {
 		// to create a QOBDD.
 		while(equivalentFind != null) {
 			// merging the two found equivalent nodes
-			equivalentFind.poll().mergeEquivalent(equivalentFind.getFirst());
+			qobdd.merge(equivalentFind.poll(), equivalentFind.getFirst(), varOrd);
 			// searching for more equivalent nodes
 			equivalentFind = qobdd.findAnyEquivalent(varOrd);
 		}
@@ -1274,7 +1249,7 @@ public class OBDD {
 		// to create an ROBBD.
 		while (!(redundantFind == null)) {
 			// removing the found redundant node
-			redundantFind.removeRedundant();
+			robdd.remove(redundantFind, varOrd);
 			// searching for another redundant node
 			redundantFind = robdd.findRedundant();
 		}
@@ -1285,68 +1260,77 @@ public class OBDD {
 	
 	
 	/**
-	 * removes this node from the entire OBDD if it's redundant
-	 * @return true, if the node was removed, false otherwise
+	 * removes a given node from the OBDD
+	 * (only accurate for redundant nodes)
+	 * @param node
+	 * @return the resulting OBDD
 	 */
-	public boolean removeRedundant() {
-		// The node only gets removed if it's redundant.
-		if (isRedundant()) {
-			// A terminal doesn't "know" its parents.
-			 if (!highChild.terminal) {
-					// adding all of this node's parents to this node's (high) child's 
-					// one's
-					highChild.parents.addAll(parents);
-					// removing this node from it's child's parents
-					highChild.parents.remove(this); 
-			 }
-			// for each of this node's parents replacing it as a child by it's 
-			// own child
-			for (OBDD p : parents) {
-				if (p.highChild == this) {
-					// If this node was the parent's high child, this one's 
-					// child becomes it instead.
-					p.highChild = highChild;
-				}
-				if (p.lowChild == this) {
-					// If this node was the parent's low child, this one's 
-					// child becomes it instead.
-					p.lowChild = highChild;
-				}
-			}
-			return true;
-		// Otherwise nothing but the return happens.
-		} else return false;
-	}	
+	public OBDD remove(OBDD node, VariableOrdering varOrd) {
+		// clearing the computed table
+		removeAndMergeCT.clear();
+		// adding the node's high child to the computed table for the node 
+		// itself
+		removeAndMergeCT.put(node.id, node.highChild);
+		// returning the rebuilt OBDD
+		return rebuild(varOrd, new VarOrdComparator(varOrd), 
+				node.var);
+	}
 	
-
+	
 	/**
-	 * merges two nodes if they're equivalent
-	 * @param otherNode
-	 * @return the merged node, null if they aren't merged
+	 * merges two given nodes
+	 * (only accurate for equivalent nodes)
+	 * @param firstNode
+	 * @param secondNode
+	 * @param varOrd
+	 * @return
 	 */
-	public OBDD mergeEquivalent(OBDD otherNode) {
-		// The two nodes only get merged if they're equivalent and no 
-		// terminal(s).
-		if (isEquivalent(otherNode) && !terminal) {
-			// adding all of the other node's parents to this one's
-			this.parents.addAll(otherNode.parents);
-			// for each of the other node's parents replacing it as a child 
-			// by this one
-			for (OBDD p : otherNode.parents) {
-				if (p.highChild == otherNode) {
-					// If the other node was the parent's high child, this 
-					// one becomes it instead.
-					p.highChild = this;
-				}
-				if (p.lowChild == otherNode) {
-					// If the other node was the parent's low child, this 
-					// one becomes it instead.
-					p.lowChild = this;
-				}
-			}
+	public OBDD merge(OBDD firstNode, OBDD secondNode, 
+			VariableOrdering varOrd) {
+		// clearing the computed table
+		removeAndMergeCT.clear();
+		// putting the first node into the computed table for both itself and 
+		// the second node
+		removeAndMergeCT.put(firstNode.id, firstNode);
+		removeAndMergeCT.put(secondNode.id, firstNode);
+		// returning the rebuilt OBDD
+		return rebuild(varOrd, new VarOrdComparator(varOrd), 
+				firstNode.var);
+	}
+	
+	
+	/**
+	 * auxiliary method that "rebuilds" the OBDD after removing a node or 
+	 * merging two nodes
+	 * @param varOrd - the variable ordering
+	 * @param varOrdComp - a variable ordering comparator
+	 * @param mergeVar - the variable of the changed node(s)
+	 * @return the rebuilt OBDD
+	 */
+	private OBDD rebuild(VariableOrdering varOrd, 
+			VarOrdComparator varOrdComp, int mergeVar) {
+		// If there is already a calculated result for this node, 
+		// it gets returned.
+		if (removeAndMergeCT.containsKey(id)) return removeAndMergeCT.get(id);
+		// If this node's variable is lower or equal to the one of the changed 
+		// node(s) relating to the variable ordering, it doesn't change.
+		else if (varOrdComp.compare(var, mergeVar) <= 0) {
+			removeAndMergeCT.put(id, this);
 			return this;
-		// tentative return value in case of no merging: null			
-		} else return null;
+		}
+		// Otherwise the resulting node has to be calculated.
+		else {
+			// recursively calling the node's children
+			OBDD rebuiltHighChild = 
+					highChild.rebuild(varOrd, varOrdComp, mergeVar);
+			OBDD rebuiltLowChild = 
+					lowChild.rebuild(varOrd, varOrdComp, mergeVar);
+			// combining the two rebuilt children to a new version of this node
+			OBDD rebuiltNode = 
+					rebuiltHighChild.cons(id, var, rebuiltLowChild, varOrd);
+			removeAndMergeCT.put(id, rebuiltNode);
+			return rebuiltNode;
+		}
 	}
 	
 	
@@ -1476,7 +1460,7 @@ public class OBDD {
 	 * @param obddName
 	 */
 	public void nameNodes(String obddName) {
-		updateLayers();
+		updateLayers(this);
 		nameNodesRec(obddName, 1);
 	}
 	

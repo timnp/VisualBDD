@@ -18,9 +18,9 @@ public class VisualObdd extends JComponent{
 	 */
 	private static final long serialVersionUID = 1L;
 	/**
-	 * the represented OBDD
+	 * the abstract OBDD layout
 	 */
-	private OBDD obdd;
+	private AbstractObddLayout abstractObdd;
 	/**
 	 * a list of the represented OBDD's nodes' IDs
 	 */
@@ -41,21 +41,37 @@ public class VisualObdd extends JComponent{
 	 * each node's absolute size
 	 */
 	private int nodeSize;
-//	/**
-//	 * list of nodes that have already been painted for the paintComponent 
-//	 * method 
-//	 */
-//	private LinkedList<Integer> paintedNodes;
+	/**
+	 * the currently selected OBDD node (if there is one)
+	 */
+	private OBDD selectedNode = null;
+	/**
+	 * the second selected OBDD node (e.g. for merging equivalent nodes) 
+	 */
+	private OBDD secondSelectedNode = null;
+	/**
+	 * list of the other highlighted nodes 
+	 * (e.g. from finding a redundant node)
+	 */
+	private LinkedList<OBDD> highlightedNodes = new LinkedList<OBDD>();
 	
 	
 	
-//	/**
-//	 * getter for the represented OBDD
-//	 * @return
-//	 */
-//	public OBDD getObdd() {
-//		return obdd;
-//	}
+	/**
+	 * getter for the abstract OBDD layout
+	 * @return
+	 */
+	public AbstractObddLayout getAbstractObdd() {
+		return abstractObdd;
+	}
+	
+	/**
+	 * getter for the represented OBDD
+	 * @return
+	 */
+	public OBDD getObdd() {
+		return abstractObdd.getObdd();
+	}
 	
 	/**
 	 * getter for the node ID list
@@ -89,28 +105,80 @@ public class VisualObdd extends JComponent{
 		return nodeSize;
 	}
 	
+	/**
+	 * getter for the (first) selected node
+	 * @return
+	 */
+	public OBDD getSelectedNode() {
+		return selectedNode;
+	}
+	
+	/**
+	 * setter for the selected node
+	 * @param selectedNode
+	 */
+	public void setSelectedNode(OBDD selectedNode) {
+		this.selectedNode = selectedNode;
+	}
+	
+	/**
+	 * getter for the second selected node
+	 * @return
+	 */
+	public OBDD getSecondSelectedNode() {
+		return secondSelectedNode;
+	}
+	
+	/**
+	 * setter for the second selected node
+	 * @param secondSelectedNode
+	 */
+	public void setSecondSelectedNode(OBDD secondSelectedNode) {
+		// setting the second selected node only if the given node is null or 
+		// different from the first selected node
+		if (secondSelectedNode.equals(null) || 
+				!selectedNode.equals(secondSelectedNode)) 
+			this.secondSelectedNode =selectedNode;
+	}
+	
+	/**
+	 * getter for the other highlighted nodes
+	 * @return
+	 */
+	public LinkedList<OBDD> getHighlightedNodes() {
+		return highlightedNodes;
+	}
+	
+	/**
+	 * setter for the highlighted nodes
+	 * @param highlightedNodes
+	 */
+	public void setHighlightedNodes(LinkedList<OBDD> highlightedNodes) {
+		this.highlightedNodes = highlightedNodes;
+	}
+	
 	
 	/**
 	 * constructor for a visual OBDD
-	 * @param layout - the AbstractObddLayout representing the OBDD
+	 * @param abstractObdd - the AbstractObddLayout representing the OBDD
 	 * @param panelSize - the OBDD panel's size
 	 */
-	public VisualObdd(AbstractObddLayout layout, Dimension panelSize) {
+	public VisualObdd(AbstractObddLayout abstractObdd, Dimension panelSize) {
 		// setting the preferred size to the panel's size
 		setPreferredSize(panelSize);
 		// setting the represented OBDD
-		obdd = layout.getObdd();
+		this.abstractObdd = abstractObdd;
 		// adding the represented OBDD's nodes and edges to the respective 
 		// lists
-		addNodesAndEdges(obdd);
+		addNodesAndEdges(this.abstractObdd.getObdd());
 		// splitting the panel size into width and height
 		int panelWidth = panelSize.width;
 		int panelHeight = panelSize.height;
 		// calculating the absolute node size
-		nodeSize = (int) (layout.getNodeSizeToHeight() * panelHeight);
+		nodeSize = (int) (abstractObdd.getNodeSizeToHeight() * panelHeight);
 		// the relative position HashMap
 		HashMap<Integer,Pair<Double,Double>> relPositionMap = 
-				layout.getPositionMap();
+				abstractObdd.getPositionMap();
 		// adding the OBDD's nodes
 		for (int i : relPositionMap.keySet()) {
 			// adding each node's absolute positions to the position map
@@ -128,20 +196,23 @@ public class VisualObdd extends JComponent{
 	private void addNodesAndEdges(OBDD currentNode) {
 		// retrieving the node's ID
 		int id = currentNode.getId();
-		// adding the node's ID to the node ID list
-		nodeIds.add(id);
-		// going further if the node isn't a terminal and it hasn't been added 
-		// already
-		if (!(currentNode.isTerminal() || nodeIds.contains(currentNode))) {
-			// retrieving the (decision) node's children
-			OBDD highChild = currentNode.getHighChild();
-			OBDD lowChild = currentNode.getLowChild();
-			// adding the nodes' outgoing edges to the edge list
-			edgeMap.put(id, new Pair<Integer,Integer>(highChild.getId(), 
-					lowChild.getId()));
-			// recursively adding the node's children
-			addNodesAndEdges(highChild);
-			addNodesAndEdges(lowChild);
+		// adding the node's ID to the node ID list if it hasn't been added 
+		// before
+		if (!nodeIds.contains(currentNode.getId())) {
+			nodeIds.add(id);
+			// adding the node's outgoing edges and recursively its children if
+			// it isn't a terminal
+			if (!currentNode.isTerminal()) {
+				// retrieving the (decision) node's children
+				OBDD highChild = currentNode.getHighChild();
+				OBDD lowChild = currentNode.getLowChild();
+				// adding the nodes' outgoing edges to the edge list
+				edgeMap.put(id, new Pair<Integer,Integer>(highChild.getId(), 
+						lowChild.getId()));
+				// recursively adding the node's children
+				addNodesAndEdges(highChild);
+				addNodesAndEdges(lowChild);
+			}
 		}
 	}
 	
@@ -174,10 +245,6 @@ public class VisualObdd extends JComponent{
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponents(g);
-//		// clearing the list of painted nodes
-//		paintedNodes.clear();
-//		// calling the recursive algorithm
-//		paintComponentRec(g, obdd);
 		// drawing all of the OBDD's nodes
 		for (int id : nodeIds) {
 			// getting the node's positions
@@ -221,46 +288,23 @@ public class VisualObdd extends JComponent{
 	}
 	
 	
-//	/**
-//	 * method that paints an OBDD from the given node down
-//	 * @param currentNode
-//	 */
-//	private void paintComponentRec(Graphics g, OBDD currentNode) {
-//		// retrieving the node's ID
-//		int id = currentNode.getId();
-//		// The node only gets painted, if it hasn't been painted already.
-//		if (!paintedNodes.contains(id)) {
-//			// getting the node's positions
-//			int horizontalPosition = positionMap.get(id).getFirst();
-//			int verticalPosition = positionMap.get(id).getSecond();
-//			if (currentNode.isTerminal()) {
-//				// If the node is a terminal, it's represented by a square.
-//				g.drawRect(horizontalPosition, verticalPosition, 
-//						nodeSize, nodeSize);
-//			}
-//			else {
-//				// If the node isn't a terminal, it's represented by a circle.
-//				g.drawOval(horizontalPosition, verticalPosition, 
-//						nodeSize, nodeSize);
-//				// retrieving the node's children
-//				OBDD highChild = currentNode.getHighChild();
-//				OBDD lowChild = currentNode.getLowChild();
-//				// retrieving their positions
-//				Pair<Integer,Integer> highChildPositions = 
-//						positionMap.get(highChild.getId());
-//				Pair<Integer,Integer> lowChildPositions = 
-//						positionMap.get(lowChild.getId());
-//				// drawing the edge towards the high child
-//				g.drawLine(horizontalPosition, 
-//						verticalPosition + nodeSize, 
-//						highChildPositions.getFirst() + nodeSize, 
-//						highChildPositions.getSecond());
-//				// drawing the edge towards the low child
-//				// TODO
-//				// recursively painting the node's children
-//				paintComponentRec(g, highChild);
-//				paintComponentRec(g, lowChild);
-//			}
-//		}
-//	}
+	/**
+	 * "unselects" all nodes
+	 */
+	public void unselect() {
+		selectedNode = null;
+		secondSelectedNode = null;
+	}
+	
+	
+	/**
+	 * "unhighlights" all nodes
+	 */
+	public void unhighlight() {
+		// "unselecting" all nodes
+		unselect();
+		// "unhighlighting" all other nodes
+		highlightedNodes.clear();
+	}
+	
 }

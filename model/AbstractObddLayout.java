@@ -121,5 +121,18 @@ public class AbstractObddLayout {
 	public void changePosition(Integer node, Pair<Double, Double> pos) {
 		positionMap.put(node, pos);
 	}
-
+	
+	
+	/**
+	 * removes the node with the given ID from the position map and updates the
+	 * represented OBDD to the given one
+	 * @param id
+	 * @param obdd
+	 */
+	public void removeNode(int id, OBDD obdd) {
+		// removing the node ID from the position map
+		positionMap.remove(id);
+		// setting the OBDD
+		this.obdd = obdd;
+	}
 }

@@ -38,13 +38,13 @@ public class MainGui extends JFrame {
 	 */
 	private JTextField obddNameField = new JTextField();
 	/**
-	 * text field for the formula to be represented by the OBDD
-	 */
-	private JTextField formulaField = new JTextField();
-	/**
 	 * text field for the variable ordering
 	 */
 	private JTextField varOrdField = new JTextField();
+	/**
+	 * text field for the formula to be represented by the OBDD
+	 */
+	private JTextField formulaField = new JTextField();
 	/**
 	 * drop down menu for the type of OBDD to be generated
 	 */
@@ -106,21 +106,49 @@ public class MainGui extends JFrame {
 	};
 	
 	/**
+	 * array of the last column buttons' listeners 
+	 */
+	private ActionListener[] lastColumnButtonListeners = {
+			// the undo button listener
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// calling the OBDD controller's undo method for the OBDD 
+					// identified by the given name
+					showObdd(oController.undo(obddNameField.getText(), 
+							obddPane.getSize()));
+				}
+			},
+			// the find equivalent nodes button listener
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					// calling the OBDD controller's method with the variable 
+					// ordering given by the variable ordering field's text
+					showObdd(oController.findEquivalentNodes(varOrdField.getText()));
+				}	
+			}
+	};
+	
+	/**
 	 * insets for components that are directly over another component and 
 	 * "connected" to that component
 	 */
 	private static final Insets over = new Insets(1,1,0,1);
-	
 	/**
 	 * insets for components that are directly under another component and 
 	 * "connected" to that component
 	 */
 	private static final Insets under = new Insets(0,1,1,1);
-	
 	/**
 	 * insets for components that are independent of other components
 	 */
 	private static final Insets independent = new Insets(1,1,1,1);
+	
+	/**
+	 * preferred size for the GUI's buttons
+	 */
+	private static final Dimension preferredButtonSize = new Dimension(175,25);
 	
 	
 	
@@ -138,10 +166,10 @@ public class MainGui extends JFrame {
 	 */
 	public MainGui () {
 		// initializing the MainGui's controllers
-		fController = new FormulaController(this);
-		gController = new GuiController(this);
-		oController = new ObddController(this);
-		vController = new VarOrdController(this);
+		fController = new FormulaController();
+		gController = new GuiController();
+		oController = new ObddController();
+		vController = new VarOrdController();
 		// maximizing the frame
 		setExtendedState(MAXIMIZED_BOTH);
 		// setting the title
@@ -156,27 +184,35 @@ public class MainGui extends JFrame {
 		setJMenuBar(menuBar);
 		
 		// adding the OBDD name label
-		addLabel(new JLabel("OBDD Name"), 0, 0, 1, 1);
+		addLabel(new JLabel("BDD Name"), 0, 0, 1, 1);
 		// adding the OBDD name text field
 		addTextField(obddNameField, 0, 1, 1, 1);
-		// adding the Formula label
-		addLabel(new JLabel("Formula"), 1, 0, 4, 1);
-		// adding the Formula text field
-		addTextField(formulaField, 1, 1, 4, 1);
+		// setting its preferred size
+		obddNameField.setPreferredSize(preferredButtonSize);
 		// adding the VariableOrdering label
-		addLabel(new JLabel("Variable Ordering"), 5, 0, 2, 1);
+		addLabel(new JLabel("Variable Ordering"), 1, 0, 1, 1);
 		// adding the VariableOrdering text field
-		addTextField(varOrdField, 5, 1, 2, 1);
+		addTextField(varOrdField, 1, 1, 1, 1);
+		// setting its preferred size
+		varOrdField.setPreferredSize(preferredButtonSize);
+		// adding the Formula label
+		addLabel(new JLabel("Formula"), 2, 0, 4, 1);
+		// adding the Formula text field
+		addTextField(formulaField, 2, 1, 4, 1);
+		// setting its preferred size
+		formulaField.setPreferredSize(new Dimension(350,25));
 		// adding the OBDD type label
-		addLabel(new JLabel("OBDD Type"), 7, 0, 1, 1);
+		addLabel(new JLabel("BDD Type"), 6, 0, 1, 1);
 		// adding the OBDD type drop down menu
-		addSubLineComboBoxOrButton(obddTypeCB, 7, 1);
+		addSubLineComboBoxOrButton(obddTypeCB, 6, 1);
 //		// adding the OBDD source label
 //		addLabel(new JLabel("OBDD Source"), 8, 0, 1, 1);
 //		// adding the OBDD source drop down menu
 //		addSubLineComboBoxOrButton(obddSourceCB, 8, 1);
 		// adding the generate button
-		addSubLineComboBoxOrButton(generateButton, 9, 1);
+		addSubLineComboBoxOrButton(generateButton, 8, 1);
+		// setting its preferred size
+		generateButton.setPreferredSize(preferredButtonSize);
 		// adding a listener to the generate button
 		generateButton.addActionListener(new ActionListener() {
 			@Override
@@ -186,15 +222,12 @@ public class MainGui extends JFrame {
 				// If there is a string in the formula text field, the OBDD is 
 				// tried to be generated.
 				if (!formulaFieldText.equals("")) {
-					// retrieving the OBDD name field's text
-					String obddName = obddNameField.getText();
-					// retrieving the variable ordering field's text
-					String varOrdFieldText = varOrdField.getText();
-					// retrieving the chosen OBDD type's number
-					int obddTypeNumber = obddTypeCB.getSelectedIndex();
-					// calling the controller
-					oController.obddFromFormula(obddName, formulaFieldText, 
-							varOrdFieldText, obddTypeNumber, obddPane.getSize());
+					// showing the visual OBDD provided by the OBDD controller
+					showObdd(oController.obddFromFormula(
+							obddNameField.getText(), 
+							formulaFieldText, varOrdField.getText(), 
+							obddTypeCB.getSelectedIndex(), 
+							obddPane.getSize()));
 				}
 				else {
 					// TODO pop-up
@@ -204,30 +237,43 @@ public class MainGui extends JFrame {
 		
 		// adding the truth table scroll panel
 		addScrollPane(ttScrollPane, 0, 2, 2, 3);
-		
+		// setting its preferred size
+		ttScrollPane.setPreferredSize(new Dimension(350,175));
 		// adding the truth table clearing button
 		addSubPaneButton(clearTtButton, 0, 5);
-		
+		// setting its preferred size
+		clearTtButton.setPreferredSize(preferredButtonSize);
 		// adding the truth table window button
 		addSubPaneButton(ttWindowButton, 1, 5);
-		
+		// setting its preferred size
+		ttWindowButton.setPreferredSize(preferredButtonSize);
 		// adding the OBDD scroll panel
 		addScrollPane(obddScrollPane, 0, 6, 2, 3);
-		
+		// setting its preferred size
+		obddScrollPane.setPreferredSize(new Dimension(350,175));
 		// adding the OBDD showing button
 		addSubPaneButton(showObddButton, 0, 9);
-		
+		// setting its preferred size
+		showObddButton.setPreferredSize(preferredButtonSize);
 		// adding the OBDD applying button
 		addSubPaneButton(applyObddsButton, 1, 9);
+		// setting its preferred size
+		applyObddsButton.setPreferredSize(preferredButtonSize);
 		
 		// adding the OBDD panel
-		addToMainFrame(obddPane, 2, 2, 7, 8, GridBagConstraints.BOTH, 1, 1, 
+		addToMainFrame(obddPane, 2, 2, 6, 8, GridBagConstraints.BOTH, 1, 1, 
 				new Insets(2, 2, 2, 2), GridBagConstraints.NORTH, 
 				1.0, 1.0);
+		// setting its preferred size#
+		obddPane.setPreferredSize(new Dimension(525,400));
 		
-		// adding the GUI's first column's buttons
+		// adding the GUI's first column's buttons and setting their preferred 
+		// size(s)
 		for (int i = 0; i < lastColumnButtons.length; i++) {
-			addToMainFrame(lastColumnButtons[i], 9, i + 2, 1, 1, 
+			// setting the preferred size
+			lastColumnButtons[i].setPreferredSize(preferredButtonSize);
+			// adding the the button
+			addToMainFrame(lastColumnButtons[i], 8, i + 2, 1, 1, 
 					GridBagConstraints.HORIZONTAL, 1, 1, 
 					new Insets(1, 1, 1, 1), GridBagConstraints.CENTER, 
 					0.2, 0.1);
@@ -391,10 +437,11 @@ public class MainGui extends JFrame {
 	
 	
 	/**
-	 * shows an OBDD given as a VisualObdd
+	 * auxiliary method that shows an OBDD given as a VisualObdd
 	 * @param vObdd
 	 */
-	public void showObdd(VisualObdd vObdd) {
+	private void showObdd(VisualObdd vObdd) {
+	System.out.println("show method called");
 		obddPane.removeAll();
 		obddPane.add(vObdd);
 		obddPane.repaint();
