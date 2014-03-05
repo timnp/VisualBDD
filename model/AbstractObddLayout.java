@@ -2,6 +2,7 @@ package model;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * 
@@ -32,14 +33,6 @@ public class AbstractObddLayout {
 	 */
 	public OBDD getObdd() {
 		return obdd;
-	}
-	
-	/**
-	 * setter for the represented OBDD
-	 * @param obdd
-	 */
-	public void setObdd(OBDD obdd) {
-		this.obdd = obdd;
 	}
 	
 	/**
@@ -90,8 +83,8 @@ public class AbstractObddLayout {
 			// iterating over the layer list
 			while (iter.hasNext()) {
 				// the current node's horizontal position
-				double horizontalPosition = (1.5 + 3 * currentLayerPosition) / 
-						(3 * currentLayer.size());
+				double horizontalPosition = (1.5 + 3.0 * currentLayerPosition) / 
+						(3.0 * currentLayer.size());
 				// storing the node's position in the position HashMap
 				positionMap.put(iter.next().getId(), new Pair<Double, Double>
 						(horizontalPosition, verticalPosition));
@@ -104,12 +97,12 @@ public class AbstractObddLayout {
 			currentLayerPosition = 0;
 		}
 		// the terminals' vertical position
-		verticalPosition = 1 - 1 / (3 * numberOfLayers);
+		verticalPosition = 1.0 - 1.0 / (3.0 * numberOfLayers);
 		// defining the terminals' positions
 		positionMap.put(1, new Pair<Double, Double>(0.25, verticalPosition));
 		positionMap.put(0, new Pair<Double, Double>(0.75, verticalPosition));
 		// One third of the visual OBDD's height is divided to the nodes.
-		nodeSizeToHeight = ((1 / 3) / numberOfLayers);
+		nodeSizeToHeight = (1.0 / (3.0 * numberOfLayers));
 	}
 	
 	
@@ -134,5 +127,21 @@ public class AbstractObddLayout {
 		positionMap.remove(id);
 		// setting the OBDD
 		this.obdd = obdd;
+	}
+	
+	
+	/**
+	 * updates the represented OBDD to the given one and removes all mappings 
+	 * for removed nodes from the position map
+	 * @param obdd
+	 */
+	public void reduceObdd(OBDD obdd) {
+		// setting the OBDD
+		this.obdd = obdd;
+		// retrieving all node IDs that are mapped in the current position map
+		Set<Integer> mappedNodeIds = positionMap.keySet();
+		// removing all mappings for removed nodes
+		for (int id : mappedNodeIds) 
+			if (obdd.getNode(id).equals(null)) positionMap.remove(id);
 	}
 }

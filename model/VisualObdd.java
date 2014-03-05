@@ -164,13 +164,24 @@ public class VisualObdd extends JComponent{
 	 * @param panelSize - the OBDD panel's size
 	 */
 	public VisualObdd(AbstractObddLayout abstractObdd, Dimension panelSize) {
-		// setting the preferred size to the panel's size
-		setPreferredSize(panelSize);
 		// setting the represented OBDD
 		this.abstractObdd = abstractObdd;
 		// adding the represented OBDD's nodes and edges to the respective 
 		// lists
 		addNodesAndEdges(this.abstractObdd.getObdd());
+		// "resizing" the visual OBDD
+		updateSize(panelSize);
+	}
+	
+	
+	/**
+	 * resizes the visual OBDD to the given size, changing the node size and 
+	 * their positions
+	 * @param panelSize - the OBDD panel's size
+	 */
+	public void updateSize(Dimension panelSize) {
+		// setting the size to the panel's size
+		setSize(panelSize);
 		// splitting the panel size into width and height
 		int panelWidth = panelSize.width;
 		int panelHeight = panelSize.height;
@@ -179,7 +190,7 @@ public class VisualObdd extends JComponent{
 		// the relative position HashMap
 		HashMap<Integer,Pair<Double,Double>> relPositionMap = 
 				abstractObdd.getPositionMap();
-		// adding the OBDD's nodes
+		// adding the OBDD's nodes's positions
 		for (int i : relPositionMap.keySet()) {
 			// adding each node's absolute positions to the position map
 			positionMap.put(i, absolutePositions(relPositionMap, panelWidth, 
@@ -266,17 +277,17 @@ public class VisualObdd extends JComponent{
 						// starting the line at the node's lower left "corner"
 						horizontalPosition, 
 						verticalPosition + nodeSize, 
-						// ending the line at the high child's upper right 
+						// ending the line at the high child's upper left 
 						// "corner"
-						highChildPosition.getFirst() + nodeSize, 
+						highChildPosition.getFirst(), 
 						highChildPosition.getSecond());
 				g.drawLine(
 						// starting the line at the node's lower right "corner"
 						horizontalPosition + nodeSize, 
 						verticalPosition + nodeSize, 
-						// ending the line at the low child's upper left 
+						// ending the line at the low child's upper right 
 						// "corner"
-						lowChildPosition.getFirst(), 
+						lowChildPosition.getFirst() + nodeSize, 
 						lowChildPosition.getSecond());
 			}
 			else {

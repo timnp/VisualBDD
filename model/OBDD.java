@@ -995,7 +995,8 @@ public class OBDD {
 	 * method that provides all nodes in the entire OBDD that are equivalent to
 	 * this node (excluding the node itself)
 	 * @param root - the OBDD's root
-	 * @return
+	 * @return a list of all of the OBDD's nodes equivalent to this node; 
+	 * null if there aren't any
 	 */
 	public LinkedList<OBDD> findEquivalent(OBDD root) {
 		// updating the layer HashMap
@@ -1014,8 +1015,10 @@ public class OBDD {
 			OBDD currentNode = iter.next();
 			if (isEquivalent(currentNode)) equivNodes.add(currentNode);
 		}
+		// returning null if there are no equivalent nodes
+		if (equivNodes.isEmpty()) return null; 
 		// returning the list of nodes equivalent to this node
-		return equivNodes;
+		else return equivNodes;
 	}
 	
 	
@@ -1108,9 +1111,11 @@ public class OBDD {
 	 * @return
 	 */
 	public boolean isRedundant() {
-		// A node is redundant, if it's children are the same (which can be 
-		// indicated by their IDs).
-		return (highChild.id == lowChild.id);
+		// A terminal isn't redundant.
+		if (terminal) return false;
+		// A decision node is redundant, if it's children are the same 
+		// (which can be indicated by their IDs).
+		else return (highChild.id == lowChild.id);
 	}
 	
 	
@@ -1184,7 +1189,7 @@ public class OBDD {
 		// to create a QOBDD.
 		while(equivalentFind != null) {
 			// merging the two found equivalent nodes
-			qobdd.merge(equivalentFind.poll(), equivalentFind.getFirst(), varOrd);
+			qobdd = qobdd.merge(equivalentFind.poll(), equivalentFind.getFirst(), varOrd);
 			// searching for more equivalent nodes
 			equivalentFind = qobdd.findAnyEquivalent(varOrd);
 		}
@@ -1249,7 +1254,7 @@ public class OBDD {
 		// to create an ROBBD.
 		while (!(redundantFind == null)) {
 			// removing the found redundant node
-			robdd.remove(redundantFind, varOrd);
+			robdd = robdd.remove(redundantFind, varOrd);
 			// searching for another redundant node
 			redundantFind = robdd.findRedundant();
 		}

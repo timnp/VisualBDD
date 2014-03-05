@@ -16,6 +16,27 @@ public class GuiController {
 	}
 	
 	
+	public void nothingToUndo() {
+		
+	}
 	
-
+	
+	public void noEquivalentNodes() {
+		
+	}
+	
+	
+	public void nothingMerged() {
+		
+	}
+	
+	
+	public void noRedundantNode() {
+		
+	}
+	
+	
+	public void nothingRemoved() {
+		
+	}
 }

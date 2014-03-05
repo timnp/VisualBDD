@@ -132,8 +132,7 @@ public class ObddController {
 	/**
 	 * undoes the last operation executed on the OBDD given by its name
 	 * @param obddName - the OBDD's name
-	 * @return the OBDD's previous version, if there is one; 
-	 * 		   the current OBDD otherwise
+	 * @return the OBDD's previous version, if there is one; otherwise null
 	 */
 	public VisualObdd undo(String obddName, Dimension panelSize) {
 		// retrieving the OBDD's stack
@@ -146,9 +145,11 @@ public class ObddController {
 			obddStacks.put(obddName, obddStack);
 			// setting the current OBDD
 			currentObdd = new VisualObdd(obddStack.peek(), panelSize);
+			// returning the OBDD('s previous version)
+			return currentObdd;
 		}
-		// returning the OBDD('s previous version)
-		return currentObdd;
+		// otherwise returning null
+		else return null;
 	}
 	
 	
@@ -157,7 +158,8 @@ public class ObddController {
 	 * Otherwise any two equivalent nodes are highlighted.
 	 * (Highlighting is not stored on the stack.)
 	 * @param varOrdFieldText - the variable ordering (in string form)
-	 * @return
+	 * @return the current visual OBDD with highlighted equivalent nodes if any
+	 * 		   have been found; otherwise null
 	 */
 	public VisualObdd findEquivalentNodes(String varOrdFieldText) {
 		// retrieving the current (actual) OBDD
@@ -174,10 +176,14 @@ public class ObddController {
 			equivalentNodes = obdd.findAnyEquivalent(varOrd);
 		// searching for nodes equivalent to the selected node, if there is one
 		else equivalentNodes = selectedNode.findEquivalent(obdd);
-		// setting the current OBDD's highlighted nodes
-		currentObdd.setHighlightedNodes(equivalentNodes);
-		// returning the current OBDD
-		return currentObdd;
+		// returning null if there are no equivalent nodes
+		if (equivalentNodes.equals(null)) return null;
+		else {
+			// setting the current OBDD's highlighted nodes
+			currentObdd.setHighlightedNodes(equivalentNodes);
+			// returning the current OBDD
+			return currentObdd;
+		}
 	}
 	
 	
@@ -203,30 +209,22 @@ public class ObddController {
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
 		AbstractObddLayout abstractObdd = obddStack.peek();
+		// initializing a list of remaining highlighted nodes
+		LinkedList<OBDD> remainingHighlightedNodes = new LinkedList<OBDD>();
 		// checking whether there is a selected node
 		if (!firstSelNode.equals(null)) {
 			// checking whether there is a second selected node
 			if (!secondSelNode.equals(null)) {
-				// only merging, if the nodes are equivalent and decision nodes
-				if (firstSelNode.isEquivalent(secondSelNode) && 
-						!firstSelNode.isTerminal()) {
-					// merging the nodes
-					obdd = obdd.merge(firstSelNode, secondSelNode, varOrd);
-					// updating the abstract OBDD
-					abstractObdd.removeNode(secondSelNode.getId(), obdd);
-					// pushing the changed abstract OBDD onto the stack
-					obddStack.push(abstractObdd);
-					// putting the stack back into the stack HashMap
-					obddStacks.put(obddName, obddStack);
-					// creating the new visual OBDD and returning it
-					currentObdd = new VisualObdd(abstractObdd, panelSize);
-					return currentObdd;
-				}
-				// returning null if the nodes weren't be merged
-				else return null;
+				// adding all highlighted nodes to the list of remaining 
+				// highlighted nodes
+				remainingHighlightedNodes = highlightedNodes;
+				// clearing the list of highlighted nodes, then adding the 
+				// second selected node
+				highlightedNodes.clear();
+				highlightedNodes.add(secondSelNode);
 			}
-			// adding the first selected node to the front of the list of 
-			// highlighted nodes, If there is no second selected node
+			// adding the first selected node, if there is one, to the front of
+			// the list of highlighted nodes
 			highlightedNodes.addFirst(firstSelNode);
 		}
 		// checking whether there is more than one highlighted node
@@ -252,11 +250,126 @@ public class ObddController {
 			obddStack.push(abstractObdd);
 			// putting the stack back into the stack HashMap
 			obddStacks.put(obddName, obddStack);
-			// creating the new visual OBDD and returning it
+			// creating the new visual OBDD
 			currentObdd = new VisualObdd(abstractObdd, panelSize);
+			// setting the visual OBDD's highlighted nodes to the remaining 
+			// highlighted nodes
+			currentObdd.setHighlightedNodes(remainingHighlightedNodes);
+			// returning the visual OBDD
 			return currentObdd;
 		}
 		// returning null if there weren't enough nodes given to be merged
 		else return null;
+	}
+	
+	
+	/**
+	 * highlights a redundant node in the current OBDD if there is one
+	 * (Highlighting is not stored on the stack.)
+	 * @return the current visual OBDD with a highlighted redundant node if 
+	 * 		   there is one; otherwise null
+	 */
+	public VisualObdd findRedundant() {
+		// retrieving the current (actual) OBDD
+		OBDD obdd = currentObdd.getObdd();
+		// searching for a redundant node
+		OBDD redundantNode = obdd.findRedundant();
+		// returning null if there is no redundant node
+		if (redundantNode.equals(null)) return null;
+		else {
+			// creating a new list of highlighted nodes containing only the 
+			// found redundant node
+			LinkedList<OBDD> highlightedNodes = new LinkedList<OBDD>();
+			highlightedNodes.add(redundantNode);
+			// setting the current OBDD's highlighted nodes
+			currentObdd.setHighlightedNodes(highlightedNodes);
+			// returning the current OBDD
+			return currentObdd;
+		}
+	}
+	
+	
+	/**
+	 * removes the selected node (or a highlighted one, if none is selected) if
+	 * it's redundant
+	 * @param obddName - the OBDD's name
+	 * @param varOrdFieldText - the variable ordering (in string form)
+	 * @param panelSize - the OBDD panel's size
+	 * @return the visual OBDD if a node has been removed; otherwise null
+	 */
+	public VisualObdd removeRedundant(String obddName, String varOrdFieldText, 
+			Dimension panelSize) {
+		// retrieving the current (actual) OBDD
+		OBDD obdd = currentObdd.getObdd();
+		// retrieving the selected and highlighted nodes
+		OBDD selectedNode = currentObdd.getSelectedNode();
+		LinkedList<OBDD> highlightedNodes = currentObdd.getHighlightedNodes();
+		// creating the variable ordering
+		VariableOrdering varOrd = 
+				VarOrdController.stringToVarOrd(varOrdFieldText);
+		// retrieving the OBDD's stack
+		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
+		// the current abstract OBDD
+		AbstractObddLayout abstractObdd = obddStack.peek();
+		// adding the selected node, if there is one, to the front of the list 
+		// of highlighted nodes
+		if (!selectedNode.equals(null)) 
+			highlightedNodes.addFirst(selectedNode);
+		// checking whether the list of highlighted nodes is empty
+		if (!highlightedNodes.isEmpty()) {
+			// retrieving the first node from the list
+			OBDD highlightedNode = highlightedNodes.peek();
+			// checking whether the node is redundant
+			if (highlightedNode.isRedundant()) {
+				// removing the node
+				obdd = obdd.remove(highlightedNode, varOrd);
+				// updating the abstract OBDD
+				abstractObdd.removeNode(highlightedNode.getId(), obdd);
+				// pushing the changed abstract OBDD onto the stack
+				obddStack.push(abstractObdd);
+				// putting the stack back into the stack HashMap
+				obddStacks.put(obddName, obddStack);
+				// creating the new visual OBDD and returning it
+				currentObdd = new VisualObdd(abstractObdd, panelSize);
+				return currentObdd;
+			}
+			// returning null if the node isn't redundant
+			else return null;
+		}
+		// returning null if there aren't any selected or highlighted nodes
+		else return null;
+	}
+	
+	
+	/**
+	 * reduces the shown OBDD to a QOBDD
+	 * (not accurate for all OBDDs)
+	 * @param obddName - the OBDD's name
+	 * @param varOrdFieldText - the variable ordering (in string form)
+	 * @param panelSize - the OBDD panel's size
+	 * @return the visual OBDD
+	 */
+	public VisualObdd reduceToQobdd(String obddName, String varOrdFieldText, 
+			Dimension panelSize) {
+		// retrieving the current (actual) OBDD
+		OBDD obdd = currentObdd.getObdd();
+		// creating the variable ordering
+		VariableOrdering varOrd = 
+				VarOrdController.stringToVarOrd(varOrdFieldText);
+		// retrieving the OBDD's stack
+		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
+		// the current abstract OBDD
+		AbstractObddLayout abstractObdd = obddStack.peek();
+		// reducing the OBDD
+		obdd = obdd.reduceQ(varOrd);
+		// updating the abstract OBDD
+		abstractObdd.reduceObdd(obdd);
+		// pushing the changed abstract OBDD onto the stack
+		obddStack.push(abstractObdd);
+		// putting the stack back into the stack HashMap
+		obddStacks.put(obddName, obddStack);
+		// creating the new visual OBDD and returning it
+		currentObdd = new VisualObdd(abstractObdd, panelSize);
+		return currentObdd;
 	}
 }
