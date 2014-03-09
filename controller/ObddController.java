@@ -67,7 +67,7 @@ public class ObddController {
 	 * @param panelSize - the OBDD panel's size
 	 * @return the visual OBDD
 	 */
-	public VisualObdd obddFromFormula(String obddName, String formulaFieldText, 
+	public VisualObdd obddFromFormula(String obddName, String formulaFieldText,
 			String varOrdFieldText, int obddTypeNumber, Dimension panelSize) {
 		// If the OBDD's name already exists, it gets numbered automatically
 		if (obddStacks.containsKey(obddName)) {
@@ -171,16 +171,26 @@ public class ObddController {
 		OBDD selectedNode = currentObdd.getSelectedNode();
 		// variable for the equivalent nodes
 		LinkedList<OBDD> equivalentNodes;
-		// searching for any two equivalent nodes, if there is no selected node
-		if (selectedNode.equals(null)) 
+		try {
+			// trying to search nodes equivalent to the selected node
+			// (only works if there is a selected node)
+			equivalentNodes = selectedNode.findEquivalent(obdd);
+		} catch (NullPointerException e) {
+			// searching for any two equivalent nodes, if there is no selected 
+			// node
 			equivalentNodes = obdd.findAnyEquivalent(varOrd);
-		// searching for nodes equivalent to the selected node, if there is one
-		else equivalentNodes = selectedNode.findEquivalent(obdd);
-		// calling the GUI controller to inform the user, if there are no 
-		// equivalent nodes
-		if (equivalentNodes.equals(null)) GuiController.noEquivalentNodes();
-		// otherwise setting the current OBDD's highlighted nodes
-		else currentObdd.setHighlightedNodes(equivalentNodes);
+		}
+		try {
+			// trying to check whether the list of equivalent nodes is empty in
+			// order to check whether it's null
+			equivalentNodes.isEmpty();
+			// otherwise setting the current OBDD's highlighted nodes
+			currentObdd.setHighlightedNodes(equivalentNodes);
+		} catch (NullPointerException e) {
+			// calling the GUI controller to inform the user, if there are no 
+			// equivalent nodes
+			GuiController.noEquivalentNodes();
+		}
 		// returning the current OBDD
 		return currentObdd;
 	}
@@ -210,10 +220,14 @@ public class ObddController {
 		AbstractObddLayout abstractObdd = obddStack.peek();
 		// initializing a list of remaining highlighted nodes
 		LinkedList<OBDD> remainingHighlightedNodes = new LinkedList<OBDD>();
-		// checking whether there is a selected node
-		if (!firstSelNode.equals(null)) {
-			// checking whether there is a second selected node
-			if (!secondSelNode.equals(null)) {
+		try {
+			// trying to get the first selected node's ID in order to check 
+			// whether it's null
+			firstSelNode.getId();
+			try {
+				// trying to get the second selected node's ID in order to 
+				// check whether it's null
+				secondSelNode.getId();
 				// adding all highlighted nodes to the list of remaining 
 				// highlighted nodes
 				remainingHighlightedNodes = highlightedNodes;
@@ -221,11 +235,11 @@ public class ObddController {
 				// second selected node
 				highlightedNodes.clear();
 				highlightedNodes.add(secondSelNode);
-			}
+			} catch (NullPointerException e) {}
 			// adding the first selected node, if there is one, to the front of
 			// the list of highlighted nodes
 			highlightedNodes.addFirst(firstSelNode);
-		}
+		} catch (NullPointerException e) {}
 		// checking whether there is more than one highlighted node
 		if (highlightedNodes.size() > 1) {
 			// retrieving the first highlighted node
@@ -279,16 +293,20 @@ public class ObddController {
 		OBDD obdd = currentObdd.getObdd();
 		// searching for a redundant node
 		OBDD redundantNode = obdd.findRedundant();
-		// calling the GUI controller to inform the user, if there is no 
-		// redundant node
-		if (redundantNode.equals(null)) GuiController.noRedundantNode();
-		else {
+		try {
+			// trying to get the redundant node's ID in order to check whether 
+			// it's null
+			redundantNode.getId();
 			// creating a new list of highlighted nodes containing only the 
 			// found redundant node
 			LinkedList<OBDD> highlightedNodes = new LinkedList<OBDD>();
 			highlightedNodes.add(redundantNode);
 			// setting the current OBDD's highlighted nodes
 			currentObdd.setHighlightedNodes(highlightedNodes);
+		} catch (NullPointerException e) {
+			// calling the GUI controller to inform the user, if there is no 
+			// redundant node
+			GuiController.noRedundantNode();
 		}
 		// returning the current OBDD
 		return currentObdd;
@@ -317,10 +335,14 @@ public class ObddController {
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
 		AbstractObddLayout abstractObdd = obddStack.peek();
-		// adding the selected node, if there is one, to the front of the list 
-		// of highlighted nodes
-		if (!selectedNode.equals(null)) 
+		try {
+			// trying to get the selected node's ID in order to check
+			// whether it's null
+			selectedNode.getId();
+			// adding the selected node, if there is one, to the front of the 
+			// list of highlighted nodes
 			highlightedNodes.addFirst(selectedNode);
+		} catch (NullPointerException e) {}
 		// checking whether the list of highlighted nodes is empty
 		if (!highlightedNodes.isEmpty()) {
 			// retrieving the first node from the list
