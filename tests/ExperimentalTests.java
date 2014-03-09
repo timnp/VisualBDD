@@ -13,7 +13,7 @@ import view.*;
 public class ExperimentalTests {
 	
 	public static void main(String[] args) {
-		MainGui mainGui = new MainGui();
+		new MainGui();
 	}
 
 }

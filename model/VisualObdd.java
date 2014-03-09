@@ -277,17 +277,15 @@ public class VisualObdd extends JComponent{
 						// starting the line at the node's lower left "corner"
 						horizontalPosition, 
 						verticalPosition + nodeSize, 
-						// ending the line at the high child's upper left 
-						// "corner"
-						highChildPosition.getFirst(), 
+						// ending the line at the high child's upper middle
+						highChildPosition.getFirst() + nodeSize / 2, 
 						highChildPosition.getSecond());
 				g.drawLine(
 						// starting the line at the node's lower right "corner"
 						horizontalPosition + nodeSize, 
 						verticalPosition + nodeSize, 
-						// ending the line at the low child's upper right 
-						// "corner"
-						lowChildPosition.getFirst() + nodeSize, 
+						// ending the line at the low child's upper middle
+						lowChildPosition.getFirst() + nodeSize / 2, 
 						lowChildPosition.getSecond());
 			}
 			else {

@@ -145,11 +145,11 @@ public class ObddController {
 			obddStacks.put(obddName, obddStack);
 			// setting the current OBDD
 			currentObdd = new VisualObdd(obddStack.peek(), panelSize);
-			// returning the OBDD('s previous version)
-			return currentObdd;
 		}
-		// otherwise returning null
-		else return null;
+		// otherwise calling the GUI controller to inform the user
+		else GuiController.nothingToUndo();
+		// returning the OBDD('s previous version)
+		return currentObdd;
 	}
 	
 	
@@ -176,14 +176,13 @@ public class ObddController {
 			equivalentNodes = obdd.findAnyEquivalent(varOrd);
 		// searching for nodes equivalent to the selected node, if there is one
 		else equivalentNodes = selectedNode.findEquivalent(obdd);
-		// returning null if there are no equivalent nodes
-		if (equivalentNodes.equals(null)) return null;
-		else {
-			// setting the current OBDD's highlighted nodes
-			currentObdd.setHighlightedNodes(equivalentNodes);
-			// returning the current OBDD
-			return currentObdd;
-		}
+		// calling the GUI controller to inform the user, if there are no 
+		// equivalent nodes
+		if (equivalentNodes.equals(null)) GuiController.noEquivalentNodes();
+		// otherwise setting the current OBDD's highlighted nodes
+		else currentObdd.setHighlightedNodes(equivalentNodes);
+		// returning the current OBDD
+		return currentObdd;
 	}
 	
 	
@@ -242,9 +241,14 @@ public class ObddController {
 					obdd = obdd.merge(firstSelNode, secondMergeNode, varOrd);
 					// updating the abstract OBDD
 					abstractObdd.removeNode(secondMergeNode.getId(), obdd);
+				}				
+				else {
+					// calling the GUI controller to inform the user and 
+					// returning the unchanged OBDD, if the nodes weren't 
+					// all equivalent
+					GuiController.notAllEquivalent();
+					return currentObdd;
 				}
-				// returning null if the nodes weren't be merged				
-				else return null;
 			}
 			// pushing the changed abstract OBDD onto the stack
 			obddStack.push(abstractObdd);
@@ -255,11 +259,12 @@ public class ObddController {
 			// setting the visual OBDD's highlighted nodes to the remaining 
 			// highlighted nodes
 			currentObdd.setHighlightedNodes(remainingHighlightedNodes);
-			// returning the visual OBDD
-			return currentObdd;
 		}
-		// returning null if there weren't enough nodes given to be merged
-		else return null;
+		// calling the GUI controller to inform the user, if there weren't 
+		// enough nodes given to be merged
+		else GuiController.notEnoughNodesSelected();
+		// returning the current OBDD
+		return currentObdd;
 	}
 	
 	
@@ -274,8 +279,9 @@ public class ObddController {
 		OBDD obdd = currentObdd.getObdd();
 		// searching for a redundant node
 		OBDD redundantNode = obdd.findRedundant();
-		// returning null if there is no redundant node
-		if (redundantNode.equals(null)) return null;
+		// calling the GUI controller to inform the user, if there is no 
+		// redundant node
+		if (redundantNode.equals(null)) GuiController.noRedundantNode();
 		else {
 			// creating a new list of highlighted nodes containing only the 
 			// found redundant node
@@ -283,9 +289,9 @@ public class ObddController {
 			highlightedNodes.add(redundantNode);
 			// setting the current OBDD's highlighted nodes
 			currentObdd.setHighlightedNodes(highlightedNodes);
-			// returning the current OBDD
-			return currentObdd;
 		}
+		// returning the current OBDD
+		return currentObdd;
 	}
 	
 	
@@ -329,28 +335,33 @@ public class ObddController {
 				obddStack.push(abstractObdd);
 				// putting the stack back into the stack HashMap
 				obddStacks.put(obddName, obddStack);
-				// creating the new visual OBDD and returning it
+				// creating the new visual OBDD
 				currentObdd = new VisualObdd(abstractObdd, panelSize);
-				return currentObdd;
 			}
-			// returning null if the node isn't redundant
-			else return null;
+			// calling the GUI controller to inform the user, if the node isn't
+			// redundant
+			else GuiController.notRedundant();
 		}
-		// returning null if there aren't any selected or highlighted nodes
-		else return null;
+		// calling the GUI controller to inform the user, if there aren't any 
+		// selected or highlighted nodes
+		else GuiController.notEnoughNodesSelected();
+		// returning the current OBDD
+		return currentObdd;
 	}
 	
 	
 	/**
-	 * reduces the shown OBDD to a QOBDD
-	 * (not accurate for all OBDDs)
+	 * reduces the shown OBDD to a QOBDD or an ROBDD
+	 * (May not be accurate for all OBDDs.)
 	 * @param obddName - the OBDD's name
 	 * @param varOrdFieldText - the variable ordering (in string form)
 	 * @param panelSize - the OBDD panel's size
+	 * @param removeRedundantNodes - boolean that states, whether redundant 
+	 * 		  nodes should be removed (which would result in an ROBDD)
 	 * @return the visual OBDD
 	 */
-	public VisualObdd reduceToQobdd(String obddName, String varOrdFieldText, 
-			Dimension panelSize) {
+	public VisualObdd reduce(String obddName, String varOrdFieldText, 
+			Dimension panelSize, boolean removeRedundantNodes) {
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
 		// creating the variable ordering
@@ -360,8 +371,21 @@ public class ObddController {
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
 		AbstractObddLayout abstractObdd = obddStack.peek();
-		// reducing the OBDD
-		obdd = obdd.reduceQ(varOrd);
+		// reducing the OBDD, if it should be reduced to an ROBDD
+		if (removeRedundantNodes) obdd = obdd.reduceR(varOrd);
+		else {
+			// checking whether any path in the QOBDD is missing any variables,
+			// if the OBDD should be reduced to a QOBDD
+			if (!currentObdd.getObdd().noVarMissing(varOrd.getOrdList())) {
+				// calling the GUI controller's missing variable method to find
+				// out whether the missing variables should be added
+				if (GuiController.missingVars())
+					// adding the missing variables
+					obdd = obdd.addMissingVars(varOrd, varOrd.getOrdList());
+			}
+			// reducing the OBDD to a QOBDD
+			obdd = obdd.reduceQ(varOrd);
+		}
 		// updating the abstract OBDD
 		abstractObdd.reduceObdd(obdd);
 		// pushing the changed abstract OBDD onto the stack
@@ -371,5 +395,31 @@ public class ObddController {
 		// creating the new visual OBDD and returning it
 		currentObdd = new VisualObdd(abstractObdd, panelSize);
 		return currentObdd;
+	}
+	
+	
+	/**
+	 * shows both the initial formula and the currently represented one of the 
+	 * current OBDD
+	 * @param formulaFieldText
+	 */
+	public void representedFormula(String formulaFieldText) {
+		// retrieving the current OBDD's represented formula
+		Formula representedFormula = currentObdd.getObdd().toFormula();
+		// calling the GUI controller's reduce formula method to find out 
+		// whether the formula should be reduced
+		if (GuiController.reduceFormula()) 
+			// reducing the formula
+			representedFormula = representedFormula.reduce();
+		// turning the represented formula into a string
+		String representedFormulaString = representedFormula.toString();
+		// removing the string's first and last character, if the string is 
+		// parenthesized
+		if (FormulaController.isParenthesized(representedFormulaString)) 
+			representedFormulaString = representedFormulaString.substring(1, 
+					representedFormulaString.length() - 1);
+		// calling the GUI controller's show formulas method
+		GuiController.showFormulas(formulaFieldText, 
+				representedFormula.toString());
 	}
 }

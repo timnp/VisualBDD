@@ -1137,12 +1137,12 @@ public class OBDD {
 	
 	
 	/**
-	 * auxiliary function that states, whether in all paths from this node on 
-	 * there is no variable of a given list missing
+	 * states, whether in all paths from this node on there is no variable of a
+	 * given list missing
 	 * @param varOrdList
 	 * @return
 	 */
-	private boolean noVarMissing(LinkedList<Integer> varOrdList) {
+	public boolean noVarMissing(LinkedList<Integer> varOrdList) {
 		// If the node is a terminal, no variable is missing on this path.
 		if (terminal) {
 			return true;

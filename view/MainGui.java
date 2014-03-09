@@ -17,16 +17,14 @@ import model.VisualObdd;
  */
 public class MainGui extends JFrame {
 	/**
-	 * the MainGui's controllers
-	 */
-	private FormulaController fController;
-	private GuiController gController;
-	private ObddController oController;
-	private VarOrdController vController;
-	/**
 	 * default serial version ID
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * the MainGui's controllers
+	 */
+	private ObddController oController;
 	
 	/**
 	 * the menu bar
@@ -114,29 +112,20 @@ public class MainGui extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's undo method for the OBDD 
-					// identified by the given name
-					VisualObdd newObdd = 
-							oController.undo(obddNameField.getText(), 
-									obddPane.getSize());
-					// showing the visual OBDD if something has been undone
-					if (!newObdd.equals(null)) showObdd(newObdd);
-					// otherwise calling the GUI controller to open a new 
-					// window informing the user
-					else gController.nothingToUndo();
+					// identified by the given name and showing the resulting 
+					// OBDD
+					showObdd(oController.undo(obddNameField.getText(), 
+									obddPane.getSize()));
 				}
 			},
 			// the find equivalent nodes button listener
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					// calling the OBDD controller's find equivalent method
-					VisualObdd newObdd = oController.
-							findEquivalentNodes(varOrdField.getText());
-					// showing the visual OBDD if there are equivalent nodes
-					if (!newObdd.equals(null)) showObdd(newObdd);
-					// otherwise calling the GUI controller to open a new 
-					// window informing the user
-					else gController.noEquivalentNodes();
+					// calling the OBDD controller's find equivalent method and
+					// showing the resulting OBDD
+					showObdd(oController.
+							findEquivalentNodes(varOrdField.getText()));
 				}	
 			},
 			// the merge equivalent nodes button listener
@@ -144,28 +133,20 @@ public class MainGui extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
 					// calling the OBDD controller's merge equivalent method 
-					// for the OBDD identified by the given name
-					VisualObdd newObdd = oController.mergeEquivalent
+					// for the OBDD identified by the given name and showing 
+					// the resulting OBDD
+					showObdd(oController.mergeEquivalent
 							(obddNameField.getText(), varOrdField.getText(), 
-									obddPane.getSize());
-					// showing the visual OBDD if the nodes have been merged
-					if (!newObdd.equals(null)) showObdd(newObdd);
-					// otherwise calling the GUI controller to open a new 
-					// window informing the user
-					else gController.nothingMerged();
+									obddPane.getSize()));
 				}
 			},
 			// the find redundant node button listener
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					// calling the OBDD controller's find redundant method
-					VisualObdd newObdd = oController.findRedundant();
-					// showing the visual OBDD if there is a redundant node
-					if (!newObdd.equals(null)) showObdd(newObdd);
-					// otherwise calling the GUI controller to open a new 
-					// window informing the user
-					else gController.noRedundantNode();
+					// calling the OBDD controller's find redundant method and 
+					// showing the resulting OBDD
+					showObdd(oController.findRedundant());
 				}
 			},
 			// the remove redundant node button listener
@@ -173,30 +154,47 @@ public class MainGui extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's remove redundant method 
-					// for the OBDD identified by the given name
-					VisualObdd newObdd = 
-							oController.removeRedundant(obddNameField.getText(), 
-									varOrdField.getText(), obddPane.getSize());
-					// showing the visual OBDD if a node has been removed
-					if (!newObdd.equals(null)) showObdd(newObdd);
-					// otherwise calling the GUI controller to open a new 
-					// window informing the user
-					else gController.nothingRemoved();
+					// for the OBDD identified by the given name and showing 
+					// the resulting OBDD
+					showObdd(oController.removeRedundant
+							(obddNameField.getText(), varOrdField.getText(), 
+									obddPane.getSize()));
 				}
 			},
 			// the reduce to QOBDD button listener
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
-					// calling the OBDD controller's reduce to QOBDD method for
-					// the OBDD identified by the given name
-					
+					// calling the OBDD controller's reduce method for the OBDD
+					// identified by the given name, stating that a QOBDD 
+					// should be created by the parameter "false", and showing 
+					// the resulting OBDD
+					showObdd(oController.reduce(obddNameField.getText(), 
+							varOrdField.getText(), obddPane.getSize(), false));
+				}
+			},
+			// the reduce to ROBDD button listener
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// calling the OBDD controller's reduce method for the OBDD
+					// identified by the given name, stating that an ROBDD 
+					// should be created by the parameter "true", and showing 
+					// the resulting OBDD
+					showObdd(oController.reduce(obddNameField.getText(), 
+							varOrdField.getText(), obddPane.getSize(), true));
+				}
+			},
+			// the get formula button listener
+			new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					// calling the OBDD controller's represented formula method
+					// to show both it and the initial formula given by the 
+					// formula field's text
+					oController.representedFormula(formulaField.getText());
 				}
 			}
-			// the reduce to ROBDD button listener
-			
-			// the get formula button listener
-			
 	};
 	
 	/**
@@ -234,11 +232,8 @@ public class MainGui extends JFrame {
 	 * constructor for the main GUI
 	 */
 	public MainGui () {
-		// initializing the MainGui's controllers
-		fController = new FormulaController();
-		gController = new GuiController();
+		// initializing the MainGui's OBDD controller
 		oController = new ObddController();
-		vController = new VarOrdController();
 		// maximizing the frame
 		setExtendedState(MAXIMIZED_BOTH);
 		// setting the title
@@ -338,8 +333,8 @@ public class MainGui extends JFrame {
 		// setting the OBDD panel's color
 		obddPane.setBackground(Color.WHITE);
 		
-		// adding the GUI's first column's buttons and setting their preferred 
-		// size(s)
+		// adding the GUI's last column's buttons, setting their preferred 
+		// size(s) and adding their listeners
 		for (int i = 0; i < lastColumnButtons.length; i++) {
 			// setting the preferred size
 			lastColumnButtons[i].setPreferredSize(preferredButtonSize);
@@ -348,6 +343,8 @@ public class MainGui extends JFrame {
 					GridBagConstraints.HORIZONTAL, 1, 1, 
 					new Insets(1, 1, 1, 1), GridBagConstraints.CENTER, 
 					0.2, 0.1);
+			lastColumnButtons[i].addActionListener(
+					lastColumnButtonListeners[i]);
 		}
 		
 		// making the main frame visible

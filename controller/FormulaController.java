@@ -207,11 +207,11 @@ public class FormulaController {
 	
 	
 	/**
-	 * auxiliary method that states whether a given String is parenthesized
+	 * states whether a given String is parenthesized
 	 * @param inputString
 	 * @return
 	 */
-	private static boolean isParenthesized(String inputString) {
+	public static boolean isParenthesized(String inputString) {
 		// index of the input String's last character
 		int lastIndex = inputString.length() - 1;
 		// The String may only be parenthesized, if it starts with a left 
@@ -315,17 +315,22 @@ public class FormulaController {
 			inputString = inputString.substring(2);
 			// As long as the following characters of the String are digits, 
 			// they're part of the variable.
-			if (!inputString.isEmpty()) {
+			while (!inputString.isEmpty()) {
+				// trying to match the next character to the digit pattern 
 				matcher = digitPattern.matcher(inputString.substring(0, 1));
-				while (!inputString.isEmpty() && matcher.matches()) {
-					matcher = 
-							digitPattern.matcher(inputString.substring(0, 1));
+				if (matcher.matches()) {
+					// moving the character, if it's a digit, from the input 
+					// string to the output string
 					outputString = 
 							outputString.concat(inputString.substring(0, 1));
 					inputString = inputString.substring(1);
 				}
+				// returning the output string, if the character isn't a digit
+				else return outputString;
 			}
 		}
+		// returning the output string, if the input string doesn't start with 
+		// a variable or the remaining input string is empty
 		return outputString;
 	}
 	
