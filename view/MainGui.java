@@ -98,7 +98,7 @@ public class MainGui extends JFrame {
 			new JButton("Merge Equivalent Nodes"),
 			new JButton("Find a Redundant Node"),
 			new JButton("Remove Redundant Node"),
-			new JButton("Recuce to QOBDD"),
+			new JButton("Reduce to QOBDD"),
 			new JButton("Reduce to ROBDD"),
 			new JButton("Get Formula")
 	};

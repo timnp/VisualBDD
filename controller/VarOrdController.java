@@ -28,9 +28,18 @@ public class VarOrdController {
 	 * @return
 	 */
 	public static VariableOrdering stringToVarOrd(String inputString) {
-		// creating a new VariableOrdering from the ordering list the input 
-		// String represents
-		return new VariableOrdering(stringToOrdList(inputString));
+		// creating the ordering list the input string represents
+		LinkedList<Integer> ordList = stringToOrdList(inputString);
+		try {
+			// trying to check whether the ordering list is empty in order to 
+			// check whether it's null
+			ordList.isEmpty();
+			// creating the variable ordering
+			return new VariableOrdering(ordList);
+		} catch (NullPointerException e) {
+			// returning null if the ordering list is null
+			return null;
+		}
 	}
 	
 	

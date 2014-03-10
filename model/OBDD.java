@@ -302,11 +302,11 @@ public class OBDD {
 				// If the node isn't the specified one and isn't a terminal, 
 				// first the high child gets called recursively.
 				find = highChild.getNode(id);
-				if (find.equals(null)) {
-					// If the high child's call didn't return a node, the low 
-					// child gets called recursively.
-					find = lowChild.getNode(id);
-				}
+				// trying to get the find's ID it's null
+				try {find.getId();}
+				// If the high child's call didn't return a node, the low child
+				// gets called recursively.
+				catch (NullPointerException e) {find = lowChild.getNode(id);}
 			}
 			// returning the find
 			return find;
@@ -1143,8 +1143,9 @@ public class OBDD {
 	 * @return
 	 */
 	public boolean noVarMissing(LinkedList<Integer> varOrdList) {
-		// If the node is a terminal, no variable is missing on this path.
-		if (terminal) {
+		// If the node is a terminal or the list is empty, no variable is 
+		// missing on this path.
+		if (terminal || varOrdList.isEmpty()) {
 			return true;
 		} else if (!(var == varOrdList.poll())) {
 			// If the first variable in the ordered variable list isn't the one 

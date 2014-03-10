@@ -139,9 +139,13 @@ public class AbstractObddLayout {
 		// setting the OBDD
 		this.obdd = obdd;
 		// retrieving all node IDs that are mapped in the current position map
-		Set<Integer> mappedNodeIds = positionMap.keySet();
+		LinkedList<Integer> mappedNodeIds = new LinkedList<Integer>();
+		mappedNodeIds.addAll(positionMap.keySet());
 		// removing all mappings for removed nodes
 		for (int id : mappedNodeIds) 
-			if (obdd.getNode(id).equals(null)) positionMap.remove(id);
+			// trying to get the node and then its ID in order to check whether
+			// it's null and therefore not part of the OBDD
+			try {obdd.getNode(id).getId();} 
+			catch (NullPointerException e) {positionMap.remove(id);}
 	}
 }
