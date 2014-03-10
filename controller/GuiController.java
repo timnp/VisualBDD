@@ -143,4 +143,26 @@ public class GuiController {
 		messageDialog("Initial Formula: " + initialFormula + 
 				"\nRepresented Formula: " + representedFormula);
 	}
+	
+	
+	/**
+	 * informs the user that the chosen name for a OBDD has already been taken 
+	 * and how it got named instead
+	 * @param newName
+	 */
+	public static void nameAlreadyTaken(String newName) {
+		messageDialog("There already is a BDD with the chosen name.\n" 
+				+ "The new BDD has been named '" + newName + "' instead.");
+	}
+	
+	
+	/**
+	 * informs the user that no name for the OBDD has been provided and how it 
+	 * got named
+	 * @param name
+	 */
+	public static void noNameGiven(String name) {
+		messageDialog("You didn't provide a name for the BDD.\n" + 
+				"It has been named '" + name + "' by default.");
+	}
 }

@@ -85,11 +85,12 @@ public class ObddController {
 			// The first numbered name, that doesn't already exist, gets to 
 			// replace the given name.
 			obddName = numberedName;
+			// having the GUI controller inform the user that the given name 
+			// already existed and how the OBDD has been named instead
+			GuiController.nameAlreadyTaken(obddName);
 		}
 		// If no name was given, one is created.
 		else if (obddName.equals("")) {
-			// creating the base name
-			String baseName = "BDD ";
 			// initializing the number
 			int i = 1;
 			// creating the first numbered name
@@ -99,8 +100,11 @@ public class ObddController {
 				// increasing the number
 				i++;
 				// creating the new numbered name
-				obddName = baseName + i;
+				obddName = "BDD " + i;
 			}
+			// having the GUI controller inform the user that no name for the 
+			// OBDD has been provided and how it got named
+			GuiController.noNameGiven(obddName);
 		}
 		// creating the formula
 		Formula formula = FormulaController.stringToFormula(formulaFieldText);
