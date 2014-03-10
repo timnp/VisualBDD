@@ -77,9 +77,9 @@ public class VarOrdController {
 			return stringToOrdListRec(inputString.
 					substring(varNoString.length()), partialOrdList);
 		}
-		// If the String's first character is a ',' or a '<', it's considered 
+		// If the String's first character is a ',' or a '>', it's considered 
 		// to be a separator between two variables.
-		else if (firstChar == ',' || firstChar == '<') {
+		else if (firstChar == ',' || firstChar == '>') {
 			// recursively adding the rest of the input String
 			return stringToOrdListRec(inputString.substring(1), 
 					partialOrdList);
