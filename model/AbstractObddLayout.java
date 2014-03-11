@@ -107,11 +107,37 @@ public class AbstractObddLayout {
 	
 	
 	/**
+	 * constructor for a new version of the given abstract OBDD layout
+	 * @param previousVersion
+	 */
+	public AbstractObddLayout(AbstractObddLayout previousVersion) {
+		// setting the OBDD
+		obdd = previousVersion.obdd;
+		// retrieving the previous version's position map
+		HashMap<Integer, Pair<Double, Double>> previousPositionMap = 
+				previousVersion.positionMap;
+		// initializing a list for the OBDD's nodes' IDs 
+		LinkedList<Integer> nodeIds = new LinkedList<Integer>();
+		// retrieving all nodes' IDs from the previous version's position map
+		nodeIds.addAll(previousPositionMap.keySet());
+		// initializing the new position map
+		positionMap = new HashMap<Integer, Pair<Double, Double>>();
+		// creating a mapping for each node's ID equal to the previous 
+		// version's mapping
+		for (int id : nodeIds) 
+			positionMap.put(id, previousPositionMap.get(id));
+		// setting the node size
+		nodeSizeToHeight = previousVersion.nodeSizeToHeight;
+	}
+	
+	
+	/**
 	 * method that changes a node's position
 	 * @param node
 	 * @param pos
 	 */
 	public void changePosition(Integer node, Pair<Double, Double> pos) {
+		// changing the node's position
 		positionMap.put(node, pos);
 	}
 	

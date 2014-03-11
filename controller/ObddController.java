@@ -323,7 +323,7 @@ public class ObddController {
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
-		AbstractObddLayout abstractObdd = obddStack.peek();
+		AbstractObddLayout abstractObdd = new AbstractObddLayout(obddStack.peek());
 		// initializing a list of remaining highlighted nodes
 		LinkedList<OBDD> remainingHighlightedNodes = new LinkedList<OBDD>();
 		try {
@@ -440,7 +440,7 @@ public class ObddController {
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
-		AbstractObddLayout abstractObdd = obddStack.peek();
+		AbstractObddLayout abstractObdd = new AbstractObddLayout(obddStack.peek());
 		try {
 			// trying to get the selected node's ID in order to check
 			// whether it's null
@@ -498,7 +498,7 @@ public class ObddController {
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
-		AbstractObddLayout abstractObdd = obddStack.peek();
+		AbstractObddLayout abstractObdd = new AbstractObddLayout(obddStack.peek());
 		// reducing the OBDD, if it should be reduced to an ROBDD
 		if (removeRedundantNodes) obdd = obdd.reduceR(varOrd);
 		else {

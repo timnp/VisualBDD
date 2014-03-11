@@ -1,5 +1,7 @@
 package tests;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Stack;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
