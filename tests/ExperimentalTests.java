@@ -1,6 +1,9 @@
 package tests;
 import java.util.LinkedList;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import model.*;
 import controller.*;
 import view.*;

@@ -20,6 +20,59 @@ public class GuiController {
 	
 	
 	/**
+	 * informing the user that the given formula (input string) doesn't fulfill
+	 * the requirements and asks for another one
+	 * @param givenFormulaString
+	 * @return the new formula (input string)
+	 */
+	public static String improperFormulaInputString(String givenFormulaInputString) {
+		return improperInput(
+				"The given formula doesn't fulfill the requirements.\n" + 
+				"Please change it so it does.", 
+				givenFormulaInputString);
+	}
+	
+	
+	/**
+	 * informs the user that the given name for the OBDD is either empty or 
+	 * already taken and asks for another one
+	 * @param givenName
+	 * @return the new name
+	 */
+	public static String improperName(String givenName) {
+		return improperInput(
+				"The given name is either empty or already taken.\n" + 
+				"Please change it to a new non-empty one.", givenName);
+	}
+	
+	
+	/**
+	 * informs the user that the given variable ordering (string) doesn't 
+	 * fulfill the requirements and asks for another one
+	 * @param givenVarOrdString
+	 * @return the new variable ordering (string)
+	 */
+	public static String improperVarOrdString(String givenVarOrdString) {
+		return improperInput("The given variable ordering doesn't fulfill " + 
+				"the requirements.\nPlease change it so it does.", 
+				givenVarOrdString);
+	}
+	
+	
+	/**
+	 * auxiliary method that shows an input dialog with the given message and 
+	 * no given options
+	 * @param message
+	 * @return the user's answer (input)
+	 */
+	private static String improperInput(String message, String givenInput) {
+		return (String) JOptionPane.showInputDialog(new JFrame(), 
+				message, "Improper Input", JOptionPane.INFORMATION_MESSAGE, null, 
+				null, givenInput);
+	}
+	
+	
+	/**
 	 * informs the user that there aren't any previous versions of the current 
 	 * OBDD
 	 */

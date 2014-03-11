@@ -66,8 +66,13 @@ public class VarOrdController {
 	 */
 	private static LinkedList<Integer> stringToOrdListRec(String inputString, 
 			LinkedList<Integer> partialOrdList) {
-		// If the input String is empty, the given ordering list gets returned.
-		if (inputString.isEmpty()) return partialOrdList;
+		if (inputString.isEmpty()) {
+			// If the input String is empty and the partial ordering list isn't, 
+			// the given ordering list gets returned.
+			if (!partialOrdList.isEmpty()) return partialOrdList;
+			// If both are empty, null is returned.
+			else return null;
+		}
 		// isolating the input String's first character
 		char firstChar = inputString.charAt(0);
 		// If the String's first character is an X, it's considered to be the 
@@ -76,7 +81,6 @@ public class VarOrdController {
 			// retrieving the starting variable's number
 			String varNoString = startingVarNoString(inputString);
 			// If there is no number after the X, the String isn't valid.
-			// TODO user message
 			if (varNoString.equals("")) return null;
 			// adding the variable number to the ordering list
 			partialOrdList.add(Integer.parseInt(varNoString));
@@ -94,7 +98,6 @@ public class VarOrdController {
 					partialOrdList);
 		}
 		// Otherwise the String isn't valid
-		// TODO user message
 		else return null;
 	}
 	

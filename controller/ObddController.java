@@ -13,6 +13,7 @@ import java.util.Stack;
 
 
 
+
 import view.MainGui;
 import model.AbstractObddLayout;
 import model.Formula;
@@ -65,51 +66,149 @@ public class ObddController {
 	 * @param varOrdFieldText - the string representing the variable ordering
 	 * @param obddTypeNumber - the OBDD's type number
 	 * @param panelSize - the OBDD panel's size
-	 * @return the visual OBDD
+	 * @return a pair of the visual OBDD and an array of the possibly changed 
+	 * 		   OBDD name, variable ordering string and formula (input) string
 	 */
-	public VisualObdd obddFromFormula(String obddName, String formulaFieldText,
-			String varOrdFieldText, int obddTypeNumber, Dimension panelSize) {
-		// If the OBDD's name already exists, it gets numbered automatically
-		if (obddStacks.containsKey(obddName)) {
-			// initializing the number
-			int i = 1;
-			// creating the first numbered name
-			String numberedName = obddName + " (1)";
-			// As long as the numbered name also exists, a new one is created.
-			while (obddStacks.containsKey(numberedName)) {
-				// increasing the number
-				i++;
-				// creating the new numbered name
-				numberedName = obddName + " (" + i + ")";
-			}
-			// The first numbered name, that doesn't already exist, gets to 
-			// replace the given name.
-			obddName = numberedName;
-			// having the GUI controller inform the user that the given name 
-			// already existed and how the OBDD has been named instead
-			GuiController.nameAlreadyTaken(obddName);
+	public Pair<VisualObdd, String[]> obddFromFormula(String obddName, 
+			String formulaFieldText, String varOrdFieldText, 
+			int obddTypeNumber, Dimension panelSize) {
+		// as long as the given name is either empty or already taken, the user
+		// is asked to provide another one
+		while (obddName.equals("") || obddStacks.containsKey(obddName)) {
+			// retrieving the new name for the OBDD
+			String newName = GuiController.improperName(obddName);
+			try {
+				// trying to check whether the new name is empty in order to 
+				// check whether it's null
+				newName.isEmpty();
+				} catch (NullPointerException e) 
+					{
+					// If the OBDD name is null, the user chose the "cancel" 
+					// option. In that case a pair including null for a 
+					// visual OBDD is returned.
+					return new Pair<VisualObdd, String[]> (null, new String[] 
+							{obddName, varOrdFieldText, formulaFieldText});
+					}
+			// setting the OBDD name if the new name isn't null
+			obddName = newName;
 		}
-		// If no name was given, one is created.
-		else if (obddName.equals("")) {
-			// initializing the number
-			int i = 1;
-			// creating the first numbered name
-			obddName = "BDD 1";
-			// As long as the name also exists, a new one is created.
-			while (obddStacks.containsKey(obddName)) {
-				// increasing the number
-				i++;
-				// creating the new numbered name
-				obddName = "BDD " + i;
-			}
-			// having the GUI controller inform the user that no name for the 
-			// OBDD has been provided and how it got named
-			GuiController.noNameGiven(obddName);
-		}
-		// creating the formula
-		Formula formula = FormulaController.stringToFormula(formulaFieldText);
+//		// If the OBDD's name already exists, it gets numbered automatically
+//		if (obddStacks.containsKey(obddName)) {
+//			// initializing the number
+//			int i = 1;
+//			// creating the first numbered name
+//			String numberedName = obddName + " (1)";
+//			// As long as the numbered name also exists, a new one is created.
+//			while (obddStacks.containsKey(numberedName)) {
+//				// increasing the number
+//				i++;
+//				// creating the new numbered name
+//				numberedName = obddName + " (" + i + ")";
+//			}
+//			// The first numbered name, that doesn't already exist, gets to 
+//			// replace the given name.
+//			obddName = numberedName;
+//			// having the GUI controller inform the user that the given name 
+//			// already existed and how the OBDD has been named instead
+//			GuiController.nameAlreadyTaken(obddName);
+//		}
+//		// If no name was given, one is created.
+//		else if (obddName.equals("")) {
+//			// initializing the number
+//			int i = 1;
+//			// creating the first numbered name
+//			obddName = "BDD 1";
+//			// As long as the name also exists, a new one is created.
+//			while (obddStacks.containsKey(obddName)) {
+//				// increasing the number
+//				i++;
+//				// creating the new numbered name
+//				obddName = "BDD " + i;
+//			}
+//			// having the GUI controller inform the user that no name for the 
+//			// OBDD has been provided and how it got named
+//			GuiController.noNameGiven(obddName);
+//		}
 		// creating the variable ordering
 		VariableOrdering varOrd = VarOrdController.stringToVarOrd(varOrdFieldText);
+		// as long as the given variable ordering string doesn't fulfill the 
+		// requirements and therefore the variable ordering couldn't be created
+		// properly, the user is asked to provide another one
+		while (true) {
+			try {
+				// trying to check whether the variable ordering is empty in 
+				// order to check whether it's null
+				varOrd.isEmpty();
+				// breaking the loop, if the variable ordering isn't null
+				break;
+				} catch (NullPointerException e)  {
+					// having the GUI controller inform the user that the 
+					// variable ordering string doesn't fulfill the 
+					// requirements and ask for another one
+					String newVarOrdString = GuiController.
+							improperVarOrdString(varOrdFieldText);
+					try {
+						// trying to check whether the new variable ordering 
+						// string is empty in order to check whether it's null
+						newVarOrdString.isEmpty();
+						} catch (NullPointerException e2) 
+							{
+							// If the variable ordering string is null, the 
+							// user chose the "cancel" option. In that case a 
+							// pair including null for a visual OBDD is 
+							// returned.
+							return new Pair<VisualObdd, String[]> 
+									(null, new String[] 
+											{obddName, varOrdFieldText, 
+											formulaFieldText});
+							}
+					// setting the variable ordering string if the new one 
+					// isn't null
+					varOrdFieldText = newVarOrdString;
+					// creating the variable ordering from the new given string
+					varOrd = VarOrdController.stringToVarOrd(varOrdFieldText);
+					}
+		}
+		// converting the string given for the formula into a "formula string"
+		String formulaString = FormulaController.toFormulaString(formulaFieldText);
+		// as long as the input string doesn't fulfill the requirements and 
+		// therefore the formula couldn't be created properly, the user is 
+		// asked to provide another one
+		while (true) {
+			try {
+				// trying to check whether the formula string is empty in order
+				// to check whether it's null
+				formulaString.isEmpty();
+				// breaking the loop if the formula string isn't null
+				break;
+			} catch (NullPointerException e) {
+				// having the GUI controller inform the user that the formula 
+				// input string doesn't fulfill the requirements and ask for 
+				// another one
+				String newFormulaInputString = GuiController.
+						improperFormulaInputString(formulaFieldText);
+				try {
+					// trying to check whether the new formula input string is 
+					// empty in order to check whether it's null
+					newFormulaInputString.isEmpty();
+					} catch (NullPointerException e2) 
+						{
+						// If the formula input string is null, the user chose 
+						// the "cancel" option. In that case a pair including 
+						// null for a visual OBDD is returned.
+						return new Pair<VisualObdd, String[]> 
+								(null, new String[] {obddName, varOrdFieldText,
+										formulaFieldText});
+						}
+				// setting the formula input string if the new one isn't 
+				// null
+				formulaFieldText = newFormulaInputString;
+				// converting the new input string into a "formula string"
+				formulaString = FormulaController.toFormulaString(formulaFieldText);
+			}
+		}
+		// creating the formula
+		Formula formula = FormulaController.stringToFormula(formulaString);
 		// creating the complete OBDD
 		OBDD obdd = formula.toObdd(varOrd);
 		// reducing to a QOBDD if one should be generated
@@ -128,8 +227,11 @@ public class ObddController {
 		VisualObdd visualObdd = new VisualObdd(abstractObdd, panelSize);
 		// setting the current visual OBDD
 		currentObdd = visualObdd;
-		// returning the visual OBDD
-		return visualObdd;
+		// returning a pair of the visual OBDD and an array of the possibly 
+		// changed OBDD name, variable ordering string and 
+		// formula (input) string
+		return new Pair<VisualObdd, String[]> (visualObdd, 
+				new String[] {obddName, varOrdFieldText, formulaFieldText});
 	}
 	
 	
@@ -145,10 +247,10 @@ public class ObddController {
 		if (obddStack.size() > 1) {
 			// removing the OBDD's current version from the stack
 			obddStack.pop();
-			// putting the stack back into the stack HashMap
-			obddStacks.put(obddName, obddStack);
 			// setting the current OBDD
 			currentObdd = new VisualObdd(obddStack.peek(), panelSize);
+			// putting the stack back into the stack HashMap
+			obddStacks.put(obddName, obddStack);
 		}
 		// otherwise calling the GUI controller to inform the user
 		else GuiController.nothingToUndo();

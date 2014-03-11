@@ -29,14 +29,35 @@ public class FormulaController {
 	
 	
 	/**
-	 * method that provides a Formula that is represented by a given String
-	 * @param inputString - the String
+	 * method that provides a Formula that is represented by a given Formula 
+	 * String
+	 * @param formulaString - the Formula String
 	 * @return
 	 */
-	public static Formula stringToFormula(String inputString) {
-		// converting the String into a "Formula String"
-		String formulaString = toFormulaString(inputString);
-		// creating a Formula from the Formula String
+	public static Formula stringToFormula(String formulaString) {
+//		// converting the String into a "Formula String"
+//		String formulaString = toFormulaString(inputString);
+//		// as long as the input string doesn't fulfill the requirements and 
+//		// therefore the formula couldn't be created properly, the user is 
+//		// asked to provide another one
+//		while (true) {
+//			try {
+//				// trying to check whether the formula string is empty in order
+//				// to check whether it's null
+//				formulaString.isEmpty();
+//				// breaking the loop if the formula string isn't null
+//				break;
+//			} catch (NullPointerException e) {
+//				// having the GUI controller inform the user that the input 
+//				// string doesn't fulfill the requirements and ask for another 
+//				// one
+//				inputString = 
+//						GuiController.improperFormulaInputString(inputString);
+//				// converting the new input string into a "formula string"
+//				formulaString = toFormulaString(inputString);
+//			}
+//		}
+		// creating the Formula from the Formula String
 		return new Formula(formulaString);
 	}
 	
@@ -84,6 +105,8 @@ public class FormulaController {
 	 * String
 	 */
 	private static String toFormulaStringRec(String inputString) {
+		// returning null if the input string is empty
+		if (inputString.isEmpty()) return null;
 		// If the String is parenthesized, the part in between has to be 
 		// converted.
 		if (isParenthesized(inputString)) {
@@ -153,7 +176,6 @@ public class FormulaController {
 				if (!successor.equals("")) {
 					successors.add(successor);
 					inputString = inputString.substring(successor.length());
-					// TODO user message
 				} else return null;
 			}
 		}
@@ -212,6 +234,8 @@ public class FormulaController {
 	 * @return
 	 */
 	public static boolean isParenthesized(String inputString) {
+		// returning false if the input string is empty
+		if (inputString.isEmpty()) return false;
 		// index of the input String's last character
 		int lastIndex = inputString.length() - 1;
 		// The String may only be parenthesized, if it starts with a left 
@@ -299,6 +323,9 @@ public class FormulaController {
 	 */
 	private static String variableSuccessor(String inputString) {
 		String outputString = "";
+		// returning the empty string if the input string is too short to 
+		// represent a variable
+		if (inputString.length() < 2) return outputString;
 		// If the String starts (possibly with a negation symbol and then) with
 		// an X and a digit, it starts with a variable.
 		if (inputString.startsWith("-")) {

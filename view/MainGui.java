@@ -8,6 +8,7 @@ import javax.swing.*;
 
 import controller.*;
 import model.AbstractObddLayout;
+import model.Pair;
 import model.VisualObdd;
 
 /**
@@ -281,24 +282,22 @@ public class MainGui extends JFrame {
 		generateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// retrieving the formula field's text
-				String formulaFieldText = formulaField.getText();
-				// If there is a string in the formula text field, the OBDD is 
-				// tried to be generated.
-				if (!formulaFieldText.equals("")) {
-					// showing the visual OBDD provided by the OBDD controller
-					showObdd(oController.obddFromFormula(
-							obddNameField.getText(), 
-							formulaFieldText, varOrdField.getText(), 
-							obddTypeCB.getSelectedIndex(), 
-							obddPane.getSize()));
-				}
-				else {
-					// TODO pop-up
-				}
+				// calling the OBDD controller's OBDD from formula method
+				Pair<VisualObdd, String[]> results = 
+						oController.obddFromFormula(obddNameField.getText(), 
+								formulaField.getText(), varOrdField.getText(), 
+								obddTypeCB.getSelectedIndex(), 
+								obddPane.getSize());
+				// showing the visual OBDD
+				showObdd(results.getFirst());
+				// updating the possibly OBDD name, variable ordering string 
+				// and formula (input) string
+				obddNameField.setText(results.getSecond()[0]);
+				varOrdField.setText(results.getSecond()[1]);
+				formulaField.setText(results.getSecond()[2]);
 			}
 		});
-		
+
 		// adding the truth table scroll panel
 		addScrollPane(ttScrollPane, 0, 2, 2, 3);
 		// setting its preferred size
@@ -509,8 +508,14 @@ public class MainGui extends JFrame {
 	 * @param vObdd
 	 */
 	private void showObdd(VisualObdd vObdd) {
-		obddPane.removeAll();
-		obddPane.add(vObdd);
-		obddPane.repaint();
+		try {
+			// trying to check whether the visual OBDD is visible in order to 
+			// check whether it's null
+			vObdd.isVisible();
+			// showing it if it isn't null
+			obddPane.removeAll();
+			obddPane.add(vObdd);
+			obddPane.repaint();
+		} catch (NullPointerException e) {}
 	}
 }
