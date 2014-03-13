@@ -556,7 +556,14 @@ public class ObddController {
 	}
 	
 	
-//	public VisualObdd clickOnObddPanel(Point p) {
-//		
-//	}
+	/**
+	 * forwards the point clicked at to the current visual OBDD and returns it 
+	 * afterwards
+	 * @param p - the point
+	 * @return
+	 */
+	public VisualObdd clickOnObddPanel(Point p) {
+		currentObdd.clickAtPoint(p);
+		return currentObdd;
+	}
 }

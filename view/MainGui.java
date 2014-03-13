@@ -339,7 +339,7 @@ public class MainGui extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				
-//				showObdd(oController.clickOnObddPanel(e.getPoint()));
+				showObdd(oController.clickOnObddPanel(e.getPoint()));
 			}
 
 			@Override

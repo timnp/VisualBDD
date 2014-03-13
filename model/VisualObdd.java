@@ -1,9 +1,11 @@
 package model;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -35,10 +37,9 @@ public class VisualObdd extends JComponent{
 	private HashMap<Integer,Pair<Integer,Integer>> edgeMap = 
 			new HashMap<Integer,Pair<Integer,Integer>>();
 	/**
-	 * a HashMap with each node's top left corner's absolute positions
+	 * a HashMap with each node's center's absolute positions
 	 */
-	private HashMap<Integer,Pair<Integer,Integer>> positionMap = 
-			new HashMap<Integer,Pair<Integer,Integer>>();
+	private HashMap<Integer,Point> positionMap = new HashMap<Integer,Point>();
 	/**
 	 * each node's absolute size
 	 */
@@ -56,6 +57,12 @@ public class VisualObdd extends JComponent{
 	 * (e.g. from finding a redundant node)
 	 */
 	private LinkedList<OBDD> highlightedNodes = new LinkedList<OBDD>();
+	/**
+	 * colors for the selected and highlighted nodes
+	 */
+	private Color selectedColor = Color.RED;
+	private Color secondSelectedColor = Color.ORANGE;
+	private Color highlightedColor = Color.YELLOW;
 	
 	
 	
@@ -95,7 +102,7 @@ public class VisualObdd extends JComponent{
 	 * getter for the position map
 	 * @return
 	 */
-	public HashMap<Integer,Pair<Integer,Integer>> getPositionMap() {
+	public HashMap<Integer,Point> getPositionMap() {
 		return positionMap;
 	}
 	
@@ -237,7 +244,7 @@ public class VisualObdd extends JComponent{
 	 * @param id - the node's ID
 	 * @return the node's absolute positions
 	 */
-	private Pair<Integer, Integer> absolutePositions(
+	private Point absolutePositions(
 			HashMap<Integer,Pair<Double,Double>> positionMap, 
 			int panelWidth, int panelHeight, int id) {
 		// retrieving the node's relative positions
@@ -247,7 +254,7 @@ public class VisualObdd extends JComponent{
 				panelWidth);
 		Integer verticalPosition = (int) (relativePositions.getSecond() * 
 				panelHeight);
-		return new Pair<Integer,Integer>(horizontalPosition,verticalPosition);
+		return new Point(horizontalPosition,verticalPosition);
 	}
 	
 	
@@ -265,12 +272,35 @@ public class VisualObdd extends JComponent{
 		// drawing all of the OBDD's nodes
 		for (int id : nodeIds) {
 			// getting the node's positions
-			int horizontalPosition = positionMap.get(id).getFirst();
-			int verticalPosition = positionMap.get(id).getSecond();
+			int horizontalPosition = positionMap.get(id).x;
+			int verticalPosition = positionMap.get(id).y;
 			if (id > 1) {
 				// If the node isn't a terminal, it's represented by a circle.
 				g2.drawOval(horizontalPosition - nodeSize/2, 
 						verticalPosition - nodeSize/2, nodeSize, nodeSize);
+				// coloring the node if it's selected or highlighted
+				try {
+					if (selectedNode.getId() == id) {
+					g2.setColor(selectedColor);
+					g2.fillOval(horizontalPosition - nodeSize/2, 
+						verticalPosition - nodeSize/2, nodeSize, nodeSize);
+					g2.setColor(Color.BLACK);
+					}
+				} catch (NullPointerException e) {}
+				try {
+					if (secondSelectedNode.getId() == id) {
+						g2.setColor(secondSelectedColor);
+						g2.fillOval(horizontalPosition - nodeSize/2, 
+							verticalPosition - nodeSize/2, nodeSize, nodeSize);
+						g2.setColor(Color.BLACK);
+					}
+				} catch (NullPointerException e) {}
+				if (isHighlighted(id)) {
+					g2.setColor(highlightedColor);
+					g2.fillOval(horizontalPosition - nodeSize/2, 
+						verticalPosition - nodeSize/2, nodeSize, nodeSize);
+					g2.setColor(Color.BLACK);
+				}
 				// writing the node's variable into the circle
 				g2.drawString("X" + this.getObdd().getNode(id).getVar(), 
 						horizontalPosition - halfFontSize, 
@@ -278,9 +308,9 @@ public class VisualObdd extends JComponent{
 				// retrieving the node's children
 				Pair<Integer,Integer> children = edgeMap.get(id);
 				// retrieving the decision node's children's positions
-				Pair<Integer,Integer> highChildPosition = 
+				Point highChildPosition = 
 						positionMap.get(children.getFirst());
-				Pair<Integer,Integer> lowChildPosition = 
+				Point lowChildPosition = 
 						positionMap.get(children.getSecond());
 				// drawing the node's outgoing edges
 				g2.drawLine(
@@ -288,8 +318,8 @@ public class VisualObdd extends JComponent{
 						horizontalPosition - nodeSize/2, 
 						verticalPosition + nodeSize/2, 
 						// ending the line at the high child's upper middle
-						highChildPosition.getFirst(), 
-						highChildPosition.getSecond() - nodeSize/2);
+						highChildPosition.x, 
+						highChildPosition.y - nodeSize/2);
 				// setting the stroke for the edge to the low child
 				g2.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, 
 						BasicStroke.JOIN_MITER, 10.0f, new float[] {10.0f}, 
@@ -299,8 +329,8 @@ public class VisualObdd extends JComponent{
 						horizontalPosition + nodeSize/2, 
 						verticalPosition + nodeSize/2, 
 						// ending the line at the low child's upper middle
-						lowChildPosition.getFirst(), 
-						lowChildPosition.getSecond() - nodeSize/2);
+						lowChildPosition.x, 
+						lowChildPosition.y - nodeSize/2);
 				// resetting the stroke
 				g2.setStroke(new BasicStroke());
 			}
@@ -314,6 +344,19 @@ public class VisualObdd extends JComponent{
 						verticalPosition + halfFontSize);
 			}
 		}
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a node given by its ID is highlighted
+	 * @param id - the node's ID
+	 * @return
+	 */
+	private boolean isHighlighted(int id) {
+		// checking whether a highlighted node has the given ID
+		for (OBDD obdd : highlightedNodes) if (obdd.getId() == id) return true;
+		// returning false if no highlighted node has the given ID
+		return false;
 	}
 	
 	
@@ -336,4 +379,42 @@ public class VisualObdd extends JComponent{
 		highlightedNodes.clear();
 	}
 	
+	
+	/**
+	 * If the given point is in the visualization of a node, that node becomes 
+	 * the selected one. Otherwise the selected node becomes unselected.
+	 * @param p - the point
+	 */
+	public void clickAtPoint(Point p) {
+		// resetting the selected node
+		selectedNode = null;
+		// searching for a node in which's visualization the point is
+		for (int id : nodeIds) {
+			if (pointInNode(p, id)) {
+				// setting the selected node and ending the loop
+				selectedNode = getObdd().getNode(id);
+				break;
+			}
+		}
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a given point is in the 
+	 * visualization of a node (given by its ID)
+	 * @param p - the point
+	 * @param id - the node's ID
+	 * @return
+	 */
+	private boolean pointInNode(Point p, int id) {
+		// retrieving the node's center's position
+		Point center = positionMap.get(id);
+		// for decision nodes checking whether the point is in the respective 
+		// circle around the node's center
+		if (id >= 2) return (p.distance(center) <= nodeSize/2.0);
+		// for terminals checking whether the point is in the respective square
+		// around the node's center
+		else return (Math.abs(p.x - center.x) <= nodeSize/2.0 && 
+				Math.abs(p.y - center.y) <= nodeSize/2.0);
+	}
 }
