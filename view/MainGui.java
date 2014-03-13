@@ -3,6 +3,8 @@ package view;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.*;
 
@@ -64,9 +66,10 @@ public class MainGui extends JFrame {
 	 */
 	private JScrollPane ttScrollPane = new JScrollPane();
 	/**
-	 * button for clearing the truth table
+	 * button for combining/separating similar lines of the truth table
 	 */
-	private JButton clearTtButton = new JButton("Clear Truth Table");
+	private JButton combineSeparateButton = 
+			new JButton("Combine/Separate Lines");
 	/**
 	 * button for showing the truth table in a new window
 	 */
@@ -122,7 +125,7 @@ public class MainGui extends JFrame {
 			// the find equivalent nodes button listener
 			new ActionListener() {
 				@Override
-				public void actionPerformed(ActionEvent arg0) {
+				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's find equivalent method and
 					// showing the resulting OBDD
 					showObdd(oController.
@@ -132,7 +135,7 @@ public class MainGui extends JFrame {
 			// the merge equivalent nodes button listener
 			new ActionListener() {
 				@Override
-				public void actionPerformed(ActionEvent arg0) {
+				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's merge equivalent method 
 					// for the OBDD identified by the given name and showing 
 					// the resulting OBDD
@@ -144,7 +147,7 @@ public class MainGui extends JFrame {
 			// the find redundant node button listener
 			new ActionListener() {
 				@Override
-				public void actionPerformed(ActionEvent arg0) {
+				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's find redundant method and 
 					// showing the resulting OBDD
 					showObdd(oController.findRedundant());
@@ -165,7 +168,7 @@ public class MainGui extends JFrame {
 			// the reduce to QOBDD button listener
 			new ActionListener() {
 				@Override
-				public void actionPerformed(ActionEvent arg0) {
+				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's reduce method for the OBDD
 					// identified by the given name, stating that a QOBDD 
 					// should be created by the parameter "false", and showing 
@@ -189,7 +192,7 @@ public class MainGui extends JFrame {
 			// the get formula button listener
 			new ActionListener() {
 				@Override
-				public void actionPerformed(ActionEvent arg0) {
+				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's represented formula method
 					// to show both it and the initial formula given by the 
 					// formula field's text
@@ -302,10 +305,10 @@ public class MainGui extends JFrame {
 		addScrollPane(ttScrollPane, 0, 2, 2, 3);
 		// setting its preferred size
 		ttScrollPane.setPreferredSize(new Dimension(350,175));
-		// adding the truth table clearing button
-		addSubPaneButton(clearTtButton, 0, 5);
+		// adding the line combining/separating button
+		addSubPaneButton(combineSeparateButton, 0, 5);
 		// setting its preferred size
-		clearTtButton.setPreferredSize(preferredButtonSize);
+		combineSeparateButton.setPreferredSize(preferredButtonSize);
 		// adding the truth table window button
 		addSubPaneButton(ttWindowButton, 1, 5);
 		// setting its preferred size
@@ -331,6 +334,38 @@ public class MainGui extends JFrame {
 		obddPane.setPreferredSize(new Dimension(525,400));
 		// setting the OBDD panel's color
 		obddPane.setBackground(Color.WHITE);
+		// adding a listener to the OBDD panel
+		obddPane.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+//				showObdd(oController.clickOnObddPanel(e.getPoint()));
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		
 		// adding the GUI's last column's buttons, setting their preferred 
 		// size(s) and adding their listeners

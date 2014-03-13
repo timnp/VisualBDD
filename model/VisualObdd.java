@@ -1,7 +1,9 @@
 package model;
 
+import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -194,7 +196,7 @@ public class VisualObdd extends JComponent{
 		for (int i : relPositionMap.keySet()) {
 			// adding each node's absolute positions to the position map
 			positionMap.put(i, absolutePositions(relPositionMap, panelWidth, 
-					panelHeight, nodeSize, i));
+					panelHeight, i));
 		}
 	}
 	
@@ -232,20 +234,19 @@ public class VisualObdd extends JComponent{
 	 * auxiliary method to turn relative positions into absolute ones
 	 * @param positionMap - HashMap with relative positions
 	 * @param panelSize - the size of the panel
-	 * @param nodeSize - the absolute node size
 	 * @param id - the node's ID
 	 * @return the node's absolute positions
 	 */
 	private Pair<Integer, Integer> absolutePositions(
 			HashMap<Integer,Pair<Double,Double>> positionMap, 
-			int panelWidth, int panelHeight, int nodeSize, int id) {
+			int panelWidth, int panelHeight, int id) {
 		// retrieving the node's relative positions
 		Pair<Double,Double> relativePositions = positionMap.get(id);
 		// calculating the absolute ones
 		Integer horizontalPosition = (int) (relativePositions.getFirst() * 
-				panelWidth - nodeSize / 2);
+				panelWidth);
 		Integer verticalPosition = (int) (relativePositions.getSecond() * 
-				panelHeight - nodeSize / 2);
+				panelHeight);
 		return new Pair<Integer,Integer>(horizontalPosition,verticalPosition);
 	}
 	
@@ -256,6 +257,11 @@ public class VisualObdd extends JComponent{
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponents(g);
+		// casting the graphics object to graphics2D
+		// (Stroking isn't possible for graphics objects.)
+		Graphics2D g2 = (Graphics2D) g;
+		// retrieving the graphics2D object's half font size
+		int halfFontSize = g2.getFont().getSize()/2;
 		// drawing all of the OBDD's nodes
 		for (int id : nodeIds) {
 			// getting the node's positions
@@ -263,8 +269,12 @@ public class VisualObdd extends JComponent{
 			int verticalPosition = positionMap.get(id).getSecond();
 			if (id > 1) {
 				// If the node isn't a terminal, it's represented by a circle.
-				g.drawOval(horizontalPosition, verticalPosition, 
-						nodeSize, nodeSize);
+				g2.drawOval(horizontalPosition - nodeSize/2, 
+						verticalPosition - nodeSize/2, nodeSize, nodeSize);
+				// writing the node's variable into the circle
+				g2.drawString("X" + this.getObdd().getNode(id).getVar(), 
+						horizontalPosition - halfFontSize, 
+						verticalPosition + halfFontSize);
 				// retrieving the node's children
 				Pair<Integer,Integer> children = edgeMap.get(id);
 				// retrieving the decision node's children's positions
@@ -273,25 +283,35 @@ public class VisualObdd extends JComponent{
 				Pair<Integer,Integer> lowChildPosition = 
 						positionMap.get(children.getSecond());
 				// drawing the node's outgoing edges
-				g.drawLine(
+				g2.drawLine(
 						// starting the line at the node's lower left "corner"
-						horizontalPosition, 
-						verticalPosition + nodeSize, 
+						horizontalPosition - nodeSize/2, 
+						verticalPosition + nodeSize/2, 
 						// ending the line at the high child's upper middle
-						highChildPosition.getFirst() + nodeSize / 2, 
-						highChildPosition.getSecond());
-				g.drawLine(
+						highChildPosition.getFirst(), 
+						highChildPosition.getSecond() - nodeSize/2);
+				// setting the stroke for the edge to the low child
+				g2.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, 
+						BasicStroke.JOIN_MITER, 10.0f, new float[] {10.0f}, 
+						0.0f));
+				g2.drawLine(
 						// starting the line at the node's lower right "corner"
-						horizontalPosition + nodeSize, 
-						verticalPosition + nodeSize, 
+						horizontalPosition + nodeSize/2, 
+						verticalPosition + nodeSize/2, 
 						// ending the line at the low child's upper middle
-						lowChildPosition.getFirst() + nodeSize / 2, 
-						lowChildPosition.getSecond());
+						lowChildPosition.getFirst(), 
+						lowChildPosition.getSecond() - nodeSize/2);
+				// resetting the stroke
+				g2.setStroke(new BasicStroke());
 			}
 			else {
 				// If the node is a terminal, it's represented by a square.
-				g.drawRect(horizontalPosition, verticalPosition, 
-						nodeSize, nodeSize);
+				g2.drawRect(horizontalPosition - nodeSize/2, 
+						verticalPosition - nodeSize/2, nodeSize, nodeSize);
+				// writing the terminal's ID (value) into the square 
+				g2.drawString(Integer.toString(id), 
+						horizontalPosition - halfFontSize, 
+						verticalPosition + halfFontSize);
 			}
 		}
 	}

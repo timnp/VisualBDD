@@ -243,6 +243,15 @@ public class OBDD {
 	
 	
 	/**
+	 * getter for the OBDD's variable
+	 * @return
+	 */
+	public int getVar() {
+		return var;
+	}
+	
+	
+	/**
 	 * getter for the OBDD's layer HashMap
 	 * @return
 	 */
@@ -1046,7 +1055,7 @@ public class OBDD {
 			return (id == otherNode.id);
 		}
 		else {
-			// initializing a pair of the two OBDDs
+			// initializing a pair of the two OBDDs' IDs
 			Pair<Integer, Integer> checkPair = 
 					new Pair<Integer, Integer>(id,otherNode.id);
 			// Return the value stated for the two nodes in the computed table
@@ -1143,18 +1152,21 @@ public class OBDD {
 	 * @return
 	 */
 	public boolean noVarMissing(LinkedList<Integer> varOrdList) {
+		// creating a copy of the ordering list to be shortened
+		LinkedList<Integer> checkList = new LinkedList<Integer>();
+		checkList.addAll(varOrdList);
 		// If the node is a terminal or the list is empty, no variable is 
 		// missing on this path.
-		if (terminal || varOrdList.isEmpty()) {
+		if (terminal || checkList.isEmpty()) {
 			return true;
-		} else if (!(var == varOrdList.poll())) {
+		} else if (!(var == checkList.poll())) {
 			// If the first variable in the ordered variable list isn't the one 
 			// of this node, it is missing on this path.
 			return false;
 		}
 		// Otherwise the node's children are checked recursively.
-		else return (highChild.noVarMissing(varOrdList) && 
-				lowChild.noVarMissing(varOrdList));
+		else return (highChild.noVarMissing(checkList) && 
+				lowChild.noVarMissing(checkList));
 	}
 	
 	

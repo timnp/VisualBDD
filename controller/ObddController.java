@@ -1,11 +1,13 @@
 package controller;
 
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Stack;
+
 
 
 
@@ -502,14 +504,16 @@ public class ObddController {
 		// reducing the OBDD, if it should be reduced to an ROBDD
 		if (removeRedundantNodes) obdd = obdd.reduceR(varOrd);
 		else {
+			// the variable ordering's ordering list
+			LinkedList<Integer> varOrdList = varOrd.getOrdList();
 			// checking whether any path in the QOBDD is missing any variables,
 			// if the OBDD should be reduced to a QOBDD
-			if (!currentObdd.getObdd().noVarMissing(varOrd.getOrdList())) {
+			if (!currentObdd.getObdd().noVarMissing(varOrdList)) {
 				// calling the GUI controller's missing variable method to find
 				// out whether the missing variables should be added
 				if (GuiController.missingVars())
 					// adding the missing variables
-					obdd = obdd.addMissingVars(varOrd, varOrd.getOrdList());
+					obdd = obdd.addMissingVars(varOrd, varOrdList);
 			}
 			// reducing the OBDD to a QOBDD
 			obdd = obdd.reduceQ(varOrd);
@@ -550,4 +554,9 @@ public class ObddController {
 		GuiController.showFormulas(formulaFieldText, 
 				representedFormula.toString());
 	}
+	
+	
+//	public VisualObdd clickOnObddPanel(Point p) {
+//		
+//	}
 }

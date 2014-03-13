@@ -19,7 +19,7 @@ public class VariableOrdering {
 	 * @return the ordering list
 	 */
 	public LinkedList<Integer> getOrdList() {
-		return this.ordList;
+		return ordList;
 	}
 	
 	/**
@@ -34,7 +34,7 @@ public class VariableOrdering {
 		// moving variables until the input list is empty
 		while (!ordList.isEmpty()) {
 			// moving the first variable first to keep the order
-			movedVar = ordList.getFirst();
+			movedVar = ordList.removeFirst();
 			// TODO?
 			// tentative solution for multiple appearances of the same integer:
 			// removing all but the first appearance 
