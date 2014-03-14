@@ -134,6 +134,14 @@ public class GuiController {
 	
 	
 	/**
+	 * inform the user that no BDD with a specified name could be found
+	 */
+	public static void noSuchObdd() {
+		errorDialog("No BDD with the given name could be found.");
+	}
+	
+	
+	/**
 	 * auxiliary method that shows an error (message) dialog with a given 
 	 * method
 	 * @param message

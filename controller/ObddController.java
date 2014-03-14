@@ -43,6 +43,12 @@ public class ObddController {
 		// the stack for the abstract OBDD layout representing the OBDD
 		Stack<AbstractObddLayout>> obddStacks = 
 		new HashMap<String, Stack<AbstractObddLayout>>();
+	/**
+	 * HashMap for storing the text field strings representing 
+	 * variable ordering and formula for each OBDD currently worked with
+	 */
+	private HashMap<String, Pair<String,String>> stringMap = 
+			new HashMap<String, Pair<String,String>>();
 //	/**
 //	 * 
 //	 */
@@ -225,6 +231,9 @@ public class ObddController {
 		obddStack.push(abstractObdd);
 		// adding the OBDD's stack to the stack HashMap
 		obddStacks.put(obddName, obddStack);
+		// storing the variable ordering and formula text field strings
+		stringMap.put(obddName, 
+				new Pair<String,String>(varOrdFieldText, formulaFieldText));
 		// creating the visual OBDD
 		VisualObdd visualObdd = new VisualObdd(abstractObdd, panelSize);
 		// setting the current visual OBDD
@@ -565,5 +574,44 @@ public class ObddController {
 	public VisualObdd clickOnObddPanel(Point p) {
 		currentObdd.clickAtPoint(p);
 		return currentObdd;
+	}
+	
+	
+	/**
+	 * loads the newest version of an OBDD given by its name from its stack and
+	 * returns it as a visual OBDD
+	 * @param obddName - the OBDD's name
+	 * @param panelSize - the OBDD panel's size
+	 * @return a pair of the visual OBDD and another pair of the variable 
+	 * 		   ordering and formula text field strings; a pair of null and null
+	 * 		   if the stack couldn't be found
+	 */
+	public Pair<VisualObdd,Pair<String,String>> 
+	loadObdd(String obddName, Dimension panelSize) {
+		try {
+			// trying to check whether the OBDD name is empty in order to check
+			// whether it's null
+			obddName.isEmpty();
+			// retrieving the OBDD's stack
+			Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
+			// checking whether the stack is empty in order to check whether 
+			// it's null
+			obddStack.isEmpty();
+			// creating the visual OBDD and returning it
+			currentObdd = new VisualObdd(obddStack.peek(), panelSize);
+			// retrieving the OBDD's variable ordering and formula 
+			// text field strings
+			Pair<String,String> textFieldStrings = stringMap.get(obddName);
+			// trying to get the pair's first element in order to check whether
+			// it's null
+			textFieldStrings.getFirst();
+			return new Pair<VisualObdd,Pair<String,String>>
+					(currentObdd,textFieldStrings);
+		} catch (NullPointerException e) {
+			// having the GUI controller inform the user that no OBDD with the 
+			// given name could be found
+			GuiController.noSuchObdd();
+			return null;
+			}
 	}
 }

@@ -62,9 +62,13 @@ public class MainGui extends JFrame {
 	private JButton generateButton = new JButton("Generate");
 	
 	/**
+	 * table displaying the truth table
+	 */
+	private JTable ttTable = new JTable();
+	/**
 	 * scroll panel for the truth table
 	 */
-	private JScrollPane ttScrollPane = new JScrollPane();
+	private JScrollPane ttScrollPane = new JScrollPane(ttTable);
 	/**
 	 * button for combining/separating similar lines of the truth table
 	 */
@@ -75,9 +79,17 @@ public class MainGui extends JFrame {
 	 */
 	private JButton ttWindowButton = new JButton("Truth Table Window");
 	/**
-	 * scroll panel for all OBDDs created during this "session"
+	 * list model for the OBDD list
 	 */
-	private JScrollPane obddScrollPane = new JScrollPane();
+	private DefaultListModel<String> obddListModel = new DefaultListModel<String>();
+	/**
+	 * list of all OBDDs created during this "session"
+	 */
+	private JList<String> obddList = new JList<String>(obddListModel);
+//	/**
+//	 * scroll panel for the OBDD list
+//	 */
+//	private JScrollPane obddScrollPane = new JScrollPane(obddList);
 	/**
 	 * button for showing a particular OBDD
 	 */
@@ -291,18 +303,20 @@ public class MainGui extends JFrame {
 								formulaField.getText(), varOrdField.getText(), 
 								obddTypeCB.getSelectedIndex(), 
 								obddPane.getSize());
-				// showing the visual OBDD
-				showObdd(results.getFirst());
 				// updating the possibly OBDD name, variable ordering string 
 				// and formula (input) string
 				obddNameField.setText(results.getSecond()[0]);
 				varOrdField.setText(results.getSecond()[1]);
 				formulaField.setText(results.getSecond()[2]);
+				// adding the OBDD's name to the OBDD list
+				obddListModel.addElement(results.getSecond()[0]);
+				// showing the visual OBDD
+				showObdd(results.getFirst());
 			}
 		});
 
 		// adding the truth table scroll panel
-		addScrollPane(ttScrollPane, 0, 2, 2, 3);
+		addScrollable(ttScrollPane, 0, 2, 2, 3);
 		// setting its preferred size
 		ttScrollPane.setPreferredSize(new Dimension(350,175));
 		// adding the line combining/separating button
@@ -313,14 +327,37 @@ public class MainGui extends JFrame {
 		addSubPaneButton(ttWindowButton, 1, 5);
 		// setting its preferred size
 		ttWindowButton.setPreferredSize(preferredButtonSize);
-		// adding the OBDD scroll panel
-		addScrollPane(obddScrollPane, 0, 6, 2, 3);
+//		// adding the OBDD scroll panel
+//		addScrollable(obddScrollPane, 0, 6, 2, 3);
+//		// setting its preferred size
+//		obddScrollPane.setPreferredSize(new Dimension(350,175));
+		// adding the OBDD list
+		addScrollable(obddList, 0, 6, 2, 3);
 		// setting its preferred size
-		obddScrollPane.setPreferredSize(new Dimension(350,175));
+		obddList.setPreferredSize(new Dimension(350,175));
 		// adding the OBDD showing button
 		addSubPaneButton(showObddButton, 0, 9);
 		// setting its preferred size
 		showObddButton.setPreferredSize(preferredButtonSize);
+		//
+		showObddButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// retrieving the selected OBDD name
+				String obddName = obddList.getSelectedValue();
+				// calling the OBDD controller's load method for the OBDD name
+				// selected in the OBDD list
+				Pair<VisualObdd,Pair<String,String>> results = 
+						(oController.loadObdd(obddName, obddPane.getSize()));
+				// retrieving the results' pair of text field strings
+				Pair<String,String> textFieldStrings = results.getSecond();
+				// updating the text fields
+				updateTextFields(obddName, textFieldStrings.getFirst(), 
+						textFieldStrings.getSecond());
+				// showing the visual OBDD
+				showObdd(results.getFirst());
+			}
+		});
 		// adding the OBDD applying button
 		addSubPaneButton(applyObddsButton, 1, 9);
 		// setting its preferred size
@@ -338,20 +375,17 @@ public class MainGui extends JFrame {
 		obddPane.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				
+				// calling the OBDD controller to unselect the selected node 
+				// and select the clicked node (if there is one)
 				showObdd(oController.clickOnObddPanel(e.getPoint()));
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 
 			@Override
@@ -498,7 +532,7 @@ public class MainGui extends JFrame {
 	
 	/**
 	 * auxiliary method that provides the addToMainFrame method for 
-	 * scroll panels with fixed filling (both), internal (1,1) and 
+	 * scrollable components with fixed filling (both), internal (1,1) and 
 	 * external (1,1,1,1) padding and anchor (center) and calculated weights
 	 * @param comp
 	 * @param gridx
@@ -507,7 +541,7 @@ public class MainGui extends JFrame {
 	 * @param gridheight
 	 * @param insets
 	 */
-	private void addScrollPane(Component comp, int gridx, int gridy, 
+	private void addScrollable(Component comp, int gridx, int gridy, 
 			int gridwidth, int gridheight) {
 		addToMainFrame(comp, gridx, gridy, gridwidth, gridheight, 
 				GridBagConstraints.BOTH, 1, 1, independent, 
@@ -540,17 +574,31 @@ public class MainGui extends JFrame {
 	
 	/**
 	 * auxiliary method that shows an OBDD given as a VisualObdd
-	 * @param vObdd
+	 * @param visualObdd
 	 */
-	private void showObdd(VisualObdd vObdd) {
+	private void showObdd(VisualObdd visualObdd) {
 		try {
 			// trying to check whether the visual OBDD is visible in order to 
 			// check whether it's null
-			vObdd.isVisible();
+			visualObdd.isVisible();
 			// showing it if it isn't null
 			obddPane.removeAll();
-			obddPane.add(vObdd);
+			obddPane.add(visualObdd);
 			obddPane.repaint();
 		} catch (NullPointerException e) {}
+	}
+	
+	
+	/**
+	 * auxiliary method that updates the field texts to the given ones
+	 * @param obddName
+	 * @param varOrdFieldText
+	 * @param formulaFieldText
+	 */
+	private void updateTextFields(String obddName, String varOrdFieldText, 
+			String formulaFieldText) {
+		obddNameField.setText(obddName);
+		varOrdField.setText(varOrdFieldText);
+		formulaField.setText(formulaFieldText);
 	}
 }
