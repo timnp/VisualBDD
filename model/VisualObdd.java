@@ -279,14 +279,12 @@ public class VisualObdd extends JComponent{
 				g2.drawOval(horizontalPosition - nodeSize/2, 
 						verticalPosition - nodeSize/2, nodeSize, nodeSize);
 				// coloring the node if it's selected or highlighted
-				try {
-					if (selectedNode.getId() == id) {
-					g2.setColor(selectedColor);
+				if (isHighlighted(id)) {
+					g2.setColor(highlightedColor);
 					g2.fillOval(horizontalPosition - nodeSize/2, 
 						verticalPosition - nodeSize/2, nodeSize, nodeSize);
 					g2.setColor(Color.BLACK);
-					}
-				} catch (NullPointerException e) {}
+				}
 				try {
 					if (secondSelectedNode.getId() == id) {
 						g2.setColor(secondSelectedColor);
@@ -295,12 +293,14 @@ public class VisualObdd extends JComponent{
 						g2.setColor(Color.BLACK);
 					}
 				} catch (NullPointerException e) {}
-				if (isHighlighted(id)) {
-					g2.setColor(highlightedColor);
+				try {
+					if (selectedNode.getId() == id) {
+					g2.setColor(selectedColor);
 					g2.fillOval(horizontalPosition - nodeSize/2, 
 						verticalPosition - nodeSize/2, nodeSize, nodeSize);
 					g2.setColor(Color.BLACK);
-				}
+					}
+				} catch (NullPointerException e) {}
 				// writing the node's variable into the circle
 				g2.drawString("X" + this.getObdd().getNode(id).getVar(), 
 						horizontalPosition - halfFontSize, 
@@ -390,31 +390,16 @@ public class VisualObdd extends JComponent{
 		selectedNode = null;
 		// searching for a node in which's visualization the point is
 		for (int id : nodeIds) {
-			if (pointInNode(p, id)) {
+			// retrieving the node's center's position
+			Point center = positionMap.get(id);
+			// checking whether the node is a decision node and the given point
+			// is in its visualization
+			// (Terminals can't be selected.)
+			if (id > 2 && (p.distance(center) <= nodeSize/2.0)) {
 				// setting the selected node and ending the loop
 				selectedNode = getObdd().getNode(id);
 				break;
 			}
 		}
-	}
-	
-	
-	/**
-	 * auxiliary method that states whether a given point is in the 
-	 * visualization of a node (given by its ID)
-	 * @param p - the point
-	 * @param id - the node's ID
-	 * @return
-	 */
-	private boolean pointInNode(Point p, int id) {
-		// retrieving the node's center's position
-		Point center = positionMap.get(id);
-		// for decision nodes checking whether the point is in the respective 
-		// circle around the node's center
-		if (id >= 2) return (p.distance(center) <= nodeSize/2.0);
-		// for terminals checking whether the point is in the respective square
-		// around the node's center
-		else return (Math.abs(p.x - center.x) <= nodeSize/2.0 && 
-				Math.abs(p.y - center.y) <= nodeSize/2.0);
 	}
 }
