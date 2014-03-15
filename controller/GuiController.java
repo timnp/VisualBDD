@@ -3,6 +3,7 @@ package controller;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import model.Pair;
 import view.MainGui;
 
 /**
@@ -225,5 +226,67 @@ public class GuiController {
 	public static void noNameGiven(String name) {
 		messageDialog("You didn't provide a name for the BDD.\n" + 
 				"It has been named '" + name + "' by default.");
+	}
+	
+	
+	/**
+	 * asks the user which binary operation should be applied on the two OBDDs
+	 * @param firstName - the first OBDD's name
+	 * @param secondName - the second OBDD's name
+	 * @return the number of the chosen operation; 
+	 * 		   -1 if the dialog was cancelled
+	 */
+	public static int applyOperation(String firstName, String secondName) {
+		// creating the options
+		String[] options = {"Contradiction", 
+				firstName + " AND " + secondName, 
+				firstName + " greater than " + secondName, 
+				"Identity of " + firstName, 
+				secondName + " greater than " + firstName, 
+				"Identity of " + secondName, 
+				firstName + " XOR " + secondName,
+				firstName + " OR " + secondName,
+				firstName + " NOR " + secondName,
+				firstName + " equals " + secondName,
+				"NOT " + secondName,
+				secondName + " implies " + firstName,
+				"NOT " + firstName,
+				firstName + " implies " + secondName,
+				firstName + " NAND " + secondName,
+				"Tautology"};
+		// obtaining the answer
+		Object answer = JOptionPane.showInputDialog(new JFrame(), 
+				"Which binary operation should be applied on the two BDDs?", 
+				"Question", JOptionPane.QUESTION_MESSAGE, null, options, 
+				options[0]);
+		// for each option checking whether it was selected
+		for (int i = 0; i < 16; i++) {
+			if (options[i].equals(answer)) {
+				// returning the answer's number
+				return i;
+			}
+		}
+		// returning -1, if none of the options was selected 
+		// (e.g. if the dialog was cancelled)
+		return -1;
+	}
+	
+	
+	/**
+	 * asks the user how a resulting OBDD should be named
+	 * @return the chosen name
+	 */
+	public static String newObddName() {
+		return JOptionPane.showInputDialog(
+				"How should the resulting BDD be named?");
+	}
+	
+	
+	/**
+	 * informs the user that two variable orderings aren't equal
+	 */
+	public static void unequalVarOrds() {
+		errorDialog("The two BDDs' variable orderings aren't equal.\n" + 
+				"Therefore the apply operation isn't executed.");
 	}
 }
