@@ -135,10 +135,18 @@ public class GuiController {
 	
 	
 	/**
-	 * inform the user that no BDD with a specified name could be found
+	 * informs the user that no OBDD was selected
+	 */
+	public static void noObddSelected() {
+		errorDialog("You didn't select a BDD.");
+	}
+	
+	
+	/**
+	 * informs the user that the selected OBDD couldn't be found
 	 */
 	public static void noSuchObdd() {
-		errorDialog("No BDD with the given name could be found.");
+		errorDialog("The selected BDD couldn't be found.");
 	}
 	
 	

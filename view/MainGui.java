@@ -305,9 +305,7 @@ public class MainGui extends JFrame {
 								obddPane.getSize());
 				// updating the possibly OBDD name, variable ordering string 
 				// and formula (input) string
-				obddNameField.setText(results.getSecond()[0]);
-				varOrdField.setText(results.getSecond()[1]);
-				formulaField.setText(results.getSecond()[2]);
+				updateTextFields(results.getSecond());
 				// adding the OBDD's name to the OBDD list
 				obddListModel.addElement(results.getSecond()[0]);
 				// showing the visual OBDD
@@ -339,21 +337,18 @@ public class MainGui extends JFrame {
 		addSubPaneButton(showObddButton, 0, 9);
 		// setting its preferred size
 		showObddButton.setPreferredSize(preferredButtonSize);
-		//
+		// adding a listener to the OBDD showing button
 		showObddButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// retrieving the selected OBDD name
-				String obddName = obddList.getSelectedValue();
-				// calling the OBDD controller's load method for the OBDD name
+				// calling the OBDD controller's load method for the OBDD name 
 				// selected in the OBDD list
-				Pair<VisualObdd,Pair<String,String>> results = 
-						(oController.loadObdd(obddName, obddPane.getSize()));
-				// retrieving the results' pair of text field strings
-				Pair<String,String> textFieldStrings = results.getSecond();
+				Pair<VisualObdd,String[]> results = 
+						oController.loadObdd(obddList.getSelectedValue(), 
+								obddNameField.getText(), varOrdField.getText(),
+								formulaField.getText(), obddPane.getSize());
 				// updating the text fields
-				updateTextFields(obddName, textFieldStrings.getFirst(), 
-						textFieldStrings.getSecond());
+				updateTextFields(results.getSecond());
 				// showing the visual OBDD
 				showObdd(results.getFirst());
 			}
@@ -362,6 +357,25 @@ public class MainGui extends JFrame {
 		addSubPaneButton(applyObddsButton, 1, 9);
 		// setting its preferred size
 		applyObddsButton.setPreferredSize(preferredButtonSize);
+		// adding a listener to the OBDD applying button
+		applyObddsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// calling the OBDD controller's simple apply method
+				Pair<VisualObdd, String[]> results = 
+						oController.simpleApply(obddNameField.getText(), 
+								obddList.getSelectedValue(), 
+								varOrdField.getText(), formulaField.getText(), 
+								obddPane.getSize());
+				// updating the possibly OBDD name, variable ordering string 
+				// and formula (input) string
+				updateTextFields(results.getSecond());
+				// adding the OBDD's name to the OBDD list
+				obddListModel.addElement(results.getSecond()[0]);
+				// showing the visual OBDD
+				showObdd(results.getFirst());
+			}
+		});
 		
 		// adding the OBDD panel
 		addToMainFrame(obddPane, 2, 2, 6, 8, GridBagConstraints.BOTH, 1, 1, 
@@ -591,14 +605,13 @@ public class MainGui extends JFrame {
 	
 	/**
 	 * auxiliary method that updates the field texts to the given ones
-	 * @param obddName
-	 * @param varOrdFieldText
-	 * @param formulaFieldText
+	 * @param textFieldStrings - an array of the new OBDD name field string, 
+	 * 							 the new variable ordering field string and 
+	 * 							 the new formula field string
 	 */
-	private void updateTextFields(String obddName, String varOrdFieldText, 
-			String formulaFieldText) {
-		obddNameField.setText(obddName);
-		varOrdField.setText(varOrdFieldText);
-		formulaField.setText(formulaFieldText);
+	private void updateTextFields(String[] textFieldStrings) {
+		obddNameField.setText(textFieldStrings[0]);
+		varOrdField.setText(textFieldStrings[1]);
+		formulaField.setText(textFieldStrings[2]);
 	}
 }

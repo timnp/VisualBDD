@@ -49,13 +49,6 @@ public class ObddController {
 	 */
 	private HashMap<String, Pair<String,String>> stringMap = 
 			new HashMap<String, Pair<String,String>>();
-//	/**
-//	 * 
-//	 */
-//	private static final int GENERATE = 1, CLEAR_TT = 2, TT_WINDOW = 3, 
-//			SHOW_OBDD = 4, APPLY_OBDDS = 5, UNDO = 6, FIND_EQUIV = 7, 
-//			MERGE_EQUIV = 8, FIND_RED = 9, REMOVE_RED = 10, REDUCE_Q = 11, 
-//			REDUCE_R = 12, FORMULA = 13;
 	
 	
 	
@@ -85,135 +78,46 @@ public class ObddController {
 		Pair<VisualObdd, String[]> defaultReturn = new Pair<VisualObdd, 
 				String[]> (currentObdd, new String[] {obddName, 
 						varOrdFieldText, formulaFieldText});
-		// as long as the given name is either empty or already taken, the user
-		// is asked to provide another one
-		while (obddName.equals("") || obddStacks.containsKey(obddName)) {
+		// As long as the given name is either empty or already taken, the user
+		// is asked to provide another one.
+		while (improperName(obddName)) {
 			// retrieving the new name for the OBDD
 			obddName = GuiController.improperName(obddName);
-			try {
-				// trying to check whether the new name is empty in order to 
-				// check whether it's null
-				obddName.isEmpty();
-				} catch (NullPointerException e) 
-					{
-					// If the OBDD name is null, the user chose the "cancel" 
-					// option. In that case the default pair is returned.
-					return defaultReturn;
-					}
-//			// setting the OBDD name if the new name isn't null
-//			obddName = newName;
+			// If the name is null, the dialog was cancelled. In that case the 
+			// default pair is returned.
+			if (nullString(obddName)) return defaultReturn;
 		}
-//		// If the OBDD's name already exists, it gets numbered automatically
-//		if (obddStacks.containsKey(obddName)) {
-//			// initializing the number
-//			int i = 1;
-//			// creating the first numbered name
-//			String numberedName = obddName + " (1)";
-//			// As long as the numbered name also exists, a new one is created.
-//			while (obddStacks.containsKey(numberedName)) {
-//				// increasing the number
-//				i++;
-//				// creating the new numbered name
-//				numberedName = obddName + " (" + i + ")";
-//			}
-//			// The first numbered name, that doesn't already exist, gets to 
-//			// replace the given name.
-//			obddName = numberedName;
-//			// having the GUI controller inform the user that the given name 
-//			// already existed and how the OBDD has been named instead
-//			GuiController.nameAlreadyTaken(obddName);
-//		}
-//		// If no name was given, one is created.
-//		else if (obddName.equals("")) {
-//			// initializing the number
-//			int i = 1;
-//			// creating the first numbered name
-//			obddName = "BDD 1";
-//			// As long as the name also exists, a new one is created.
-//			while (obddStacks.containsKey(obddName)) {
-//				// increasing the number
-//				i++;
-//				// creating the new numbered name
-//				obddName = "BDD " + i;
-//			}
-//			// having the GUI controller inform the user that no name for the 
-//			// OBDD has been provided and how it got named
-//			GuiController.noNameGiven(obddName);
-//		}
-		// creating the variable ordering
-		VariableOrdering varOrd = VarOrdController.stringToVarOrd(varOrdFieldText);
-		// as long as the given variable ordering string doesn't fulfill the 
+		// As long as the given variable ordering string doesn't fulfill the 
 		// requirements and therefore the variable ordering couldn't be created
-		// properly, the user is asked to provide another one
-		while (true) {
-			try {
-				// trying to check whether the variable ordering is empty in 
-				// order to check whether it's null
-				varOrd.isEmpty();
-				// breaking the loop, if the variable ordering isn't null
-				break;
-				} catch (NullPointerException e)  {
-					// having the GUI controller inform the user that the 
-					// variable ordering string doesn't fulfill the 
-					// requirements and ask for another one
-					varOrdFieldText = GuiController.
-							improperVarOrdString(varOrdFieldText);
-					try {
-						// trying to check whether the new variable ordering 
-						// string is empty in order to check whether it's null
-						varOrdFieldText.isEmpty();
-						} catch (NullPointerException e2) 
-							{
-							// If the variable ordering string is null, the 
-							// user chose the "cancel" option. In that case the
-							// default pair is returned.
-							return defaultReturn;
-							}
-//					// setting the variable ordering string if the new one 
-//					// isn't null
-//					varOrdFieldText = newVarOrdString;
-					// creating the variable ordering from the new given string
-					varOrd = VarOrdController.stringToVarOrd(varOrdFieldText);
-					}
+		// properly, the user is asked to provide another one.
+		while (improperVarOrdString(varOrdFieldText)) {
+			// having the GUI controller inform the user that the 
+			// variable ordering string doesn't fulfill the requirements and 
+			// ask for another one
+			varOrdFieldText = GuiController.
+					improperVarOrdString(varOrdFieldText);
+			// If the variable ordering string is null, the dialog was 
+			// cancelled. In that case the default pair is returned.
+			if (nullString(varOrdFieldText)) return defaultReturn;
 		}
-		// converting the string given for the formula into a "formula string"
-		String formulaString = FormulaController.toFormulaString(formulaFieldText);
-		// as long as the input string doesn't fulfill the requirements and 
+		// creating the variable ordering
+		VariableOrdering varOrd = 
+				VarOrdController.stringToVarOrd(varOrdFieldText);
+		// As long as the input string doesn't fulfill the requirements and 
 		// therefore the formula couldn't be created properly, the user is 
-		// asked to provide another one
-		while (true) {
-			try {
-				// trying to check whether the formula string is empty in order
-				// to check whether it's null
-				formulaString.isEmpty();
-				// breaking the loop if the formula string isn't null
-				break;
-			} catch (NullPointerException e) {
-				// having the GUI controller inform the user that the formula 
-				// input string doesn't fulfill the requirements and ask for 
-				// another one
-				formulaFieldText = GuiController.
-						improperFormulaInputString(formulaFieldText);
-				try {
-					// trying to check whether the new formula input string is 
-					// empty in order to check whether it's null
-					formulaFieldText.isEmpty();
-					} catch (NullPointerException e2) 
-						{
-						// If the formula input string is null, the user chose 
-						// the "cancel" option. In that case the default pair 
-						// is returned.
-						return defaultReturn;
-						}
-//				// setting the formula input string if the new one isn't 
-//				// null
-//				formulaFieldText = newFormulaInputString;
-				// converting the new input string into a "formula string"
-				formulaString = FormulaController.toFormulaString(formulaFieldText);
-			}
+		// asked to provide another one.		
+		while (improperFormulaInputString(formulaFieldText)) {
+			// having the GUI controller inform the user that the formula input
+			// string doesn't fulfill the requirements and ask for another one
+			formulaFieldText = GuiController.
+					improperFormulaInputString(formulaFieldText);
+			// If the formula input string is null, the dialog was cancelled. 
+			// In that case the default pair is returned.
+			if (nullString(formulaFieldText)) return defaultReturn;
 		}
 		// creating the formula
-		Formula formula = FormulaController.stringToFormula(formulaString);
+		Formula formula = FormulaController.stringToFormula(FormulaController.
+				toFormulaString(formulaFieldText));
 		// creating the complete OBDD
 		OBDD obdd = formula.toObdd(varOrd);
 		// reducing to a QOBDD if one should be generated
@@ -577,39 +481,52 @@ public class ObddController {
 	/**
 	 * loads the newest version of an OBDD given by its name from its stack and
 	 * returns it as a visual OBDD
-	 * @param obddName - the OBDD's name
+	 * @param selectedName - the selected OBDD's name
+	 * @param currentName - the current OBDD's name
+	 * @param varOrdFieldText - the variable ordering field's text
+	 * @param formulaFieldText - the formula field's text
 	 * @param panelSize - the OBDD panel's size
-	 * @return a pair of the visual OBDD and another pair of the variable 
-	 * 		   ordering and formula text field strings; a pair of null and null
-	 * 		   if the stack couldn't be found
+	 * @return a pair of the visual OBDD and an array of the possibly changed 
+	 * 		   OBDD name, variable ordering string and formula (input) string
 	 */
-	public Pair<VisualObdd,Pair<String,String>> 
-	loadObdd(String obddName, Dimension panelSize) {
-		try {
-			// trying to check whether the OBDD name is empty in order to check
-			// whether it's null
-			obddName.isEmpty();
-			// retrieving the OBDD's stack
-			Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
-			// checking whether the stack is empty in order to check whether 
-			// it's null
-			obddStack.isEmpty();
-			// creating the visual OBDD and returning it
-			currentObdd = new VisualObdd(obddStack.peek(), panelSize);
-			// retrieving the OBDD's variable ordering and formula 
-			// text field strings
-			Pair<String,String> textFieldStrings = stringMap.get(obddName);
-			// trying to get the pair's first element in order to check whether
-			// it's null
-			textFieldStrings.getFirst();
-			return new Pair<VisualObdd,Pair<String,String>>
-					(currentObdd,textFieldStrings);
-		} catch (NullPointerException e) {
-			// having the GUI controller inform the user that no OBDD with the 
-			// given name could be found
+	public Pair<VisualObdd,String[]> loadObdd(String selectedName, 
+			String currentName, String varOrdFieldText, 
+			String formulaFieldText, Dimension panelSize) {
+		// creating a default return pair of the current OBDD and unchanged 
+		// field texts
+		Pair<VisualObdd, String[]> defaultReturn = new Pair<VisualObdd, 
+				String[]> (currentObdd, new String[] {currentName, 
+						varOrdFieldText, formulaFieldText});
+		// checking whether the selected OBDD's name is null 
+		// (e.g. because no OBDD was selected)
+		if (nullString(selectedName)) {
+			// having the GUI controller inform the user that no OBDD was 
+			// selected
+			GuiController.noObddSelected();
+			// returning the default pair
+			return defaultReturn;
+		}
+		// retrieving the OBDD's stack
+		Stack<AbstractObddLayout> obddStack = obddStacks.get(selectedName);
+		// checking whether the stack is null
+		if (nullStack(obddStack)) {
+			// having the GUI controller inform the user that the selected OBDD
+			// couldn't be found
 			GuiController.noSuchObdd();
-			return null;
-			}
+			// returning the default pair
+			return defaultReturn;
+		}
+		// creating the visual OBDD
+		currentObdd = new VisualObdd(obddStack.peek(), panelSize);
+		// retrieving the OBDD's variable ordering and formula 
+		// text field strings
+		Pair<String,String> textFieldStrings = stringMap.get(selectedName);
+		// trying to get the pair's first element in order to check whether
+		// it's null
+		textFieldStrings.getFirst();
+		return new Pair<VisualObdd,String[]>(currentObdd, 
+				new String[] {selectedName, textFieldStrings.getFirst(), 
+				textFieldStrings.getSecond()});
 	}
 	
 	
@@ -632,6 +549,24 @@ public class ObddController {
 		Pair<VisualObdd, String[]> defaultReturn = new Pair<VisualObdd, 
 				String[]> (currentObdd, new String[] {firstName, 
 						varOrdFieldText, formulaFieldText});
+		// checking whether the second OBDD's name is null
+		if (nullString(secondName)) {
+			// having the GUI controller inform the user that no OBDD was 
+			// selected
+			GuiController.noObddSelected();
+			// returning the default pair
+			return defaultReturn;
+		}
+		// retrieving the second OBDD's stack
+		Stack<AbstractObddLayout> secondStack = obddStacks.get(secondName);
+		// checking whether the stack is null
+		if (nullStack(secondStack)) {
+			// having the GUI controller inform the user that the second OBDD 
+			// couldn't be found
+			GuiController.noSuchObdd();
+			// returning the default pair
+			return defaultReturn;
+		}		
 		// creating the two OBDDs' variable orderings
 		VariableOrdering firstVarOrd = 
 				VarOrdController.stringToVarOrd(varOrdFieldText);
@@ -644,33 +579,22 @@ public class ObddController {
 			// applied on the two OBDDs
 			int applyOp = GuiController.applyOperation(firstName, secondName);
 			// checking whether the dialog was cancelled
-			if (applyOp >=0) {
+			if (applyOp >=0 && applyOp <= 15) {
 				// having the GUI controller ask the user for a name for the 
 				// new OBDD
 				String applyName = GuiController.newObddName();
 				// as long as the given name is either empty or already taken, 
 				// the user is asked to provide another one
-				while (applyName.equals("") || 
-						obddStacks.containsKey(applyName)) {
+				while (improperName(applyName)) {
 					// retrieving the new name for the OBDD
-					String newName = GuiController.improperName(applyName);
-					try {
-						// trying to check whether the new name is empty in 
-						// order to check whether it's null
-						newName.isEmpty();
-						} catch (NullPointerException e) 
-							{
-							// If the OBDD name is null, the user chose the 
-							// "cancel" option. In that case the default pair 
-							// is returned.
-							return defaultReturn;
-							}
-					// setting the OBDD name if the new name isn't null
-					applyName = newName;
+					applyName = GuiController.improperName(applyName);
+					// If the name is null, the dialog was cancelled. In that 
+					// case the default pair is returned.
+					if (nullString(applyName)) return defaultReturn;
 				}
 				// retrieving the two actual OBDDs
 				OBDD firstObdd = currentObdd.getObdd();
-				OBDD secondObdd = obddStacks.get(secondName).peek().getObdd();
+				OBDD secondObdd = secondStack.peek().getObdd();
 				// creating the resulting OBDD
 				OBDD applyObdd = 
 						firstObdd.apply(secondObdd, applyOp, firstVarOrd);
@@ -701,8 +625,102 @@ public class ObddController {
 						applyFormulaString});
 			}
 		}
-		else GuiController.unequalVarOrds();
+		else {
+			// having the GUI controller inform the user that the two
+			// variable orderings aren't equal
+			GuiController.unequalVarOrds();
+		}
 		// returning the default pair
 		return defaultReturn;
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a given string is null
+	 * @param string
+	 * @return
+	 */
+	private boolean nullString(String string) {
+		try {
+			// trying to check whether the string is empty in order to check 
+			// whether it's null
+			string.isEmpty();
+			// returning false if it isn't null
+			return false;
+			} catch (NullPointerException e) {
+				// returning true if it is null
+				return true;
+				}
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a given stack 
+	 * (for abstract OBDD layouts) is null
+	 * @param stack
+	 * @return
+	 */
+	private boolean nullStack(Stack<AbstractObddLayout> stack) {
+		try {
+			// trying to check whether the stack is empty in order to check 
+			// whether it's null
+			stack.isEmpty();
+			// returning false if it isn't null
+			return false;
+			} catch (NullPointerException e) {
+				// returning true if it is null
+				return true;
+				}
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether an OBDD name is improper
+	 * @param obddName
+	 * @return
+	 */
+	private boolean improperName(String obddName) {
+		// If the name is empty or already exists, it's improper.
+		// Otherwise it isn't.
+		return (obddName.isEmpty() || obddStacks.containsKey(obddName));
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a variable ordering string is 
+	 * improper
+	 * @param varOrdString
+	 * @return
+	 */
+	private boolean improperVarOrdString(String varOrdString) {
+		try {
+			// If the variable ordering is empty, the string is improper. 
+			// Otherwise it isn't.
+			// (The check for emptiness throws a null pointer exception if the 
+			//  name is null.)
+			return VarOrdController.stringToVarOrd(varOrdString).isEmpty();
+		} catch (NullPointerException e) {
+			// If the variable ordering is null, the string is improper.
+			return true;
+		}
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a formula input string is improper
+	 * @param formulaInputString
+	 * @return
+	 */
+	private boolean improperFormulaInputString(String formulaInputString) {
+		try {
+			// If the formula string is empty, the input string is improper. 
+			// Otherwise it isn't.
+			// (The check for emptiness throws a null pointer exception if the 
+			//  name is null.)
+			return FormulaController.toFormulaString(formulaInputString).isEmpty();
+		} catch (NullPointerException e) {
+			// If the formula string is null, the input string is improper.
+			return true;
+		}
 	}
 }
