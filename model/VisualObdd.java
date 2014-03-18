@@ -285,22 +285,19 @@ public class VisualObdd extends JComponent{
 						verticalPosition - nodeSize/2, nodeSize, nodeSize);
 					g2.setColor(Color.BLACK);
 				}
-				try {
-					if (secondSelectedNode.getId() == id) {
-						g2.setColor(secondSelectedColor);
-						g2.fillOval(horizontalPosition - nodeSize/2, 
-							verticalPosition - nodeSize/2, nodeSize, nodeSize);
-						g2.setColor(Color.BLACK);
-					}
-				} catch (NullPointerException e) {}
-				try {
-					if (selectedNode.getId() == id) {
-					g2.setColor(selectedColor);
+				if ((secondSelectedNode != null) && 
+						(secondSelectedNode.getId() == id)) {
+					g2.setColor(secondSelectedColor);
 					g2.fillOval(horizontalPosition - nodeSize/2, 
 						verticalPosition - nodeSize/2, nodeSize, nodeSize);
 					g2.setColor(Color.BLACK);
-					}
-				} catch (NullPointerException e) {}
+				}
+				if (isSelected(id)) {
+					g2.setColor(selectedColor);
+					g2.fillOval(horizontalPosition - nodeSize / 2,
+							verticalPosition - nodeSize / 2, nodeSize, nodeSize);
+					g2.setColor(Color.BLACK);
+				}
 				// writing the node's variable into the circle
 				g2.drawString("X" + this.getObdd().getNode(id).getVar(), 
 						horizontalPosition - halfFontSize, 
@@ -348,6 +345,16 @@ public class VisualObdd extends JComponent{
 	
 	
 	/**
+	 * auxiliary method that states whether a node given by its ID is selected
+	 * @param id
+	 * @return
+	 */
+	private boolean isSelected(int id) {
+		return (selectedNode != null) && (selectedNode.getId() == id);
+	}
+	
+	
+	/**
 	 * auxiliary method that states whether a node given by its ID is highlighted
 	 * @param id - the node's ID
 	 * @return
@@ -386,8 +393,8 @@ public class VisualObdd extends JComponent{
 	 * @param p - the point
 	 */
 	public void clickAtPoint(Point p) {
-		// resetting the selected node
-		selectedNode = null;
+		// initializing a boolean that states whether a node was clicked
+		boolean nodeClicked = false;
 		// searching for a node in which's visualization the point is
 		for (int id : nodeIds) {
 			// retrieving the node's center's position
@@ -395,11 +402,18 @@ public class VisualObdd extends JComponent{
 			// checking whether the node is a decision node and the given point
 			// is in its visualization
 			// (Terminals can't be selected.)
-			if (id > 2 && (p.distance(center) <= nodeSize/2.0)) {
-				// setting the selected node and ending the loop
-				selectedNode = getObdd().getNode(id);
+			if (id > 1 && (p.distance(center) <= nodeSize/2.0)) {
+				// If the clicked node is selected, it is unselected.
+				if (isSelected(id)) selectedNode = null;
+				// If the node isn't selected, it is selected.
+				else selectedNode = getObdd().getNode(id);
+				// stating that a node was clicked
+				nodeClicked = true;
+				// ending the loop
 				break;
 			}
 		}
+		// If no node was clicked, all nodes are unhighlighted.
+		if (!nodeClicked) unhighlight();
 	}
 }

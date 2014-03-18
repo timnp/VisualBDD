@@ -30,16 +30,10 @@ public class VarOrdController {
 	public static VariableOrdering stringToVarOrd(String inputString) {
 		// creating the ordering list the input string represents
 		LinkedList<Integer> ordList = stringToOrdList(inputString);
-		try {
-			// trying to check whether the ordering list is empty in order to 
-			// check whether it's null
-			ordList.isEmpty();
-			// creating the variable ordering
-			return new VariableOrdering(ordList);
-		} catch (NullPointerException e) {
-			// returning null if the ordering list is null
-			return null;
-		}
+		// If the ordering list couldn't be created properly, null is returned.
+		if (ordList == null) return null;
+		// Otherwise the variable ordering is created.
+		else return new VariableOrdering(ordList);
 	}
 	
 	

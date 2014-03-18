@@ -16,6 +16,7 @@ import java.util.Stack;
 
 
 
+
 import view.MainGui;
 import model.AbstractObddLayout;
 import model.Formula;
@@ -30,10 +31,18 @@ import model.VisualObdd;
  *
  */
 public class ObddController {
+//	/**
+//	 * the connected main GUI
+//	 */
+//	private MainGui mainGui;
+//	/**
+//	 * the connected GUI controller
+//	 */
+//	private GuiController guiController;
 	/**
 	 * the current OBDD
 	 */
-	VisualObdd currentObdd = null;
+	private VisualObdd currentObdd = null;
 	/**
 	 * HashMap for storing a stack for each OBDD currently worked with
 	 */
@@ -71,7 +80,7 @@ public class ObddController {
 	 * 		   OBDD name, variable ordering string and formula (input) string
 	 */
 	public Pair<VisualObdd, String[]> obddFromFormula(String obddName, 
-			String formulaFieldText, String varOrdFieldText, 
+			String varOrdFieldText, String formulaFieldText, 
 			int obddTypeNumber, Dimension panelSize) {
 		// creating a default return pair of the current OBDD and unchanged 
 		// field texts
@@ -85,7 +94,7 @@ public class ObddController {
 			obddName = GuiController.improperName(obddName);
 			// If the name is null, the dialog was cancelled. In that case the 
 			// default pair is returned.
-			if (nullString(obddName)) return defaultReturn;
+			if (obddName == null) return defaultReturn;
 		}
 		// As long as the given variable ordering string doesn't fulfill the 
 		// requirements and therefore the variable ordering couldn't be created
@@ -98,7 +107,7 @@ public class ObddController {
 					improperVarOrdString(varOrdFieldText);
 			// If the variable ordering string is null, the dialog was 
 			// cancelled. In that case the default pair is returned.
-			if (nullString(varOrdFieldText)) return defaultReturn;
+			if (varOrdFieldText == null) return defaultReturn;
 		}
 		// creating the variable ordering
 		VariableOrdering varOrd = 
@@ -113,7 +122,7 @@ public class ObddController {
 					improperFormulaInputString(formulaFieldText);
 			// If the formula input string is null, the dialog was cancelled. 
 			// In that case the default pair is returned.
-			if (nullString(formulaFieldText)) return defaultReturn;
+			if (formulaFieldText == null) return defaultReturn;
 		}
 		// creating the formula
 		Formula formula = FormulaController.stringToFormula(FormulaController.
@@ -198,17 +207,11 @@ public class ObddController {
 			// node
 			equivalentNodes = obdd.findAnyEquivalent(varOrd);
 		}
-		try {
-			// trying to check whether the list of equivalent nodes is empty in
-			// order to check whether it's null
-			equivalentNodes.isEmpty();
-			// otherwise setting the current OBDD's highlighted nodes
-			currentObdd.setHighlightedNodes(equivalentNodes);
-		} catch (NullPointerException e) {
-			// calling the GUI controller to inform the user, if there are no 
-			// equivalent nodes
-			GuiController.noEquivalentNodes();
-		}
+		// calling the GUI controller to inform the user, if there are no 
+		// equivalent nodes
+		if (equivalentNodes == null) GuiController.noEquivalentNodes();
+		// otherwise setting the current OBDD's highlighted nodes
+		else currentObdd.setHighlightedNodes(equivalentNodes);
 		// returning the current OBDD
 		return currentObdd;
 	}
@@ -235,29 +238,24 @@ public class ObddController {
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
-		AbstractObddLayout abstractObdd = new AbstractObddLayout(obddStack.peek());
-		// initializing a list of remaining highlighted nodes
-		LinkedList<OBDD> remainingHighlightedNodes = new LinkedList<OBDD>();
-		try {
-			// trying to get the first selected node's ID in order to check 
-			// whether it's null
-			firstSelNode.getId();
-			try {
-				// trying to get the second selected node's ID in order to 
-				// check whether it's null
-				secondSelNode.getId();
-				// adding all highlighted nodes to the list of remaining 
-				// highlighted nodes
-				remainingHighlightedNodes = highlightedNodes;
+		AbstractObddLayout abstractObdd = 
+				new AbstractObddLayout(obddStack.peek());
+//		// initializing a list of remaining highlighted nodes with the 
+//		// currently highlighted nodes
+//		LinkedList<OBDD> remainingHighlightedNodes = highlightedNodes;
+		// checking whether there is a first selected node
+		if (firstSelNode != null) {
+			// checking whether there is a second selected node
+			if (secondSelNode != null) {
 				// clearing the list of highlighted nodes, then adding the 
 				// second selected node
 				highlightedNodes.clear();
 				highlightedNodes.add(secondSelNode);
-			} catch (NullPointerException e) {}
+			}
 			// adding the first selected node, if there is one, to the front of
 			// the list of highlighted nodes
 			highlightedNodes.addFirst(firstSelNode);
-		} catch (NullPointerException e) {}
+		}
 		// checking whether there is more than one highlighted node
 		if (highlightedNodes.size() > 1) {
 			// retrieving the first highlighted node
@@ -288,9 +286,9 @@ public class ObddController {
 			obddStacks.put(obddName, obddStack);
 			// creating the new visual OBDD
 			currentObdd = new VisualObdd(abstractObdd, panelSize);
-			// setting the visual OBDD's highlighted nodes to the remaining 
-			// highlighted nodes
-			currentObdd.setHighlightedNodes(remainingHighlightedNodes);
+//			// setting the visual OBDD's highlighted nodes to the remaining 
+//			// highlighted nodes
+//			currentObdd.setHighlightedNodes(remainingHighlightedNodes);
 		}
 		// calling the GUI controller to inform the user, if there weren't 
 		// enough nodes given to be merged
@@ -311,20 +309,17 @@ public class ObddController {
 		OBDD obdd = currentObdd.getObdd();
 		// searching for a redundant node
 		OBDD redundantNode = obdd.findRedundant();
-		try {
-			// trying to get the redundant node's ID in order to check whether 
-			// it's null
-			redundantNode.getId();
+		// 
+		if (redundantNode == null) GuiController.noRedundantNode();
+		// calling the GUI controller to inform the user, if there is no 
+		// redundant node
+		else {
 			// creating a new list of highlighted nodes containing only the 
 			// found redundant node
 			LinkedList<OBDD> highlightedNodes = new LinkedList<OBDD>();
 			highlightedNodes.add(redundantNode);
 			// setting the current OBDD's highlighted nodes
 			currentObdd.setHighlightedNodes(highlightedNodes);
-		} catch (NullPointerException e) {
-			// calling the GUI controller to inform the user, if there is no 
-			// redundant node
-			GuiController.noRedundantNode();
 		}
 		// returning the current OBDD
 		return currentObdd;
@@ -346,31 +341,29 @@ public class ObddController {
 		// retrieving the selected and highlighted nodes
 		OBDD selectedNode = currentObdd.getSelectedNode();
 		LinkedList<OBDD> highlightedNodes = currentObdd.getHighlightedNodes();
+		// initializing a variable for the node to be removed
+		OBDD nodeToRemove = null;
 		// creating the variable ordering
 		VariableOrdering varOrd = 
 				VarOrdController.stringToVarOrd(varOrdFieldText);
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
-		AbstractObddLayout abstractObdd = new AbstractObddLayout(obddStack.peek());
-		try {
-			// trying to get the selected node's ID in order to check
-			// whether it's null
-			selectedNode.getId();
-			// adding the selected node, if there is one, to the front of the 
-			// list of highlighted nodes
-			highlightedNodes.addFirst(selectedNode);
-		} catch (NullPointerException e) {}
-		// checking whether the list of highlighted nodes is empty
-		if (!highlightedNodes.isEmpty()) {
-			// retrieving the first node from the list
-			OBDD highlightedNode = highlightedNodes.peek();
-			// checking whether the node is redundant
-			if (highlightedNode.isRedundant()) {
+		AbstractObddLayout abstractObdd = 
+				new AbstractObddLayout(obddStack.peek());
+		// setting the node to be removed to the selected node, if there is one
+		if (selectedNode != null) nodeToRemove = selectedNode;
+		// Otherwise, if there are any highlighted nodes, the node to be 
+		// removed is set to the first one of them.
+		else if (!highlightedNodes.isEmpty()) 
+			nodeToRemove = highlightedNodes.peek();
+		// checking whether there is a node to be removed and it's redundant
+		if (nodeToRemove != null) {
+			if (nodeToRemove.isRedundant()) {
 				// removing the node
-				obdd = obdd.remove(highlightedNode, varOrd);
+				obdd = obdd.remove(nodeToRemove, varOrd);
 				// updating the abstract OBDD
-				abstractObdd.removeNode(highlightedNode.getId(), obdd);
+				abstractObdd.removeNode(nodeToRemove.getId(), obdd);
 				// pushing the changed abstract OBDD onto the stack
 				obddStack.push(abstractObdd);
 				// putting the stack back into the stack HashMap
@@ -402,6 +395,8 @@ public class ObddController {
 	 */
 	public VisualObdd reduce(String obddName, String varOrdFieldText, 
 			Dimension panelSize, boolean removeRedundantNodes) {
+		// initializing a variable that states whether nodes have been added
+		boolean nodesAdded = false;
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
 		// creating the variable ordering
@@ -421,15 +416,22 @@ public class ObddController {
 			if (!currentObdd.getObdd().noVarMissing(varOrdList)) {
 				// calling the GUI controller's missing variable method to find
 				// out whether the missing variables should be added
-				if (GuiController.missingVars())
+				if (GuiController.missingVars()) {
 					// adding the missing variables
 					obdd = obdd.addMissingVars(varOrd, varOrdList);
+					// stating that nodes have been added
+					nodesAdded = true;
+				}
+
 			}
 			// reducing the OBDD to a QOBDD
 			obdd = obdd.reduceQ(varOrd);
 		}
-		// updating the abstract OBDD
-		abstractObdd.reduceObdd(obdd);
+		// If nodes have been added, a new abstract OBDD layout has to be 
+		// created.
+		if (nodesAdded) abstractObdd = new AbstractObddLayout(obdd);
+		// Otherwise the current abstract OBDD can simply be updated.
+		else abstractObdd.reduceObdd(obdd);
 		// pushing the changed abstract OBDD onto the stack
 		obddStack.push(abstractObdd);
 		// putting the stack back into the stack HashMap
@@ -499,7 +501,7 @@ public class ObddController {
 						varOrdFieldText, formulaFieldText});
 		// checking whether the selected OBDD's name is null 
 		// (e.g. because no OBDD was selected)
-		if (nullString(selectedName)) {
+		if (selectedName == null) {
 			// having the GUI controller inform the user that no OBDD was 
 			// selected
 			GuiController.noObddSelected();
@@ -509,7 +511,7 @@ public class ObddController {
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(selectedName);
 		// checking whether the stack is null
-		if (nullStack(obddStack)) {
+		if (obddStack == null) {
 			// having the GUI controller inform the user that the selected OBDD
 			// couldn't be found
 			GuiController.noSuchObdd();
@@ -550,7 +552,7 @@ public class ObddController {
 				String[]> (currentObdd, new String[] {firstName, 
 						varOrdFieldText, formulaFieldText});
 		// checking whether the second OBDD's name is null
-		if (nullString(secondName)) {
+		if (secondName == null) {
 			// having the GUI controller inform the user that no OBDD was 
 			// selected
 			GuiController.noObddSelected();
@@ -560,7 +562,7 @@ public class ObddController {
 		// retrieving the second OBDD's stack
 		Stack<AbstractObddLayout> secondStack = obddStacks.get(secondName);
 		// checking whether the stack is null
-		if (nullStack(secondStack)) {
+		if (secondStack == null) {
 			// having the GUI controller inform the user that the second OBDD 
 			// couldn't be found
 			GuiController.noSuchObdd();
@@ -590,7 +592,7 @@ public class ObddController {
 					applyName = GuiController.improperName(applyName);
 					// If the name is null, the dialog was cancelled. In that 
 					// case the default pair is returned.
-					if (nullString(applyName)) return defaultReturn;
+					if (applyName == null) return defaultReturn;
 				}
 				// retrieving the two actual OBDDs
 				OBDD firstObdd = currentObdd.getObdd();
@@ -608,8 +610,12 @@ public class ObddController {
 				obddStack.push(abstractObdd);
 				// adding the OBDD's stack to the stack HashMap
 				obddStacks.put(applyName, obddStack);
-				// retrieving the string representing the represented formula
-				String applyFormulaString = applyObdd.toFormula().toString();
+				// retrieving the formula represented by the OBDD and 
+				// reducing it
+				Formula formula = 
+						FormulaController.reduce(applyObdd.toFormula());
+				// retrieving the string representing the formula
+				String applyFormulaString = formula.toString();
 				// storing the variable ordering and formula text field strings
 				stringMap.put(applyName, 
 						new Pair<String,String>(varOrdFieldText, 
@@ -636,45 +642,6 @@ public class ObddController {
 	
 	
 	/**
-	 * auxiliary method that states whether a given string is null
-	 * @param string
-	 * @return
-	 */
-	private boolean nullString(String string) {
-		try {
-			// trying to check whether the string is empty in order to check 
-			// whether it's null
-			string.isEmpty();
-			// returning false if it isn't null
-			return false;
-			} catch (NullPointerException e) {
-				// returning true if it is null
-				return true;
-				}
-	}
-	
-	
-	/**
-	 * auxiliary method that states whether a given stack 
-	 * (for abstract OBDD layouts) is null
-	 * @param stack
-	 * @return
-	 */
-	private boolean nullStack(Stack<AbstractObddLayout> stack) {
-		try {
-			// trying to check whether the stack is empty in order to check 
-			// whether it's null
-			stack.isEmpty();
-			// returning false if it isn't null
-			return false;
-			} catch (NullPointerException e) {
-				// returning true if it is null
-				return true;
-				}
-	}
-	
-	
-	/**
 	 * auxiliary method that states whether an OBDD name is improper
 	 * @param obddName
 	 * @return
@@ -682,7 +649,7 @@ public class ObddController {
 	private boolean improperName(String obddName) {
 		// If the name is empty or already exists, it's improper.
 		// Otherwise it isn't.
-		return (obddName.isEmpty() || obddStacks.containsKey(obddName));
+		return obddName.isEmpty() || obddStacks.containsKey(obddName);
 	}
 	
 	
@@ -693,16 +660,12 @@ public class ObddController {
 	 * @return
 	 */
 	private boolean improperVarOrdString(String varOrdString) {
-		try {
-			// If the variable ordering is empty, the string is improper. 
-			// Otherwise it isn't.
-			// (The check for emptiness throws a null pointer exception if the 
-			//  name is null.)
-			return VarOrdController.stringToVarOrd(varOrdString).isEmpty();
-		} catch (NullPointerException e) {
-			// If the variable ordering is null, the string is improper.
-			return true;
-		}
+		// creating the variable ordering from the string
+		VariableOrdering varOrd = 
+				VarOrdController.stringToVarOrd(varOrdString);
+		// If the variable ordering is null or empty, the string is improper. 
+		// Otherwise it isn't.
+		return (varOrd == null) || varOrd.isEmpty();
 	}
 	
 	
@@ -712,15 +675,11 @@ public class ObddController {
 	 * @return
 	 */
 	private boolean improperFormulaInputString(String formulaInputString) {
-		try {
-			// If the formula string is empty, the input string is improper. 
-			// Otherwise it isn't.
-			// (The check for emptiness throws a null pointer exception if the 
-			//  name is null.)
-			return FormulaController.toFormulaString(formulaInputString).isEmpty();
-		} catch (NullPointerException e) {
-			// If the formula string is null, the input string is improper.
-			return true;
-		}
+		// creating the formula string from the input string
+		String formulaString = 
+				FormulaController.toFormulaString(formulaInputString);
+		// If the formula string is null or empty, 
+		// the input string is improper. Otherwise it isn't.
+		return (formulaString == null) || formulaString.isEmpty();
 	}
 }

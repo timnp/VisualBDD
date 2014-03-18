@@ -86,12 +86,9 @@ public class TruthTable {
 					assignedOne.add(vars.get(column));
 				}
 			}
-			// function value of this Formula's function under the assignment
-			// represented by the row
-			boolean funVal = f.evaluate(assignedOne);
-			// transferring the boolean function value into one/zero and
-			// writing it into the data array
-			data[row][vars.size()] = funVal;
+			// writing the boolean function value of this Formula's function 
+			// under the assignment represented by the row into the data array
+			data[row][vars.size()] = f.evaluate(assignedOne);
 		}
 	}
 	

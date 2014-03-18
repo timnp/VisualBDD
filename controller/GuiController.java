@@ -1,6 +1,13 @@
 package controller;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import model.Pair;
@@ -13,7 +20,7 @@ import view.MainGui;
  */
 public class GuiController {
 	/**
-	 * constructor for a MainGuiController
+	 * constructor for a GUI controller
 	 */
 	public GuiController() {
 		//TODO?
@@ -87,7 +94,7 @@ public class GuiController {
 	 * OBDD
 	 */
 	public static void noEquivalentNodes() {
-		messageDialog("This BDD doesn't have any equivalent nodes.");
+		messageDialog("No equivalent nodes were found.");
 	}
 	
 	
@@ -122,7 +129,7 @@ public class GuiController {
 	 * informs the user that the selected/highlighted node isn't redundant
 	 */
 	public static void notRedundant() {
-		errorDialog("The selected/highlighted node isnt't redundant.");
+		errorDialog("The selected/highlighted node isn't redundant.");
 	}
 	
 	

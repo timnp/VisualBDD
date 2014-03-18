@@ -18,7 +18,11 @@ import view.*;
 public class ExperimentalTests {
 	
 	public static void main(String[] args) {
-		new MainGui();
+		LinkedList<Integer> zeroToTen = new LinkedList<Integer>();
+		for (int i = 0; i <= 10; i++) {
+			zeroToTen.add(i);
+		}
+		System.out.println(zeroToTen.subList(4, 8));
 	}
 
 }

@@ -62,6 +62,27 @@ public class MainGui extends JFrame {
 	private JButton generateButton = new JButton("Generate");
 	
 	/**
+	 * list model for the OBDD list
+	 */
+	private DefaultListModel<String> obddListModel = new DefaultListModel<String>();
+	/**
+	 * list of all OBDDs created during this "session"
+	 */
+	private JList<String> obddList = new JList<String>(obddListModel);
+	/**
+	 * scroll panel for the OBDD list
+	 */
+	private JScrollPane obddScrollPane = new JScrollPane(obddList);
+	/**
+	 * button for showing a particular OBDD
+	 */
+	private JButton showObddButton = new JButton("Show chosen OBDD");
+	/**
+	 * button for applying a binary operation on the current OBDD and the 
+	 * chosen one
+	 */
+	private JButton applyObddsButton = new JButton("Apply with chosen OBDD");
+	/**
 	 * table displaying the truth table
 	 */
 	private JTable ttTable = new JTable();
@@ -78,27 +99,6 @@ public class MainGui extends JFrame {
 	 * button for showing the truth table in a new window
 	 */
 	private JButton ttWindowButton = new JButton("Truth Table Window");
-	/**
-	 * list model for the OBDD list
-	 */
-	private DefaultListModel<String> obddListModel = new DefaultListModel<String>();
-	/**
-	 * list of all OBDDs created during this "session"
-	 */
-	private JList<String> obddList = new JList<String>(obddListModel);
-//	/**
-//	 * scroll panel for the OBDD list
-//	 */
-//	private JScrollPane obddScrollPane = new JScrollPane(obddList);
-	/**
-	 * button for showing a particular OBDD
-	 */
-	private JButton showObddButton = new JButton("Show chosen OBDD");
-	/**
-	 * button for applying a binary operation on the current OBDD and the 
-	 * chosen one
-	 */
-	private JButton applyObddsButton = new JButton("Apply with chosen OBDD");
 	
 	/**
 	 * panel for the OBDD itself
@@ -235,13 +235,101 @@ public class MainGui extends JFrame {
 	
 	
 	
-//	/**
-//	 * getter for the OBDD panel
-//	 * @return
-//	 */
-//	public JPanel getObddPane() {
-//		return obddPane;
-//	}
+	/**
+	 * getter for the OBDD name field
+	 * @return
+	 */
+	public JTextField getObddNameField() {return obddNameField;}
+	
+	/**
+	 * getter for the variable ordering field
+	 * @return
+	 */
+	public JTextField getVarOrdField() {return varOrdField;}
+	
+	/**
+	 * getter for the formula field
+	 * @return
+	 */
+	public JTextField getFormulaField() {return formulaField;}
+	
+	/**
+	 * getter for the OBDD type menu
+	 * @return
+	 */
+	public JComboBox<String> getObddTypeCB() {return obddTypeCB;}
+	
+	/**
+	 * getter for the generate button
+	 * @return
+	 */
+	public JButton getGenerateButton() {return generateButton;}
+	
+	/**
+	 * getter for the OBDD list model
+	 * @return
+	 */
+	public DefaultListModel<String> getObddListModel() {return obddListModel;}
+	
+	/**
+	 * getter for the OBDD list
+	 * @return
+	 */
+	public JList<String> getObddList() {return obddList;}
+	
+	/**
+	 * getter for the OBDD scroll panel
+	 * @return
+	 */
+	public JScrollPane getObddScrollPane() {return obddScrollPane;}
+	
+	/**
+	 * getter for the OBDD showing button
+	 * @return
+	 */
+	public JButton getShowObddButton() {return showObddButton;}
+	
+	/**
+	 * getter for the OBDD apply button
+	 * @return
+	 */
+	public JButton getApplyObddsButton() {return applyObddsButton;}
+	
+	/**
+	 * getter for the truth table
+	 * @return
+	 */
+	public JTable getTtTable() {return ttTable;}
+	
+	/**
+	 * getter for the truth table scroll panel
+	 * @return
+	 */
+	public JScrollPane getTtScrollPane() {return ttScrollPane;}
+	
+	/**
+	 * getter for the line combining/separating button
+	 * @return
+	 */
+	public JButton getCombineSeparateButton() {return combineSeparateButton;}
+	
+	/**
+	 * getter for the truth table window button
+	 * @return
+	 */
+	public JButton getTtWindowButton() {return ttWindowButton;}
+	
+	/**
+	 * getter for the OBDD panel
+	 * @return
+	 */
+	public JPanel getObddPane() {return obddPane;}
+	
+	/**
+	 * getter for the GUI's last column's buttons
+	 * @return
+	 */
+	public JButton[] getLastColumnButtons() {return lastColumnButtons;}
 	
 	
 	/**
@@ -250,13 +338,27 @@ public class MainGui extends JFrame {
 	public MainGui () {
 		// initializing the MainGui's OBDD controller
 		oController = new ObddController();
-		// maximizing the frame
-		setExtendedState(MAXIMIZED_BOTH);
 		// setting the title
 		setTitle("VisualOBDD");
 		// When the frame is closed, the program is exited.
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+		// adding the GUI's components to its visualization
+		addComponents();
+		// setting the main frame's preferred size
+		setPreferredSize(new Dimension(1000,500));
+		this.setSize(getPreferredSize());
+		// adding all required listeners
+		addListeners();
+		// making the main frame visible
+		setVisible(true);
+	}
+	
+	
+	/**
+	 * auxiliary method that adds all of the GUI's components to its 
+	 * visualization
+	 */
+	private void addComponents() {
 		// setting the layout to GridBagLayout 
 		setLayout(new GridBagLayout());
 		
@@ -293,130 +395,47 @@ public class MainGui extends JFrame {
 		addSubLineComboBoxOrButton(generateButton, 8, 1);
 		// setting its preferred size
 		generateButton.setPreferredSize(preferredButtonSize);
-		// adding a listener to the generate button
-		generateButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// calling the OBDD controller's OBDD from formula method
-				Pair<VisualObdd, String[]> results = 
-						oController.obddFromFormula(obddNameField.getText(), 
-								formulaField.getText(), varOrdField.getText(), 
-								obddTypeCB.getSelectedIndex(), 
-								obddPane.getSize());
-				// updating the possibly OBDD name, variable ordering string 
-				// and formula (input) string
-				updateTextFields(results.getSecond());
-				// adding the OBDD's name to the OBDD list
-				obddListModel.addElement(results.getSecond()[0]);
-				// showing the visual OBDD
-				showObdd(results.getFirst());
-			}
-		});
 
-		// adding the truth table scroll panel
-		addScrollable(ttScrollPane, 0, 2, 2, 3);
+		// adding the OBDD scroll panel
+		addScrollPane(obddScrollPane, 0, 2, 2, 3);
 		// setting its preferred size
-		ttScrollPane.setPreferredSize(new Dimension(350,175));
+		obddScrollPane.setPreferredSize(new Dimension(350,200));
+//		// adding the OBDD list
+//		addScrollable(obddList, 0, 2, 2, 3);
+//		// setting its preferred size
+//		obddList.setPreferredSize(new Dimension(350,200));
+		// adding the OBDD showing button
+		addSubPaneButton(showObddButton, 0, 5);
+		// setting its preferred size
+		showObddButton.setPreferredSize(preferredButtonSize);
+		// adding the OBDD applying button
+		addSubPaneButton(applyObddsButton, 1, 5);
+		// setting its preferred size
+		applyObddsButton.setPreferredSize(preferredButtonSize);
+		// adding the truth table scroll panel
+		addScrollPane(ttScrollPane, 0, 6, 2, 3);
+		// setting its preferred size
+		ttScrollPane.setPreferredSize(new Dimension(350,200));
 		// adding the line combining/separating button
-		addSubPaneButton(combineSeparateButton, 0, 5);
+		addSubPaneButton(combineSeparateButton, 0, 9);
 		// setting its preferred size
 		combineSeparateButton.setPreferredSize(preferredButtonSize);
 		// adding the truth table window button
-		addSubPaneButton(ttWindowButton, 1, 5);
+		addSubPaneButton(ttWindowButton, 1, 9);
 		// setting its preferred size
 		ttWindowButton.setPreferredSize(preferredButtonSize);
-//		// adding the OBDD scroll panel
-//		addScrollable(obddScrollPane, 0, 6, 2, 3);
-//		// setting its preferred size
-//		obddScrollPane.setPreferredSize(new Dimension(350,175));
-		// adding the OBDD list
-		addScrollable(obddList, 0, 6, 2, 3);
-		// setting its preferred size
-		obddList.setPreferredSize(new Dimension(350,175));
-		// adding the OBDD showing button
-		addSubPaneButton(showObddButton, 0, 9);
-		// setting its preferred size
-		showObddButton.setPreferredSize(preferredButtonSize);
-		// adding a listener to the OBDD showing button
-		showObddButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// calling the OBDD controller's load method for the OBDD name 
-				// selected in the OBDD list
-				Pair<VisualObdd,String[]> results = 
-						oController.loadObdd(obddList.getSelectedValue(), 
-								obddNameField.getText(), varOrdField.getText(),
-								formulaField.getText(), obddPane.getSize());
-				// updating the text fields
-				updateTextFields(results.getSecond());
-				// showing the visual OBDD
-				showObdd(results.getFirst());
-			}
-		});
-		// adding the OBDD applying button
-		addSubPaneButton(applyObddsButton, 1, 9);
-		// setting its preferred size
-		applyObddsButton.setPreferredSize(preferredButtonSize);
-		// adding a listener to the OBDD applying button
-		applyObddsButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				// calling the OBDD controller's simple apply method
-				Pair<VisualObdd, String[]> results = 
-						oController.simpleApply(obddNameField.getText(), 
-								obddList.getSelectedValue(), 
-								varOrdField.getText(), formulaField.getText(), 
-								obddPane.getSize());
-				// updating the possibly OBDD name, variable ordering string 
-				// and formula (input) string
-				updateTextFields(results.getSecond());
-				// adding the OBDD's name to the OBDD list
-				obddListModel.addElement(results.getSecond()[0]);
-				// showing the visual OBDD
-				showObdd(results.getFirst());
-			}
-		});
 		
 		// adding the OBDD panel
 		addToMainFrame(obddPane, 2, 2, 6, 8, GridBagConstraints.BOTH, 1, 1, 
 				new Insets(2, 2, 2, 2), GridBagConstraints.NORTH, 
 				1.0, 1.0);
 		// setting its preferred size
-		obddPane.setPreferredSize(new Dimension(525,400));
+		obddPane.setPreferredSize(new Dimension(450,450));
 		// setting the OBDD panel's color
 		obddPane.setBackground(Color.WHITE);
-		// adding a listener to the OBDD panel
-		obddPane.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				// calling the OBDD controller to unselect the selected node 
-				// and select the clicked node (if there is one)
-				showObdd(oController.clickOnObddPanel(e.getPoint()));
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
 		
 		// adding the GUI's last column's buttons, setting their preferred 
-		// size(s) and adding their listeners
+		// size(s)
 		for (int i = 0; i < lastColumnButtons.length; i++) {
 			// setting the preferred size
 			lastColumnButtons[i].setPreferredSize(preferredButtonSize);
@@ -425,12 +444,7 @@ public class MainGui extends JFrame {
 					GridBagConstraints.HORIZONTAL, 1, 1, 
 					new Insets(1, 1, 1, 1), GridBagConstraints.CENTER, 
 					0.2, 0.1);
-			lastColumnButtons[i].addActionListener(
-					lastColumnButtonListeners[i]);
 		}
-		
-		// making the main frame visible
-		setVisible(true);
 	}
 	
 	
@@ -555,7 +569,7 @@ public class MainGui extends JFrame {
 	 * @param gridheight
 	 * @param insets
 	 */
-	private void addScrollable(Component comp, int gridx, int gridy, 
+	private void addScrollPane(Component comp, int gridx, int gridy, 
 			int gridwidth, int gridheight) {
 		addToMainFrame(comp, gridx, gridy, gridwidth, gridheight, 
 				GridBagConstraints.BOTH, 1, 1, independent, 
@@ -587,19 +601,120 @@ public class MainGui extends JFrame {
 	
 	
 	/**
-	 * auxiliary method that shows an OBDD given as a VisualObdd
-	 * @param visualObdd
+	 * auxiliary method that adds listeners to all of the GUI's components 
+	 * (which need any)
 	 */
-	private void showObdd(VisualObdd visualObdd) {
-		try {
-			// trying to check whether the visual OBDD is visible in order to 
-			// check whether it's null
-			visualObdd.isVisible();
-			// showing it if it isn't null
+	private void addListeners() {
+		// adding a listener to the generate button
+		generateButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// calling the OBDD controller's OBDD from formula method
+				Pair<VisualObdd, String[]> results = 
+						oController.obddFromFormula(obddNameField.getText(), 
+								varOrdField.getText(), formulaField.getText(), 
+								obddTypeCB.getSelectedIndex(), 
+								obddPane.getSize());
+				// updating the possibly OBDD name, variable ordering string 
+				// and formula (input) string
+				updateTextFields(results.getSecond());
+				// showing the visual OBDD
+				if (showObdd(results.getFirst())) {
+					// adding the OBDD's name to the OBDD list if the OBDD is 
+					// shown
+					obddListModel.addElement(results.getSecond()[0]);
+				}
+			}
+		});
+		// adding a listener to the OBDD showing button
+		showObddButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// calling the OBDD controller's load method for the OBDD name 
+				// selected in the OBDD list
+				Pair<VisualObdd,String[]> results = 
+						oController.loadObdd(obddList.getSelectedValue(), 
+								obddNameField.getText(), varOrdField.getText(),
+								formulaField.getText(), obddPane.getSize());
+				// updating the text fields
+				updateTextFields(results.getSecond());
+				// showing the visual OBDD
+				showObdd(results.getFirst());
+			}
+		});
+		// adding a listener to the OBDD applying button
+		applyObddsButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// calling the OBDD controller's simple apply method
+				Pair<VisualObdd, String[]> results = 
+						oController.simpleApply(obddNameField.getText(), 
+								obddList.getSelectedValue(), 
+								varOrdField.getText(), formulaField.getText(), 
+								obddPane.getSize());
+				// updating the possibly OBDD name, variable ordering string 
+				// and formula (input) string
+				updateTextFields(results.getSecond());
+				// showing the visual OBDD
+				if (showObdd(results.getFirst())) {
+					// adding the OBDD's name to the OBDD list if the OBDD is 
+					// shown
+					obddListModel.addElement(results.getSecond()[0]);
+				}
+			}
+		});
+		// adding a listener to the OBDD panel
+		obddPane.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// calling the OBDD controller to unselect the selected node 
+				// and select the clicked node (if there is one)
+				showObdd(oController.clickOnObddPanel(e.getPoint()));
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		// adding the GUI's last column's buttons' listeners
+		for (int i = 0; i < lastColumnButtons.length; i++) {
+			lastColumnButtons[i].addActionListener(
+					lastColumnButtonListeners[i]);
+		}
+	}
+	
+	
+	/**
+	 * auxiliary method that shows an OBDD given as a VisualObdd if it isn't 
+	 * null and states whether it did
+	 * @param visualObdd
+	 * @return
+	 */
+	private boolean showObdd(VisualObdd visualObdd) {
+		// showing it if it isn't null
+		if (visualObdd != null) {
 			obddPane.removeAll();
 			obddPane.add(visualObdd);
 			obddPane.repaint();
-		} catch (NullPointerException e) {}
+			return true;
+		}
+		else return false;
 	}
 	
 	

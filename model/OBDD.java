@@ -3,6 +3,7 @@ package model;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 
@@ -311,11 +312,9 @@ public class OBDD {
 				// If the node isn't the specified one and isn't a terminal, 
 				// first the high child gets called recursively.
 				find = highChild.getNode(id);
-				// trying to get the find's ID it's null
-				try {find.getId();}
 				// If the high child's call didn't return a node, the low child
 				// gets called recursively.
-				catch (NullPointerException e) {find = lowChild.getNode(id);}
+				if (find == null) find = lowChild.getNode(id);
 			}
 			// returning the find
 			return find;
@@ -1121,10 +1120,9 @@ public class OBDD {
 	 */
 	public boolean isRedundant() {
 		// A terminal isn't redundant.
-		if (terminal) return false;
 		// A decision node is redundant, if it's children are the same 
 		// (which can be indicated by their IDs).
-		else return (highChild.id == lowChild.id);
+		return !terminal && (highChild.id == lowChild.id);
 	}
 	
 	
@@ -1134,14 +1132,11 @@ public class OBDD {
 	 * @return 
 	 */
 	public boolean isQobdd(VariableOrdering varOrd) {
-		if (!(findAnyEquivalent(varOrd) == null)) {
-			// If there are any equivalent nodes, the OBDD isn't a QOBDD.
-			return false;
-		} else {
-			// checking, whether all variables are on each path from the root 
-			// to a terminal
-			return noVarMissing(varOrd.getOrdList());
-		}
+		// An OBDD is a QOBBD if there are no equivalent nodes and each path 
+		// from the root to a terminal doesn't miss any variables from the 
+		// given variable ordering (and is ordered that way).
+		return (findAnyEquivalent(varOrd) == null) && 
+				noVarMissing(varOrd.getOrdList());
 	}
 	
 	
@@ -1155,18 +1150,14 @@ public class OBDD {
 		// creating a copy of the ordering list to be shortened
 		LinkedList<Integer> checkList = new LinkedList<Integer>();
 		checkList.addAll(varOrdList);
-		// If the node is a terminal or the list is empty, no variable is 
-		// missing on this path.
-		if (terminal || checkList.isEmpty()) {
-			return true;
-		} else if (!(var == checkList.poll())) {
-			// If the first variable in the ordered variable list isn't the one 
-			// of this node, it is missing on this path.
-			return false;
-		}
+		// If the list is empty, no variable is missing on this path.
+		// If the node is a terminal or the first variable in the ordered 
+		// variable list isn't the one of this node, it is missing on this 
+		// path.
 		// Otherwise the node's children are checked recursively.
-		else return (highChild.noVarMissing(checkList) && 
-				lowChild.noVarMissing(checkList));
+		return checkList.isEmpty() || (!terminal && (var == checkList.poll()) 
+				&& highChild.noVarMissing(checkList) 
+				&& lowChild.noVarMissing(checkList));
 	}
 	
 	
@@ -1176,13 +1167,10 @@ public class OBDD {
 	 * @return
 	 */
 	public boolean isRobdd(VariableOrdering varOrd) {
-		if (findAnyEquivalent(varOrd) != null) {
-			// If there are any equivalent nodes, the OBDD isn't an ROBDD.
-			return false;
-		}
 		// An OBDD is an ROBBD if there are no equivalent nodes and no 
-		// redundant nodes.
-		else return ((findRedundant() == null));
+		// redundant nodes.		
+		return (findAnyEquivalent(varOrd) == null) && 
+				(findRedundant() == null);
 	}
 	
 	
@@ -1221,32 +1209,56 @@ public class OBDD {
 	 */
 	public OBDD addMissingVars(VariableOrdering varOrd, 
 			LinkedList<Integer> varOrdList) {
-		if (terminal) {
-			// If the node is a terminal, it is returned.
-			return this;
-		} else {
-			// retrieving the current variable
-			int currentVar = varOrdList.poll();
+		// If the ordering list is empty, there are no missing variables on 
+		// this path and the node itself is returned.
+		if (varOrdList.isEmpty()) return this;
+		// initializing a variable for the "fixed" node
+		OBDD thisMVA;
+		// creating a copy of the ordering list to be shortened
+		LinkedList<Integer> addList = new LinkedList<Integer>();
+		addList.addAll(varOrdList);
+		// retrieving the current variable
+		int currentVar = addList.poll();
+		// setting the node MVA("missing variables added") to the node itself, 
+		// if it's a terminal
+		if (terminal) thisMVA = this;
+		// If the node is a decision node, its children have to be "fixed" 
+		// recursively
+		else {
 			// constructing the high child with all missing variables added
-			OBDD highChildMVA = highChild.addMissingVars(varOrd, varOrdList);
+			OBDD highChildMVA = highChild.addMissingVars(varOrd, addList);
 			// constructing the low child with all missing variables added
-			OBDD lowChildMVA = lowChild.addMissingVars(varOrd, varOrdList);
+			OBDD lowChildMVA = lowChild.addMissingVars(varOrd, addList);
 			// constructing this node with all missing variables added
-			OBDD thisMVA = 
+			thisMVA = 
 					highChildMVA.cons(var, lowChildMVA, varOrd);
-			if (var == currentVar) {
-				// If this node has the current variable, its correspondent 
-				// node is returned.
-				return thisMVA;
-			}
-			else {
-				// If there is a variable missing, a redundant node with that 
-				// variable is inserted above the node corresponding to this 
-				// one.
-				return thisMVA.cons(currentVar, lowChildMVA, 
-						new VariableOrdering(varOrdList));
-			}
 		}
+		// If this node's variable isn't the current one, it is assumed
+		// that there are variables missing at this point.
+		if (var != currentVar) {
+			// initializing a variable for a list of all variables missing at 
+			// this point
+			List<Integer> gapVars;
+			// If the node is a terminal, all variables from the list are 
+			// missing here.
+			if (terminal) gapVars = varOrdList;
+			// If the node is a decision node, all variables from the current 
+			// one to the first one before this node's variable are missing 
+			// here.
+			else gapVars = varOrdList.subList(
+					varOrdList.indexOf(currentVar), varOrdList.indexOf(var));
+			// creating a copying linked list for an iterating reason
+			LinkedList<Integer> gapVarsLinked = new LinkedList<Integer>();
+			gapVarsLinked.addAll(gapVars);
+			// a descending iterator over the linked list of gap variables
+			java.util.Iterator<Integer> iter = gapVarsLinked
+					.descendingIterator();
+			// for each gap variable adding a redundant node
+			while (iter.hasNext())
+				thisMVA = thisMVA.cons(iter.next(), thisMVA, varOrd);
+		}
+		// returning the resulting node
+		return thisMVA;
 	}
 	
 	

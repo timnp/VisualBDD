@@ -470,4 +470,15 @@ public class FormulaController {
 		return binOpFS;
 	}
 	
+	
+	/**
+	 * provides the reduction method for formulas
+	 * @param formula
+	 * @return the reduced formula
+	 */
+	public static Formula reduce(Formula formula) {
+		formula = formula.reduce();
+		return formula;
+	}
+	
 }

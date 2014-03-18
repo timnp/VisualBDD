@@ -63,7 +63,7 @@ public class VariableOrdering {
 	 * @return the variable's position (as integer)
 	 */
 	public int indexOf(int var) {
-		return this.ordList.indexOf(var);
+		return ordList.indexOf(var);
 	}
 	
 	
@@ -91,7 +91,7 @@ public class VariableOrdering {
 	 * @return whether the VariableOrdering is empty
 	 */
 	public boolean isEmpty() {
-		return this.ordList.isEmpty();
+		return ordList.isEmpty();
 	}
 	
 	
@@ -99,7 +99,7 @@ public class VariableOrdering {
 	 * @return the number of variables in the VariableOrdering
 	 */
 	public int size() {
-		return this.ordList.size();
+		return ordList.size();
 	}
 	
 	
@@ -107,7 +107,7 @@ public class VariableOrdering {
 	 * @return the VariableOrdering's first (highest) variable
 	 */
 	public int getFirst() {
-		return this.ordList.getFirst();
+		return ordList.getFirst();
 	}
 	
 	
@@ -115,7 +115,7 @@ public class VariableOrdering {
 	 * @return the VariableOrdering's last (lowest) variable
 	 */
 	public int getLast() {
-		return this.ordList.getLast();
+		return ordList.getLast();
 	}
 	
 	
@@ -124,7 +124,7 @@ public class VariableOrdering {
 	 * @return the VariableOrdering's variable at the given index
 	 */
 	public int get(int index) {
-		return this.ordList.get(index);
+		return ordList.get(index);
 	}
 
 }

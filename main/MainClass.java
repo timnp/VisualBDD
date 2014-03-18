@@ -1,5 +1,7 @@
 package main;
 
+import controller.GuiController;
+import controller.ObddController;
 import view.MainGui;
 
 /**
@@ -10,7 +12,9 @@ import view.MainGui;
 public class MainClass {
 
 	public static void main(String[] args) {
-		new MainGui();
+		MainGui mainGui = new MainGui();
+//		GuiController guiController = new GuiController(mainGui);
+//		new ObddController(mainGui);
 	}
 
 }
