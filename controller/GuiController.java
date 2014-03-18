@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import model.Pair;
+import model.VisualObdd;
 import view.MainGui;
 
 /**
@@ -19,11 +20,13 @@ import view.MainGui;
  *
  */
 public class GuiController {
+	private MainGui mainGui;
 	/**
 	 * constructor for a GUI controller
 	 */
-	public GuiController() {
+	public GuiController(MainGui mainGui) {
 		//TODO?
+		this.mainGui = mainGui;
 	}
 	
 	
@@ -33,7 +36,7 @@ public class GuiController {
 	 * @param givenFormulaString
 	 * @return the new formula (input string)
 	 */
-	public static String improperFormulaInputString(String givenFormulaInputString) {
+	public String improperFormulaInputString(String givenFormulaInputString) {
 		return improperInput(
 				"The given formula doesn't fulfill the requirements.\n" + 
 				"Please change it so it does.", 
@@ -47,7 +50,7 @@ public class GuiController {
 	 * @param givenName
 	 * @return the new name
 	 */
-	public static String improperName(String givenName) {
+	public String improperName(String givenName) {
 		return improperInput(
 				"The given name is either empty or already taken.\n" + 
 				"Please change it to a new non-empty one.", givenName);
@@ -60,7 +63,7 @@ public class GuiController {
 	 * @param givenVarOrdString
 	 * @return the new variable ordering (string)
 	 */
-	public static String improperVarOrdString(String givenVarOrdString) {
+	public String improperVarOrdString(String givenVarOrdString) {
 		return improperInput("The given variable ordering doesn't fulfill " + 
 				"the requirements.\nPlease change it so it does.", 
 				givenVarOrdString);
@@ -73,7 +76,7 @@ public class GuiController {
 	 * @param message
 	 * @return the user's answer (input)
 	 */
-	private static String improperInput(String message, String givenInput) {
+	private String improperInput(String message, String givenInput) {
 		return (String) JOptionPane.showInputDialog(new JFrame(), 
 				message, "Improper Input", JOptionPane.INFORMATION_MESSAGE, null, 
 				null, givenInput);
@@ -84,7 +87,7 @@ public class GuiController {
 	 * informs the user that there aren't any previous versions of the current 
 	 * OBDD
 	 */
-	public static void nothingToUndo() {
+	public void nothingToUndo() {
 		messageDialog("There aren't any previous versions of this BDD.");
 	}
 	
@@ -93,7 +96,7 @@ public class GuiController {
 	 * informs the user that there aren't any equivalent nodes in the current 
 	 * OBDD
 	 */
-	public static void noEquivalentNodes() {
+	public void noEquivalentNodes() {
 		messageDialog("No equivalent nodes were found.");
 	}
 	
@@ -102,7 +105,7 @@ public class GuiController {
 	 * informs the user that there aren't any redundant nodes in the current 
 	 * OBDD
 	 */
-	public static void noRedundantNode() {
+	public void noRedundantNode() {
 		messageDialog("This BDD doesn't have any redundant nodes.");
 	}
 	
@@ -111,7 +114,7 @@ public class GuiController {
 	 * auxiliary method that shows a message dialog with a given message
 	 * @param message
 	 */
-	private static void messageDialog(String message) {
+	private void messageDialog(String message) {
 		JOptionPane.showMessageDialog(new JFrame(), message);
 	}
 	
@@ -119,7 +122,7 @@ public class GuiController {
 	/**
 	 * informs the user that not all selected/highlighted nodes are equivalent
 	 */
-	public static void notAllEquivalent() {
+	public void notAllEquivalent() {
 		errorDialog(
 				"Some of the selected/highlighted nodes aren't equivalent.");
 	}
@@ -128,7 +131,7 @@ public class GuiController {
 	/**
 	 * informs the user that the selected/highlighted node isn't redundant
 	 */
-	public static void notRedundant() {
+	public void notRedundant() {
 		errorDialog("The selected/highlighted node isn't redundant.");
 	}
 	
@@ -136,7 +139,7 @@ public class GuiController {
 	/**
 	 * informs the user that too few nodes are selected/highlighted
 	 */
-	public static void notEnoughNodesSelected() {
+	public void notEnoughNodesSelected() {
 		errorDialog("There aren't enough selected/highlighted nodes.");
 	}
 	
@@ -144,7 +147,7 @@ public class GuiController {
 	/**
 	 * informs the user that no OBDD was selected
 	 */
-	public static void noObddSelected() {
+	public void noObddSelected() {
 		errorDialog("You didn't select a BDD.");
 	}
 	
@@ -152,7 +155,7 @@ public class GuiController {
 	/**
 	 * informs the user that the selected OBDD couldn't be found
 	 */
-	public static void noSuchObdd() {
+	public void noSuchObdd() {
 		errorDialog("The selected BDD couldn't be found.");
 	}
 	
@@ -162,7 +165,7 @@ public class GuiController {
 	 * method
 	 * @param message
 	 */
-	private static void errorDialog(String message) {
+	private void errorDialog(String message) {
 		JOptionPane.showMessageDialog(new JFrame(), message, "Error", 
 				JOptionPane.ERROR_MESSAGE);
 	}
@@ -173,7 +176,7 @@ public class GuiController {
 	 * asks whether the nodes should be added
 	 * @return "true" if the answer is "yes", "false" otherwise
 	 */
-	public static boolean missingVars() {
+	public boolean missingVars() {
 		return yesOrNoDialog("Some of the BDD's paths are missing variables.\n"
 				+ "Should the nodes be added to produce a QOBDD?", "Warning", 
 				JOptionPane.WARNING_MESSAGE);
@@ -184,7 +187,7 @@ public class GuiController {
 	 * asks the user whether the formula should be reduced
 	 * @return "true" if the answer is "yes", "false" otherwise
 	 */
-	public static boolean reduceFormula() {
+	public boolean reduceFormula() {
 		return yesOrNoDialog("Should the represented formula be reduced?", 
 				"Question", JOptionPane.QUESTION_MESSAGE);
 	}
@@ -198,7 +201,7 @@ public class GuiController {
 	 * @param messageType - the dialog's message type
 	 * @return "true" if the answer is "yes", "false" otherwise
 	 */
-	private static boolean yesOrNoDialog(String question, String dialogName, 
+	private boolean yesOrNoDialog(String question, String dialogName, 
 			int messageType) {
 		// array for the options
 		String[] options = {"Yes", "No"};
@@ -215,7 +218,7 @@ public class GuiController {
 	 * @param initialFormula
 	 * @param representedFormula
 	 */
-	public static void showFormulas(String initialFormula, 
+	public void showFormulas(String initialFormula, 
 			String representedFormula) {
 		messageDialog("Initial Formula: " + initialFormula + 
 				"\nRepresented Formula: " + representedFormula);
@@ -227,7 +230,7 @@ public class GuiController {
 	 * and how it got named instead
 	 * @param newName
 	 */
-	public static void nameAlreadyTaken(String newName) {
+	public void nameAlreadyTaken(String newName) {
 		messageDialog("There already is a BDD with the chosen name.\n" 
 				+ "The new BDD has been named '" + newName + "' instead.");
 	}
@@ -238,7 +241,7 @@ public class GuiController {
 	 * got named
 	 * @param name
 	 */
-	public static void noNameGiven(String name) {
+	public void noNameGiven(String name) {
 		messageDialog("You didn't provide a name for the BDD.\n" + 
 				"It has been named '" + name + "' by default.");
 	}
@@ -251,7 +254,7 @@ public class GuiController {
 	 * @return the number of the chosen operation; 
 	 * 		   -1 if the dialog was cancelled
 	 */
-	public static int applyOperation(String firstName, String secondName) {
+	public int applyOperation(String firstName, String secondName) {
 		// creating the options
 		String[] options = {"Contradiction", 
 				firstName + " AND " + secondName, 
@@ -291,7 +294,7 @@ public class GuiController {
 	 * asks the user how a resulting OBDD should be named
 	 * @return the chosen name
 	 */
-	public static String newObddName() {
+	public String newObddName() {
 		return JOptionPane.showInputDialog(
 				"How should the resulting BDD be named?");
 	}
@@ -300,8 +303,45 @@ public class GuiController {
 	/**
 	 * informs the user that two variable orderings aren't equal
 	 */
-	public static void unequalVarOrds() {
+	public void unequalVarOrds() {
 		errorDialog("The two BDDs' variable orderings aren't equal.\n" + 
 				"Therefore the apply operation isn't executed.");
+	}
+	
+	
+	/**
+	 * shows an OBDD given as a VisualObdd if it isn't null
+	 * @param visualObdd
+	 */	
+	public void showObdd(VisualObdd visualObdd) {
+			// showing it if it isn't null
+			if (visualObdd != null) {
+				mainGui.getObddPane().removeAll();
+				mainGui.getObddPane().add(visualObdd);
+				mainGui.getObddPane().repaint();
+			}
+	}
+	
+	
+	/**
+	 * updates the field texts to the given ones
+	 * @param obddName
+	 * @param varOrdFieldText
+	 * @param formulaFieldText
+	 */
+	public void updateTextFields(String obddName, String varOrdFieldText, 
+			String formulaFieldText) {
+		mainGui.getObddNameField().setText(obddName);
+		mainGui.getVarOrdField().setText(varOrdFieldText);
+		mainGui.getFormulaField().setText(formulaFieldText);
+	}
+	
+	
+	/**
+	 * 
+	 * @param obddName
+	 */
+	public void addToObddList(String obddName) {
+		mainGui.getObddListModel().addElement(obddName);
 	}
 }

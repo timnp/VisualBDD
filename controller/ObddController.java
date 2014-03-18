@@ -35,10 +35,10 @@ public class ObddController {
 //	 * the connected main GUI
 //	 */
 //	private MainGui mainGui;
-//	/**
-//	 * the connected GUI controller
-//	 */
-//	private GuiController guiController;
+	/**
+	 * the connected GUI controller
+	 */
+	private GuiController guiController;
 	/**
 	 * the current OBDD
 	 */
@@ -64,8 +64,161 @@ public class ObddController {
 	/**
 	 * constructor for an OBDD controller
 	 */
-	public ObddController() {
+	public ObddController(GuiController guiController) {
 		//TODO?
+		this.guiController = guiController;
+	}
+	
+	
+	/**
+	 * loads the newest version of an OBDD given by its name from its stack
+	 * @param selectedName - the selected OBDD's name
+	 * @param panelSize - the OBDD panel's size
+	 * @return a boolean that states whether the OBDD has been loaded 
+	 * 		   successfully
+	 */
+	public boolean loadObdd(String selectedName, Dimension panelSize) {
+		// checking whether the selected OBDD's name is null 
+		// (e.g. because no OBDD was selected)
+		if (selectedName == null) {
+			// having the GUI controller inform the user that no OBDD was 
+			// selected
+			guiController.noObddSelected();
+			return false;
+		}
+		// retrieving the OBDD's stack
+		Stack<AbstractObddLayout> obddStack = obddStacks.get(selectedName);
+		// checking whether the stack is null
+		if (obddStack == null) {
+			// having the GUI controller inform the user that the selected OBDD
+			// couldn't be found
+			guiController.noSuchObdd();
+			return false;
+		}
+		// creating the visual OBDD
+		currentObdd = new VisualObdd(obddStack.peek(), panelSize);
+		// retrieving the OBDD's variable ordering and formula 
+		// text field strings
+		Pair<String,String> textFieldStrings = stringMap.get(selectedName);
+		// trying to get the pair's first element in order to check whether
+		// it's null
+		textFieldStrings.getFirst();
+		// showing the visual OBDD and updating the field texts
+		guiController.showObdd(currentObdd);
+		guiController.updateTextFields(selectedName, 
+				textFieldStrings.getFirst(), textFieldStrings.getSecond());
+		return true;
+	}
+	
+	
+	/**
+	 * asks the user for a binary operation to apply on the current OBDD and 
+	 * the chosen one and applies it on them, creating a new OBDD
+	 * @param firstName - the first OBDD's name
+	 * @param secondName - the second OBDD's name
+	 * @param varOrdFieldText - the variable ordering field's text
+	 * @param panelSize - the OBDD panel's size
+	 * @return a boolean that states whether the two OBDDs have been applied 
+	 * 		   successfully
+	 */
+	public boolean simpleApply(String firstName, String secondName, 
+			String varOrdFieldText, Dimension panelSize) {
+		// checking whether the second OBDD's name is null
+		if (secondName == null) {
+			// having the GUI controller inform the user that no OBDD was 
+			// selected
+			guiController.noObddSelected();
+			return false;
+		}
+		// retrieving the second OBDD's stack
+		Stack<AbstractObddLayout> secondStack = obddStacks.get(secondName);
+		// checking whether the stack is null
+		if (secondStack == null) {
+			// having the GUI controller inform the user that the second OBDD 
+			// couldn't be found
+			guiController.noSuchObdd();
+			return false;
+		}
+		// creating the two OBDDs' variable orderings
+		VariableOrdering firstVarOrd = VarOrdController.stringToVarOrd
+				(varOrdFieldText);
+		VariableOrdering secondVarOrd = VarOrdController.stringToVarOrd
+				(stringMap.get(secondName).getFirst());
+		// checking whether the two variable orderings are equal
+		if (firstVarOrd.getOrdList().equals(secondVarOrd.getOrdList())) {
+			// having the GUI controller ask the user for the operation to be 
+			// applied on the two OBDDs
+			int applyOp = guiController.applyOperation(firstName, secondName);
+			// checking whether the dialog was cancelled
+			if (applyOp >=0 && applyOp <= 15) {
+				// having the GUI controller ask the user for a name for the 
+				// new OBDD
+				String applyName = guiController.newObddName();
+				// as long as the given name is either empty or already taken, 
+				// the user is asked to provide another one
+				while (improperName(applyName)) {
+					// retrieving the new name for the OBDD
+					applyName = guiController.improperName(applyName);
+					// If the name is null, the dialog was cancelled.
+					if (applyName == null) return false;
+				}
+				// retrieving the two actual OBDDs
+				OBDD firstObdd = currentObdd.getObdd();
+				OBDD secondObdd = secondStack.peek().getObdd();
+				// creating the resulting OBDD
+				OBDD applyObdd = 
+						firstObdd.apply(secondObdd, applyOp, firstVarOrd);
+				// creating the abstract OBDD layout
+				AbstractObddLayout abstractObdd = 
+						new AbstractObddLayout(applyObdd);
+				// initializing a new stack for the OBDD
+				Stack<AbstractObddLayout> obddStack = 
+						new Stack<AbstractObddLayout>();
+				// pushing the OBDD's first abstract version onto the stack
+				obddStack.push(abstractObdd);
+				// adding the OBDD's stack to the stack HashMap
+				obddStacks.put(applyName, obddStack);
+				// retrieving the formula represented by the OBDD and 
+				// reducing it
+				Formula formula = 
+						FormulaController.reduce(applyObdd.toFormula());
+				// retrieving the string representing the formula
+				String applyFormulaString = formula.toString();
+				// storing the variable ordering and formula text field strings
+				stringMap.put(applyName, 
+						new Pair<String,String>(varOrdFieldText, 
+								applyFormulaString));
+				// creating the visual OBDD
+				VisualObdd visualObdd = new VisualObdd(abstractObdd, panelSize);
+				// setting the current visual OBDD
+				currentObdd = visualObdd;
+				// showing the visual OBDD
+				guiController.showObdd(currentObdd);
+				// updating the field texts
+				guiController.updateTextFields(applyName, varOrdFieldText, 
+						applyFormulaString);
+				// adding the OBDD's name to the OBDD list
+				guiController.addToObddList(applyName); 
+				return true;
+			}
+		}
+		else {
+			// having the GUI controller inform the user that the two
+			// variable orderings aren't equal
+			guiController.unequalVarOrds();
+		}
+		return false;
+	}
+	
+	
+	/**
+	 * forwards the point clicked at to the current visual OBDD
+	 * @param p - the point
+	 */
+	public void clickOnObddPanel(Point p) {
+		currentObdd.clickAtPoint(p);
+		// showing the current OBDD
+		guiController.showObdd(currentObdd);
 	}
 	
 	
@@ -76,25 +229,23 @@ public class ObddController {
 	 * @param varOrdFieldText - the string representing the variable ordering
 	 * @param obddTypeNumber - the OBDD's type number
 	 * @param panelSize - the OBDD panel's size
-	 * @return a pair of the visual OBDD and an array of the possibly changed 
-	 * 		   OBDD name, variable ordering string and formula (input) string
+	 * @return a boolean that states whether the OBDD was created successfully
 	 */
-	public Pair<VisualObdd, String[]> obddFromFormula(String obddName, 
+	public boolean obddFromFormula(String obddName, 
 			String varOrdFieldText, String formulaFieldText, 
 			int obddTypeNumber, Dimension panelSize) {
-		// creating a default return pair of the current OBDD and unchanged 
-		// field texts
-		Pair<VisualObdd, String[]> defaultReturn = new Pair<VisualObdd, 
-				String[]> (currentObdd, new String[] {obddName, 
-						varOrdFieldText, formulaFieldText});
 		// As long as the given name is either empty or already taken, the user
 		// is asked to provide another one.
 		while (improperName(obddName)) {
 			// retrieving the new name for the OBDD
-			obddName = GuiController.improperName(obddName);
-			// If the name is null, the dialog was cancelled. In that case the 
-			// default pair is returned.
-			if (obddName == null) return defaultReturn;
+			obddName = guiController.improperName(obddName);
+			// If the name is null, the dialog was cancelled.
+			if (obddName == null) {
+				// updating the possibly changed field texts
+				guiController.updateTextFields(obddName, varOrdFieldText, 
+						formulaFieldText);
+				return false;
+			}
 		}
 		// As long as the given variable ordering string doesn't fulfill the 
 		// requirements and therefore the variable ordering couldn't be created
@@ -103,11 +254,16 @@ public class ObddController {
 			// having the GUI controller inform the user that the 
 			// variable ordering string doesn't fulfill the requirements and 
 			// ask for another one
-			varOrdFieldText = GuiController.
+			varOrdFieldText = guiController.
 					improperVarOrdString(varOrdFieldText);
 			// If the variable ordering string is null, the dialog was 
-			// cancelled. In that case the default pair is returned.
-			if (varOrdFieldText == null) return defaultReturn;
+			// cancelled.
+			if (varOrdFieldText == null) {
+				// updating the possibly changed field texts
+				guiController.updateTextFields(obddName, varOrdFieldText, 
+						formulaFieldText);
+				return false;
+			}
 		}
 		// creating the variable ordering
 		VariableOrdering varOrd = 
@@ -118,11 +274,15 @@ public class ObddController {
 		while (improperFormulaInputString(formulaFieldText)) {
 			// having the GUI controller inform the user that the formula input
 			// string doesn't fulfill the requirements and ask for another one
-			formulaFieldText = GuiController.
+			formulaFieldText = guiController.
 					improperFormulaInputString(formulaFieldText);
 			// If the formula input string is null, the dialog was cancelled. 
-			// In that case the default pair is returned.
-			if (formulaFieldText == null) return defaultReturn;
+			if (formulaFieldText == null) {
+				// updating the possibly changed field texts
+				guiController.updateTextFields(obddName, varOrdFieldText, 
+						formulaFieldText);
+				return false;
+			}
 		}
 		// creating the formula
 		Formula formula = FormulaController.stringToFormula(FormulaController.
@@ -148,20 +308,23 @@ public class ObddController {
 		VisualObdd visualObdd = new VisualObdd(abstractObdd, panelSize);
 		// setting the current visual OBDD
 		currentObdd = visualObdd;
-		// returning a pair of the visual OBDD and an array of the possibly 
-		// changed OBDD name, variable ordering string and 
-		// formula (input) string
-		return new Pair<VisualObdd, String[]> (visualObdd, 
-				new String[] {obddName, varOrdFieldText, formulaFieldText});
+		// showing the visual OBDD
+		guiController.showObdd(currentObdd);
+		// updating the possibly changed OBDD name, variable ordering string 
+		// and formula (input) string
+		guiController.updateTextFields(obddName, varOrdFieldText, formulaFieldText);
+		// adding the OBDD's name to the OBDD list
+		guiController.addToObddList(obddName);
+		return true;
 	}
 	
 	
 	/**
-	 * undoes the last operation executed on the OBDD given by its name
+	 * undoes the last change to the OBDD given by its name
 	 * @param obddName - the OBDD's name
-	 * @return the OBDD's previous version, if there is one; otherwise null
+	 * @param panelSize - the OBDD panel's size
 	 */
-	public VisualObdd undo(String obddName, Dimension panelSize) {
+	public void undo(String obddName, Dimension panelSize) {
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// checking whether there is a previous version of the OBDD
@@ -172,11 +335,11 @@ public class ObddController {
 			currentObdd = new VisualObdd(obddStack.peek(), panelSize);
 			// putting the stack back into the stack HashMap
 			obddStacks.put(obddName, obddStack);
+			// showing the visual OBDD
+			guiController.showObdd(currentObdd);
 		}
 		// otherwise calling the GUI controller to inform the user
-		else GuiController.nothingToUndo();
-		// returning the OBDD('s previous version)
-		return currentObdd;
+		else guiController.nothingToUndo();
 	}
 	
 	
@@ -185,10 +348,8 @@ public class ObddController {
 	 * Otherwise any two equivalent nodes are highlighted.
 	 * (Highlighting is not stored on the stack.)
 	 * @param varOrdFieldText - the variable ordering (in string form)
-	 * @return the current visual OBDD with highlighted equivalent nodes if any
-	 * 		   have been found; otherwise null
 	 */
-	public VisualObdd findEquivalentNodes(String varOrdFieldText) {
+	public void findEquivalentNodes(String varOrdFieldText) {
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
 		// creating the variable ordering
@@ -209,32 +370,32 @@ public class ObddController {
 		}
 		// calling the GUI controller to inform the user, if there are no 
 		// equivalent nodes
-		if (equivalentNodes == null) GuiController.noEquivalentNodes();
-		// otherwise setting the current OBDD's highlighted nodes
-		else currentObdd.setHighlightedNodes(equivalentNodes);
-		// returning the current OBDD
-		return currentObdd;
+		if (equivalentNodes == null) guiController.noEquivalentNodes();
+		// otherwise setting the current OBDD's highlighted nodes and showing 
+		// it
+		else {
+			currentObdd.setHighlightedNodes(equivalentNodes);
+			guiController.showObdd(currentObdd);
+		}
 	}
 	
 	
 	/**
 	 * merges selected/highlighted nodes if they are equivalent
 	 * @param obddName - the OBDD's name
-	 * @param varOrdFieldText - the variable ordering (in string form)
-	 * @param panelSize - the OBDD panel's size
-	 * @return the visual OBDD after merging; null if merging wasn't possible
+	 * @return a boolean that states whether the nodes have been merged 
+	 * 		   successfully
 	 */
-	public VisualObdd mergeEquivalent(String obddName, 
-			String varOrdFieldText, Dimension panelSize) {
+	public boolean mergeEquivalent(String obddName, Dimension panelSize) {
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
 		// retrieving the selected and highlighted nodes
 		OBDD firstSelNode = currentObdd.getSelectedNode();
 		OBDD secondSelNode = currentObdd.getSecondSelectedNode();
 		LinkedList<OBDD> highlightedNodes = currentObdd.getHighlightedNodes();
-		// creating the variable ordering
-		VariableOrdering varOrd = 
-				VarOrdController.stringToVarOrd(varOrdFieldText);
+		// creating the variable ordering from the stored string
+		VariableOrdering varOrd = VarOrdController.stringToVarOrd
+				(stringMap.get(obddName).getFirst());
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
@@ -276,8 +437,8 @@ public class ObddController {
 					// calling the GUI controller to inform the user and 
 					// returning the unchanged OBDD, if the nodes weren't 
 					// all equivalent
-					GuiController.notAllEquivalent();
-					return currentObdd;
+					guiController.notAllEquivalent();
+					return false;
 				}
 			}
 			// pushing the changed abstract OBDD onto the stack
@@ -286,31 +447,30 @@ public class ObddController {
 			obddStacks.put(obddName, obddStack);
 			// creating the new visual OBDD
 			currentObdd = new VisualObdd(abstractObdd, panelSize);
-//			// setting the visual OBDD's highlighted nodes to the remaining 
-//			// highlighted nodes
-//			currentObdd.setHighlightedNodes(remainingHighlightedNodes);
+			// showing the current OBDD
+			guiController.showObdd(currentObdd);
+			return true;
 		}
-		// calling the GUI controller to inform the user, if there weren't 
-		// enough nodes given to be merged
-		else GuiController.notEnoughNodesSelected();
-		// returning the current OBDD
-		return currentObdd;
+		else {
+			// calling the GUI controller to inform the user, if there weren't
+			// enough nodes given to be merged
+			guiController.notEnoughNodesSelected();
+			return false;
+		}
 	}
 	
 	
 	/**
 	 * highlights a redundant node in the current OBDD if there is one
 	 * (Highlighting is not stored on the stack.)
-	 * @return the current visual OBDD with a highlighted redundant node if 
-	 * 		   there is one; otherwise null
 	 */
-	public VisualObdd findRedundant() {
+	public void findRedundant() {
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
 		// searching for a redundant node
 		OBDD redundantNode = obdd.findRedundant();
 		// 
-		if (redundantNode == null) GuiController.noRedundantNode();
+		if (redundantNode == null) guiController.noRedundantNode();
 		// calling the GUI controller to inform the user, if there is no 
 		// redundant node
 		else {
@@ -320,9 +480,9 @@ public class ObddController {
 			highlightedNodes.add(redundantNode);
 			// setting the current OBDD's highlighted nodes
 			currentObdd.setHighlightedNodes(highlightedNodes);
+			// showing the visual OBDD
+			guiController.showObdd(currentObdd);
 		}
-		// returning the current OBDD
-		return currentObdd;
 	}
 	
 	
@@ -330,12 +490,9 @@ public class ObddController {
 	 * removes the selected node (or a highlighted one, if none is selected) if
 	 * it's redundant
 	 * @param obddName - the OBDD's name
-	 * @param varOrdFieldText - the variable ordering (in string form)
 	 * @param panelSize - the OBDD panel's size
-	 * @return the visual OBDD if a node has been removed; otherwise null
 	 */
-	public VisualObdd removeRedundant(String obddName, String varOrdFieldText, 
-			Dimension panelSize) {
+	public void removeRedundant(String obddName, Dimension panelSize) {
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
 		// retrieving the selected and highlighted nodes
@@ -343,9 +500,9 @@ public class ObddController {
 		LinkedList<OBDD> highlightedNodes = currentObdd.getHighlightedNodes();
 		// initializing a variable for the node to be removed
 		OBDD nodeToRemove = null;
-		// creating the variable ordering
-		VariableOrdering varOrd = 
-				VarOrdController.stringToVarOrd(varOrdFieldText);
+		// creating the variable ordering from the stored string
+		VariableOrdering varOrd = VarOrdController.stringToVarOrd
+				(stringMap.get(obddName).getFirst());
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
@@ -368,18 +525,17 @@ public class ObddController {
 				obddStack.push(abstractObdd);
 				// putting the stack back into the stack HashMap
 				obddStacks.put(obddName, obddStack);
-				// creating the new visual OBDD
+				// creating the new visual OBDD and showing it
 				currentObdd = new VisualObdd(abstractObdd, panelSize);
+				guiController.showObdd(currentObdd);
 			}
 			// calling the GUI controller to inform the user, if the node isn't
 			// redundant
-			else GuiController.notRedundant();
+			else guiController.notRedundant();
 		}
 		// calling the GUI controller to inform the user, if there aren't any 
 		// selected or highlighted nodes
-		else GuiController.notEnoughNodesSelected();
-		// returning the current OBDD
-		return currentObdd;
+		else guiController.notEnoughNodesSelected();
 	}
 	
 	
@@ -387,21 +543,19 @@ public class ObddController {
 	 * reduces the shown OBDD to a QOBDD or an ROBDD
 	 * (May not be accurate for all OBDDs.)
 	 * @param obddName - the OBDD's name
-	 * @param varOrdFieldText - the variable ordering (in string form)
 	 * @param panelSize - the OBDD panel's size
 	 * @param removeRedundantNodes - boolean that states, whether redundant 
 	 * 		  nodes should be removed (which would result in an ROBDD)
-	 * @return the visual OBDD
 	 */
-	public VisualObdd reduce(String obddName, String varOrdFieldText, 
-			Dimension panelSize, boolean removeRedundantNodes) {
+	public void reduce(String obddName, Dimension panelSize, 
+			boolean removeRedundantNodes) {
 		// initializing a variable that states whether nodes have been added
 		boolean nodesAdded = false;
 		// retrieving the current (actual) OBDD
 		OBDD obdd = currentObdd.getObdd();
-		// creating the variable ordering
-		VariableOrdering varOrd = 
-				VarOrdController.stringToVarOrd(varOrdFieldText);
+		// creating the variable ordering from the stored string
+		VariableOrdering varOrd = VarOrdController.stringToVarOrd
+				(stringMap.get(obddName).getFirst());
 		// retrieving the OBDD's stack
 		Stack<AbstractObddLayout> obddStack = obddStacks.get(obddName);
 		// the current abstract OBDD
@@ -416,7 +570,7 @@ public class ObddController {
 			if (!currentObdd.getObdd().noVarMissing(varOrdList)) {
 				// calling the GUI controller's missing variable method to find
 				// out whether the missing variables should be added
-				if (GuiController.missingVars()) {
+				if (guiController.missingVars()) {
 					// adding the missing variables
 					obdd = obdd.addMissingVars(varOrd, varOrdList);
 					// stating that nodes have been added
@@ -436,9 +590,9 @@ public class ObddController {
 		obddStack.push(abstractObdd);
 		// putting the stack back into the stack HashMap
 		obddStacks.put(obddName, obddStack);
-		// creating the new visual OBDD and returning it
+		// creating the new visual OBDD and show it
 		currentObdd = new VisualObdd(abstractObdd, panelSize);
-		return currentObdd;
+		guiController.showObdd(currentObdd);
 	}
 	
 	
@@ -452,7 +606,7 @@ public class ObddController {
 		Formula representedFormula = currentObdd.getObdd().toFormula();
 		// calling the GUI controller's reduce formula method to find out 
 		// whether the formula should be reduced
-		if (GuiController.reduceFormula()) 
+		if (guiController.reduceFormula()) 
 			// reducing the formula
 			representedFormula = representedFormula.reduce();
 		// turning the represented formula into a string
@@ -463,181 +617,8 @@ public class ObddController {
 			representedFormulaString = representedFormulaString.substring(1, 
 					representedFormulaString.length() - 1);
 		// calling the GUI controller's show formulas method
-		GuiController.showFormulas(formulaFieldText, 
+		guiController.showFormulas(formulaFieldText, 
 				representedFormula.toString());
-	}
-	
-	
-	/**
-	 * forwards the point clicked at to the current visual OBDD and returns it 
-	 * afterwards
-	 * @param p - the point
-	 * @return
-	 */
-	public VisualObdd clickOnObddPanel(Point p) {
-		currentObdd.clickAtPoint(p);
-		return currentObdd;
-	}
-	
-	
-	/**
-	 * loads the newest version of an OBDD given by its name from its stack and
-	 * returns it as a visual OBDD
-	 * @param selectedName - the selected OBDD's name
-	 * @param currentName - the current OBDD's name
-	 * @param varOrdFieldText - the variable ordering field's text
-	 * @param formulaFieldText - the formula field's text
-	 * @param panelSize - the OBDD panel's size
-	 * @return a pair of the visual OBDD and an array of the possibly changed 
-	 * 		   OBDD name, variable ordering string and formula (input) string
-	 */
-	public Pair<VisualObdd,String[]> loadObdd(String selectedName, 
-			String currentName, String varOrdFieldText, 
-			String formulaFieldText, Dimension panelSize) {
-		// creating a default return pair of the current OBDD and unchanged 
-		// field texts
-		Pair<VisualObdd, String[]> defaultReturn = new Pair<VisualObdd, 
-				String[]> (currentObdd, new String[] {currentName, 
-						varOrdFieldText, formulaFieldText});
-		// checking whether the selected OBDD's name is null 
-		// (e.g. because no OBDD was selected)
-		if (selectedName == null) {
-			// having the GUI controller inform the user that no OBDD was 
-			// selected
-			GuiController.noObddSelected();
-			// returning the default pair
-			return defaultReturn;
-		}
-		// retrieving the OBDD's stack
-		Stack<AbstractObddLayout> obddStack = obddStacks.get(selectedName);
-		// checking whether the stack is null
-		if (obddStack == null) {
-			// having the GUI controller inform the user that the selected OBDD
-			// couldn't be found
-			GuiController.noSuchObdd();
-			// returning the default pair
-			return defaultReturn;
-		}
-		// creating the visual OBDD
-		currentObdd = new VisualObdd(obddStack.peek(), panelSize);
-		// retrieving the OBDD's variable ordering and formula 
-		// text field strings
-		Pair<String,String> textFieldStrings = stringMap.get(selectedName);
-		// trying to get the pair's first element in order to check whether
-		// it's null
-		textFieldStrings.getFirst();
-		return new Pair<VisualObdd,String[]>(currentObdd, 
-				new String[] {selectedName, textFieldStrings.getFirst(), 
-				textFieldStrings.getSecond()});
-	}
-	
-	
-	/**
-	 * asks the user for a binary operation to apply on the current OBDD and 
-	 * the chosen one and applies it on them, creating a new OBDD
-	 * @param firstName - the first OBDD's name
-	 * @param secondName - the second OBDD's name
-	 * @param varOrdFieldText - the variable ordering field's text
-	 * @param formulaFieldText - the formula field's text
-	 * @param panelSize - the OBDD panel's size
-	 * @return a pair of the visual OBDD and an array of the possibly changed 
-	 * 		   OBDD name, variable ordering string and formula (input) string
-	 */
-	public Pair<VisualObdd, String[]> 
-	simpleApply(String firstName, String secondName, String varOrdFieldText, 
-			String formulaFieldText, Dimension panelSize) {
-		// creating a default return pair of the current OBDD and unchanged 
-		// field texts
-		Pair<VisualObdd, String[]> defaultReturn = new Pair<VisualObdd, 
-				String[]> (currentObdd, new String[] {firstName, 
-						varOrdFieldText, formulaFieldText});
-		// checking whether the second OBDD's name is null
-		if (secondName == null) {
-			// having the GUI controller inform the user that no OBDD was 
-			// selected
-			GuiController.noObddSelected();
-			// returning the default pair
-			return defaultReturn;
-		}
-		// retrieving the second OBDD's stack
-		Stack<AbstractObddLayout> secondStack = obddStacks.get(secondName);
-		// checking whether the stack is null
-		if (secondStack == null) {
-			// having the GUI controller inform the user that the second OBDD 
-			// couldn't be found
-			GuiController.noSuchObdd();
-			// returning the default pair
-			return defaultReturn;
-		}		
-		// creating the two OBDDs' variable orderings
-		VariableOrdering firstVarOrd = 
-				VarOrdController.stringToVarOrd(varOrdFieldText);
-		VariableOrdering secondVarOrd = 
-				VarOrdController.stringToVarOrd(stringMap.get(secondName).
-						getFirst());
-		// checking whether the two variable orderings are equal
-		if (firstVarOrd.getOrdList().equals(secondVarOrd.getOrdList())) {
-			// having the GUI controller ask the user for the operation to be 
-			// applied on the two OBDDs
-			int applyOp = GuiController.applyOperation(firstName, secondName);
-			// checking whether the dialog was cancelled
-			if (applyOp >=0 && applyOp <= 15) {
-				// having the GUI controller ask the user for a name for the 
-				// new OBDD
-				String applyName = GuiController.newObddName();
-				// as long as the given name is either empty or already taken, 
-				// the user is asked to provide another one
-				while (improperName(applyName)) {
-					// retrieving the new name for the OBDD
-					applyName = GuiController.improperName(applyName);
-					// If the name is null, the dialog was cancelled. In that 
-					// case the default pair is returned.
-					if (applyName == null) return defaultReturn;
-				}
-				// retrieving the two actual OBDDs
-				OBDD firstObdd = currentObdd.getObdd();
-				OBDD secondObdd = secondStack.peek().getObdd();
-				// creating the resulting OBDD
-				OBDD applyObdd = 
-						firstObdd.apply(secondObdd, applyOp, firstVarOrd);
-				// creating the abstract OBDD layout
-				AbstractObddLayout abstractObdd = 
-						new AbstractObddLayout(applyObdd);
-				// initializing a new stack for the OBDD
-				Stack<AbstractObddLayout> obddStack = 
-						new Stack<AbstractObddLayout>();
-				// pushing the OBDD's first abstract version onto the stack
-				obddStack.push(abstractObdd);
-				// adding the OBDD's stack to the stack HashMap
-				obddStacks.put(applyName, obddStack);
-				// retrieving the formula represented by the OBDD and 
-				// reducing it
-				Formula formula = 
-						FormulaController.reduce(applyObdd.toFormula());
-				// retrieving the string representing the formula
-				String applyFormulaString = formula.toString();
-				// storing the variable ordering and formula text field strings
-				stringMap.put(applyName, 
-						new Pair<String,String>(varOrdFieldText, 
-								applyFormulaString));
-				// creating the visual OBDD
-				VisualObdd visualObdd = new VisualObdd(abstractObdd, panelSize);
-				// setting the current visual OBDD
-				currentObdd = visualObdd;
-				// returning a pair of the visual OBDD and an array of the new 
-				// OBDD name, variable ordering string and formula string
-				return new Pair<VisualObdd, String[]> (visualObdd, 
-						new String[] {applyName, varOrdFieldText, 
-						applyFormulaString});
-			}
-		}
-		else {
-			// having the GUI controller inform the user that the two
-			// variable orderings aren't equal
-			GuiController.unequalVarOrds();
-		}
-		// returning the default pair
-		return defaultReturn;
 	}
 	
 	

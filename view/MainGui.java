@@ -25,9 +25,14 @@ public class MainGui extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
 	/**
-	 * the MainGui's controllers
+	 * the main GUI's GUI controller
 	 */
-	private ObddController oController;
+	private GuiController guiController;
+	
+	/**
+	 * the MainGui's OBDD controller
+	 */
+	private ObddController obddController;
 	
 	/**
 	 * the menu bar
@@ -128,20 +133,18 @@ public class MainGui extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's undo method for the OBDD 
-					// identified by the given name and showing the resulting 
-					// OBDD
-					showObdd(oController.undo(obddNameField.getText(), 
-									obddPane.getSize()));
+					// identified by the given name
+					obddController.undo(obddNameField.getText(), 
+							obddPane.getSize());
 				}
 			},
 			// the find equivalent nodes button listener
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// calling the OBDD controller's find equivalent method and
-					// showing the resulting OBDD
-					showObdd(oController.
-							findEquivalentNodes(varOrdField.getText()));
+					// calling the OBDD controller's find equivalent method
+					obddController.
+							findEquivalentNodes(varOrdField.getText());
 				}	
 			},
 			// the merge equivalent nodes button listener
@@ -149,20 +152,17 @@ public class MainGui extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's merge equivalent method 
-					// for the OBDD identified by the given name and showing 
-					// the resulting OBDD
-					showObdd(oController.mergeEquivalent
-							(obddNameField.getText(), varOrdField.getText(), 
-									obddPane.getSize()));
+					// for the OBDD identified by the given name
+					obddController.mergeEquivalent(obddNameField.getText(), 
+									obddPane.getSize());
 				}
 			},
 			// the find redundant node button listener
 			new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					// calling the OBDD controller's find redundant method and 
-					// showing the resulting OBDD
-					showObdd(oController.findRedundant());
+					// calling the OBDD controller's find redundant method
+					obddController.findRedundant();
 				}
 			},
 			// the remove redundant node button listener
@@ -170,11 +170,9 @@ public class MainGui extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's remove redundant method 
-					// for the OBDD identified by the given name and showing 
-					// the resulting OBDD
-					showObdd(oController.removeRedundant
-							(obddNameField.getText(), varOrdField.getText(), 
-									obddPane.getSize()));
+					// for the OBDD identified by the given name
+					obddController.removeRedundant(obddNameField.getText(), 
+							obddPane.getSize());
 				}
 			},
 			// the reduce to QOBDD button listener
@@ -183,10 +181,9 @@ public class MainGui extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's reduce method for the OBDD
 					// identified by the given name, stating that a QOBDD 
-					// should be created by the parameter "false", and showing 
-					// the resulting OBDD
-					showObdd(oController.reduce(obddNameField.getText(), 
-							varOrdField.getText(), obddPane.getSize(), false));
+					// should be created by the parameter "false"
+					obddController.reduce(obddNameField.getText(), 
+							obddPane.getSize(), false);
 				}
 			},
 			// the reduce to ROBDD button listener
@@ -195,10 +192,9 @@ public class MainGui extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					// calling the OBDD controller's reduce method for the OBDD
 					// identified by the given name, stating that an ROBDD 
-					// should be created by the parameter "true", and showing 
-					// the resulting OBDD
-					showObdd(oController.reduce(obddNameField.getText(), 
-							varOrdField.getText(), obddPane.getSize(), true));
+					// should be created by the parameter "true"
+					obddController.reduce(obddNameField.getText(), 
+							obddPane.getSize(), true);
 				}
 			},
 			// the get formula button listener
@@ -208,7 +204,7 @@ public class MainGui extends JFrame {
 					// calling the OBDD controller's represented formula method
 					// to show both it and the initial formula given by the 
 					// formula field's text
-					oController.representedFormula(formulaField.getText());
+					obddController.representedFormula(formulaField.getText());
 				}
 			}
 	};
@@ -336,8 +332,10 @@ public class MainGui extends JFrame {
 	 * constructor for the main GUI
 	 */
 	public MainGui () {
+		// initializing the main GUI's GUI controller
+		guiController = new GuiController(this);
 		// initializing the MainGui's OBDD controller
-		oController = new ObddController();
+		obddController = new ObddController(guiController);
 		// setting the title
 		setTitle("VisualOBDD");
 		// When the frame is closed, the program is exited.
@@ -610,20 +608,19 @@ public class MainGui extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// calling the OBDD controller's OBDD from formula method
-				Pair<VisualObdd, String[]> results = 
-						oController.obddFromFormula(obddNameField.getText(), 
+				obddController.obddFromFormula(obddNameField.getText(), 
 								varOrdField.getText(), formulaField.getText(), 
 								obddTypeCB.getSelectedIndex(), 
 								obddPane.getSize());
-				// updating the possibly OBDD name, variable ordering string 
-				// and formula (input) string
-				updateTextFields(results.getSecond());
-				// showing the visual OBDD
-				if (showObdd(results.getFirst())) {
-					// adding the OBDD's name to the OBDD list if the OBDD is 
-					// shown
-					obddListModel.addElement(results.getSecond()[0]);
-				}
+//				// updating the possibly OBDD name, variable ordering string 
+//				// and formula (input) string
+//				updateTextFields(results.getSecond());
+//				// showing the visual OBDD
+//				if (showObdd(results.getFirst())) {
+//					// adding the OBDD's name to the OBDD list if the OBDD is 
+//					// shown
+//					obddListModel.addElement(results.getSecond()[0]);
+//				}
 			}
 		});
 		// adding a listener to the OBDD showing button
@@ -632,14 +629,8 @@ public class MainGui extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				// calling the OBDD controller's load method for the OBDD name 
 				// selected in the OBDD list
-				Pair<VisualObdd,String[]> results = 
-						oController.loadObdd(obddList.getSelectedValue(), 
-								obddNameField.getText(), varOrdField.getText(),
-								formulaField.getText(), obddPane.getSize());
-				// updating the text fields
-				updateTextFields(results.getSecond());
-				// showing the visual OBDD
-				showObdd(results.getFirst());
+				obddController.loadObdd(obddList.getSelectedValue(), 
+								obddPane.getSize());
 			}
 		});
 		// adding a listener to the OBDD applying button
@@ -647,20 +638,9 @@ public class MainGui extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				// calling the OBDD controller's simple apply method
-				Pair<VisualObdd, String[]> results = 
-						oController.simpleApply(obddNameField.getText(), 
+				obddController.simpleApply(obddNameField.getText(), 
 								obddList.getSelectedValue(), 
-								varOrdField.getText(), formulaField.getText(), 
-								obddPane.getSize());
-				// updating the possibly OBDD name, variable ordering string 
-				// and formula (input) string
-				updateTextFields(results.getSecond());
-				// showing the visual OBDD
-				if (showObdd(results.getFirst())) {
-					// adding the OBDD's name to the OBDD list if the OBDD is 
-					// shown
-					obddListModel.addElement(results.getSecond()[0]);
-				}
+								varOrdField.getText(), obddPane.getSize());
 			}
 		});
 		// adding a listener to the OBDD panel
@@ -669,7 +649,7 @@ public class MainGui extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				// calling the OBDD controller to unselect the selected node 
 				// and select the clicked node (if there is one)
-				showObdd(oController.clickOnObddPanel(e.getPoint()));
+				obddController.clickOnObddPanel(e.getPoint());
 			}
 
 			@Override
@@ -700,33 +680,33 @@ public class MainGui extends JFrame {
 	}
 	
 	
-	/**
-	 * auxiliary method that shows an OBDD given as a VisualObdd if it isn't 
-	 * null and states whether it did
-	 * @param visualObdd
-	 * @return
-	 */
-	private boolean showObdd(VisualObdd visualObdd) {
-		// showing it if it isn't null
-		if (visualObdd != null) {
-			obddPane.removeAll();
-			obddPane.add(visualObdd);
-			obddPane.repaint();
-			return true;
-		}
-		else return false;
-	}
-	
-	
-	/**
-	 * auxiliary method that updates the field texts to the given ones
-	 * @param textFieldStrings - an array of the new OBDD name field string, 
-	 * 							 the new variable ordering field string and 
-	 * 							 the new formula field string
-	 */
-	private void updateTextFields(String[] textFieldStrings) {
-		obddNameField.setText(textFieldStrings[0]);
-		varOrdField.setText(textFieldStrings[1]);
-		formulaField.setText(textFieldStrings[2]);
-	}
+//	/**
+//	 * auxiliary method that shows an OBDD given as a VisualObdd if it isn't 
+//	 * null and states whether it did
+//	 * @param visualObdd
+//	 * @return
+//	 */
+//	private boolean showObdd(VisualObdd visualObdd) {
+//		// showing it if it isn't null
+//		if (visualObdd != null) {
+//			obddPane.removeAll();
+//			obddPane.add(visualObdd);
+//			obddPane.repaint();
+//			return true;
+//		}
+//		else return false;
+//	}
+//	
+//	
+//	/**
+//	 * auxiliary method that updates the field texts to the given ones
+//	 * @param textFieldStrings - an array of the new OBDD name field string, 
+//	 * 							 the new variable ordering field string and 
+//	 * 							 the new formula field string
+//	 */
+//	private void updateTextFields(String[] textFieldStrings) {
+//		obddNameField.setText(textFieldStrings[0]);
+//		varOrdField.setText(textFieldStrings[1]);
+//		formulaField.setText(textFieldStrings[2]);
+//	}
 }
