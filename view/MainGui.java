@@ -9,9 +9,6 @@ import java.awt.event.MouseListener;
 import javax.swing.*;
 
 import controller.*;
-import model.AbstractObddLayout;
-import model.Pair;
-import model.VisualObdd;
 
 /**
  * 
@@ -249,17 +246,17 @@ public class MainGui extends JFrame {
 	 */
 	public JTextField getFormulaField() {return formulaField;}
 	
-	/**
-	 * getter for the OBDD type menu
-	 * @return
-	 */
-	public JComboBox<String> getObddTypeCB() {return obddTypeCB;}
+//	/**
+//	 * getter for the OBDD type menu
+//	 * @return
+//	 */
+//	public JComboBox<String> getObddTypeCB() {return obddTypeCB;}
 	
-	/**
-	 * getter for the generate button
-	 * @return
-	 */
-	public JButton getGenerateButton() {return generateButton;}
+//	/**
+//	 * getter for the generate button
+//	 * @return
+//	 */
+//	public JButton getGenerateButton() {return generateButton;}
 	
 	/**
 	 * getter for the OBDD list model
@@ -267,29 +264,29 @@ public class MainGui extends JFrame {
 	 */
 	public DefaultListModel<String> getObddListModel() {return obddListModel;}
 	
-	/**
-	 * getter for the OBDD list
-	 * @return
-	 */
-	public JList<String> getObddList() {return obddList;}
+//	/**
+//	 * getter for the OBDD list
+//	 * @return
+//	 */
+//	public JList<String> getObddList() {return obddList;}
 	
-	/**
-	 * getter for the OBDD scroll panel
-	 * @return
-	 */
-	public JScrollPane getObddScrollPane() {return obddScrollPane;}
+//	/**
+//	 * getter for the OBDD scroll panel
+//	 * @return
+//	 */
+//	public JScrollPane getObddScrollPane() {return obddScrollPane;}
 	
-	/**
-	 * getter for the OBDD showing button
-	 * @return
-	 */
-	public JButton getShowObddButton() {return showObddButton;}
+//	/**
+//	 * getter for the OBDD showing button
+//	 * @return
+//	 */
+//	public JButton getShowObddButton() {return showObddButton;}
 	
-	/**
-	 * getter for the OBDD apply button
-	 * @return
-	 */
-	public JButton getApplyObddsButton() {return applyObddsButton;}
+//	/**
+//	 * getter for the OBDD apply button
+//	 * @return
+//	 */
+//	public JButton getApplyObddsButton() {return applyObddsButton;}
 	
 	/**
 	 * getter for the truth table
@@ -297,23 +294,23 @@ public class MainGui extends JFrame {
 	 */
 	public JTable getTtTable() {return ttTable;}
 	
-	/**
-	 * getter for the truth table scroll panel
-	 * @return
-	 */
-	public JScrollPane getTtScrollPane() {return ttScrollPane;}
+//	/**
+//	 * getter for the truth table scroll panel
+//	 * @return
+//	 */
+//	public JScrollPane getTtScrollPane() {return ttScrollPane;}
 	
-	/**
-	 * getter for the line combining/separating button
-	 * @return
-	 */
-	public JButton getCombineSeparateButton() {return combineSeparateButton;}
+//	/**
+//	 * getter for the line combining/separating button
+//	 * @return
+//	 */
+//	public JButton getCombineSeparateButton() {return combineSeparateButton;}
 	
-	/**
-	 * getter for the truth table window button
-	 * @return
-	 */
-	public JButton getTtWindowButton() {return ttWindowButton;}
+//	/**
+//	 * getter for the truth table window button
+//	 * @return
+//	 */
+//	public JButton getTtWindowButton() {return ttWindowButton;}
 	
 	/**
 	 * getter for the OBDD panel
@@ -321,11 +318,11 @@ public class MainGui extends JFrame {
 	 */
 	public JPanel getObddPane() {return obddPane;}
 	
-	/**
-	 * getter for the GUI's last column's buttons
-	 * @return
-	 */
-	public JButton[] getLastColumnButtons() {return lastColumnButtons;}
+//	/**
+//	 * getter for the GUI's last column's buttons
+//	 * @return
+//	 */
+//	public JButton[] getLastColumnButtons() {return lastColumnButtons;}
 	
 	
 	/**
@@ -653,23 +650,21 @@ public class MainGui extends JFrame {
 			}
 
 			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
+			public void mouseEntered(MouseEvent e) {}
 
 			@Override
-			public void mouseExited(MouseEvent e) {
-			}
+			public void mouseExited(MouseEvent e) {}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				
+				obddController.pressOnObddPanel(e.getPoint());
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				// TODO Auto-generated method stub
-				
+				obddController.releaseOnObddPanel(e.getPoint());
 			}
 		});
 		// adding the GUI's last column's buttons' listeners

@@ -2,20 +2,9 @@ package controller;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Stack;
-
-
-
-
-
-
-
-
-
 
 import view.MainGui;
 import model.AbstractObddLayout;
@@ -217,6 +206,18 @@ public class ObddController {
 	 */
 	public void clickOnObddPanel(Point p) {
 		currentObdd.clickAtPoint(p);
+		// showing the current OBDD
+		guiController.showObdd(currentObdd);
+	}
+	
+	
+	public void pressOnObddPanel(Point p) {
+		currentObdd.pressAtPoint(p);
+	}
+	
+	
+	public void releaseOnObddPanel(Point p) {
+		currentObdd.releaseAtPoint(p);
 		// showing the current OBDD
 		guiController.showObdd(currentObdd);
 	}

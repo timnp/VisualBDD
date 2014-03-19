@@ -45,6 +45,10 @@ public class VisualObdd extends JComponent{
 	 */
 	private int nodeSize;
 	/**
+	 * the currently dragged node (if there is one)
+	 */
+	private OBDD draggedNode = null;
+	/**
 	 * the currently selected OBDD node (if there is one)
 	 */
 	private OBDD selectedNode = null;
@@ -345,12 +349,24 @@ public class VisualObdd extends JComponent{
 	
 	
 	/**
-	 * auxiliary method that states whether a node given by its ID is selected
+	 * auxiliary method that states whether a node given by its ID is the 
+	 * (first) selected node
 	 * @param id
 	 * @return
 	 */
 	private boolean isSelected(int id) {
 		return (selectedNode != null) && (selectedNode.getId() == id);
+	}
+	
+	
+	/**
+	 * auxiliary method that states whether a node given by its ID is the 
+	 * second selected node
+	 * @param id
+	 * @return
+	 */
+	private boolean isSecondSelected(int id) {
+		return (secondSelectedNode != null) && (secondSelectedNode.getId() == id);
 	}
 	
 	
@@ -388,32 +404,114 @@ public class VisualObdd extends JComponent{
 	
 	
 	/**
-	 * If the given point is in the visualization of a node, that node becomes 
-	 * the selected one. Otherwise the selected node becomes unselected.
+	 * If the given point is in the visualization of a node, nodes becomes 
+	 * selected and/or unselected, determined by the current situation of 
+	 * selected nodes.
 	 * @param p - the point
 	 */
 	public void clickAtPoint(Point p) {
-		// initializing a boolean that states whether a node was clicked
-		boolean nodeClicked = false;
+		// retrieving the ID of a node clicked at
+		// (Terminals can't be selected.)
+		int clickedNodeId = pressedNodeId(p, false);
+		if (clickedNodeId > 1) {
+			if (isSelected(clickedNodeId)) {
+				// If the clicked node is the first selected node and there
+				// is no second selected node, the clicked node is 
+				// unselected.
+				if (secondSelectedNode == null) selectedNode = null;
+				else {
+					// If the clicked node is the first selected node and 
+					// there is a second selected node, the second selected
+					// node becomes the first one.
+					selectedNode = secondSelectedNode;
+					secondSelectedNode = null;
+				}
+			}
+			else {
+				// retrieving the clicked node
+				OBDD clickedNode = getObdd().getNode(clickedNodeId);
+				// If the clicked node is the second selected node, the 
+				// first selected node becomes the second one and the 
+				// clicked node becomes the first one.
+				if (isSecondSelected(clickedNodeId)) {
+					secondSelectedNode = selectedNode;
+					selectedNode = clickedNode;
+				}
+				// If the clicked node isn't selected at all and there is a
+				// second selected node, the second selected node becomes 
+				// the first one and the clicked node becomes the second 
+				// one.
+				else if (secondSelectedNode != null) {
+					selectedNode = secondSelectedNode;
+					secondSelectedNode = clickedNode;
+				}
+				// If the clicked node isn't selected at all and there is a
+				// first selected node, the clicked node becomes the second
+				// one.
+				else if(selectedNode != null)
+					secondSelectedNode = clickedNode;
+				// If there are no selected nodes, the clicked node becomes
+				// the first one.
+				else selectedNode = clickedNode;
+			}
+		}
+		// If no decision node was clicked, all nodes are unhighlighted.
+		else unhighlight(); 
+	}
+	
+	
+	/**
+	 * If the given point is in the visualization of a node, that node becomes 
+	 * the dragged node.
+	 * @param p
+	 */
+	public void pressAtPoint(Point p) {
+		// retrieving the ID of a pressed node
+		int pressedNodeId = pressedNodeId(p, true);
+		// If a node was pressed, it becomes the dragged node.
+		if (pressedNodeId >= 0) 
+			draggedNode = getObdd().getNode(pressedNodeId);
+	}
+	
+	
+	/**
+	 * If there is a dragged node, its horizontal position gets changed to the 
+	 * given point's one. Afterwards the dragged node gets reset.
+	 * @param p
+	 */
+	public void releaseAtPoint(Point p) {
+		// checking whether there is a dragged node
+		if (draggedNode != null) {
+			// retrieving the dragged node's ID
+			int draggedNodeId = draggedNode.getId();
+			// setting the dragged node's position, updating its x coordinate
+			positionMap.put(draggedNodeId, 
+					new Point(p.x, positionMap.get(draggedNodeId).y));
+			// resetting the dragged node
+			draggedNode = null;
+		}
+	}
+	
+	
+	/** 
+	 * @param p - the point
+	 * @param allowTerminals - a boolean that states whether terminals are 
+	 * 						   allowed to be returned here
+	 * @return the ID of a node in which's visualization the given point is in;
+	 * 		   -1 if no node fulfilling the criteria was found
+	 */
+	private int pressedNodeId(Point p, boolean allowTerminals) {
 		// searching for a node in which's visualization the point is
 		for (int id : nodeIds) {
 			// retrieving the node's center's position
 			Point center = positionMap.get(id);
 			// checking whether the node is a decision node and the given point
-			// is in its visualization
-			// (Terminals can't be selected.)
-			if (id > 1 && (p.distance(center) <= nodeSize/2.0)) {
-				// If the clicked node is selected, it is unselected.
-				if (isSelected(id)) selectedNode = null;
-				// If the node isn't selected, it is selected.
-				else selectedNode = getObdd().getNode(id);
-				// stating that a node was clicked
-				nodeClicked = true;
-				// ending the loop
-				break;
-			}
+			// is in its visualization and returning the node's id in that case
+			// (if terminals are allowed or the node isn't a terminal)
+			if ((allowTerminals || id > 1) && 
+					(p.distance(center) <= nodeSize/2.0)) return id;
 		}
-		// If no node was clicked, all nodes are unhighlighted.
-		if (!nodeClicked) unhighlight();
+		// returning -1 if no node was pressed
+		return -1;
 	}
 }
