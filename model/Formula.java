@@ -232,7 +232,7 @@ public class Formula {
 		if (matcher.matches()) {
 			// If the constant is 1, its value is "true".
 			// Otherwise it is 0, and its value is "false".
-			value = (matcher.group() == "1");
+			value = (matcher.group().equals("1"));
 			// setting the constructor
 			constructor = CONSTANT;			
 		}
@@ -376,10 +376,8 @@ public class Formula {
 			return (assignedOne.contains(var));
 		// Second case: The Formula represents a logical negation.
 		case 2:
-			// calculating the value of the successor
-			firstSucVal = firstSuccessor.evaluate(assignedOne);
 			// returning the negated value of the successor
-			return !firstSucVal;
+			return !firstSuccessor.evaluate(assignedOne);
 		// Third case: The Formula represents a logical conjunction.
 		case 3:
 			// calculating the value of the first successor

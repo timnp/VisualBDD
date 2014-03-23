@@ -37,12 +37,12 @@ public class VarOrdController {
 	
 	
 	/**
-	 * method that provides the algorithm, that returns an ordering list for a 
-	 * given String, after removing all spaces from the String
+	 * provides the algorithm that returns an ordering list for a given String 
+	 * after removing all spaces from the String
 	 * @param inputString
 	 * @return
 	 */
-	private static LinkedList<Integer> stringToOrdList(String inputString) {
+	public static LinkedList<Integer> stringToOrdList(String inputString) {
 		// removing all spaces from the String
 		inputString = inputString.replaceAll("\\s", "");
 		// calling the actual (recursive) method

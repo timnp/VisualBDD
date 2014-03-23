@@ -28,12 +28,11 @@ public class FormulaController {
 	
 	
 	/**
-	 * method that provides a Formula that is represented by a given Formula 
-	 * String
-	 * @param formulaString - the Formula String
+	 * provides a formula that is represented by a given string
+	 * @param inputString
 	 * @return
 	 */
-	public static Formula stringToFormula(String formulaString) {
+	public static Formula stringToFormula(String inputString) {
 //		// converting the String into a "Formula String"
 //		String formulaString = toFormulaString(inputString);
 //		// as long as the input string doesn't fulfill the requirements and 
@@ -56,8 +55,8 @@ public class FormulaController {
 //				formulaString = toFormulaString(inputString);
 //			}
 //		}
-		// creating the Formula from the Formula String
-		return new Formula(formulaString);
+		// creating the Formula from the string's formula string
+		return new Formula(toFormulaString(inputString));
 	}
 	
 	

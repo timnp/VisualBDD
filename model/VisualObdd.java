@@ -77,6 +77,7 @@ public class VisualObdd extends JComponent{
 	public AbstractObddLayout getAbstractObdd() {
 		return abstractObdd;
 	}
+
 	
 	/**
 	 * getter for the represented OBDD
@@ -175,10 +176,19 @@ public class VisualObdd extends JComponent{
 	 * constructor for a visual OBDD
 	 * @param abstractObdd - the AbstractObddLayout representing the OBDD
 	 * @param panelSize - the OBDD panel's size
+	 * @param drawIsolatedTerminals - states whether the isolated terminal 
+	 * 								  (if there is one) should be drawn
 	 */
-	public VisualObdd(AbstractObddLayout abstractObdd, Dimension panelSize) {
+	public VisualObdd(AbstractObddLayout abstractObdd, Dimension panelSize, 
+			boolean drawIsolatedTerminal) {
 		// setting the represented OBDD
 		this.abstractObdd = abstractObdd;
+		// separately adding the terminals' IDs to the node ID list if an 
+		// isolated terminal should be drawn
+		if (drawIsolatedTerminal) {
+			nodeIds.add(0);
+			nodeIds.add(1);
+		}
 		// adding the represented OBDD's nodes and edges to the respective 
 		// lists
 		addNodesAndEdges(this.abstractObdd.getObdd());
@@ -222,7 +232,7 @@ public class VisualObdd extends JComponent{
 		int id = currentNode.getId();
 		// adding the node's ID to the node ID list if it hasn't been added 
 		// before
-		if (!nodeIds.contains(currentNode.getId())) {
+		if (!nodeIds.contains(id)) {
 			nodeIds.add(id);
 			// adding the node's outgoing edges and recursively its children if
 			// it isn't a terminal
@@ -476,20 +486,35 @@ public class VisualObdd extends JComponent{
 	
 	/**
 	 * If there is a dragged node, its horizontal position gets changed to the 
-	 * given point's one. Afterwards the dragged node gets reset.
+	 * given point's one, if that would leave the node completely on the OBDD 
+	 * panel. Afterwards the dragged node gets reset.
 	 * @param p
+	 * @return a boolean that states whether the node was moved
 	 */
-	public void releaseAtPoint(Point p) {
+	public boolean releaseAtPoint(Point p, Dimension panelSize) {
 		// checking whether there is a dragged node
 		if (draggedNode != null) {
-			// retrieving the dragged node's ID
-			int draggedNodeId = draggedNode.getId();
-			// setting the dragged node's position, updating its x coordinate
-			positionMap.put(draggedNodeId, 
-					new Point(p.x, positionMap.get(draggedNodeId).y));
+			// checking whether the change of the node's position's 
+			// x coordinate to the given point's one would leave the node 
+			// completely on the OBDD panel
+			if ((p.x > nodeSize / 2) && 
+					(p.x < panelSize.width - nodeSize / 2)) {
+				// retrieving the dragged node's ID
+				int draggedNodeId = draggedNode.getId();
+				// setting the dragged node's position, updating its 
+				// x coordinate
+				positionMap.put(draggedNodeId, 
+						new Point(p.x, positionMap.get(draggedNodeId).y));
+				this.abstractObdd.changeHorizontalPosition(draggedNodeId, 
+						(double) p.x / (double) panelSize.width);
+				// resetting the dragged node
+				draggedNode = null;
+				return true;
+			}
 			// resetting the dragged node
 			draggedNode = null;
 		}
+		return false;
 	}
 	
 	
@@ -513,5 +538,27 @@ public class VisualObdd extends JComponent{
 		}
 		// returning -1 if no node was pressed
 		return -1;
+	}
+	
+	
+	/**
+	 * changes the abstract OBDD to the given one and adapts its nodes' 
+	 * positions and size
+	 * (only accurate if the given abstract OBDD represents exactly the same 
+	 *  OBDD as the previous one)
+	 * @param abstractObdd
+	 */
+	public void updatePositions(AbstractObddLayout abstractObdd, 
+			boolean drawIsolatedTerminal) {
+		// setting the abstract OBDD
+		this.abstractObdd = abstractObdd;
+		// separately adding the terminals' IDs to the node ID list if an 
+		// isolated terminal should be drawn
+		if (drawIsolatedTerminal) {
+			nodeIds.add(0);
+			nodeIds.add(1);
+		}
+		// "resizing" the visual OBDD
+		updateSize(getSize());
 	}
 }

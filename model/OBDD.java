@@ -302,10 +302,12 @@ public class OBDD {
 		}
 		// Otherwise a result for this node has to be found.
 		else {
-			if (this.id == id) {
-				// If this node has the specified ID, it gets returned.
-				return this;
-			}
+			// If the specified ID is a terminal's one, the terminal is 
+			// returned.
+			if (id == 0) return ZERO;
+			if (id == 1) return ONE;
+			// If this node has the specified ID, it is returned.
+			if (this.id == id) return this;
 			// Initializing a variable for the found node with null.
 			OBDD find = null;
 			if (!this.terminal) {
@@ -973,7 +975,7 @@ public class OBDD {
 			residualLayerList = layers.get(var);
 			// While there are two or more nodes in the layer list,
 			// they might be equivalent.
-			while (residualLayerList.size()>=2) {
+			while (residualLayerList != null && residualLayerList.size()>=2) {
 				// moving the first node from the residual layer list
 				// to the candidate list
 				candidates.add(residualLayerList.removeFirst());

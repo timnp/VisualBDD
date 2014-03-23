@@ -23,6 +23,11 @@ public class AbstractObddLayout {
 	 * total height
 	 */
 	private double nodeSizeToHeight;
+	/**
+	 * the abstract OBDD's total width and height "units"
+	 */
+	private double totalWidthUnits;
+	private double totalHeightUnits;
 	
 	
 	
@@ -50,6 +55,14 @@ public class AbstractObddLayout {
 		return nodeSizeToHeight;
 	}
 	
+	/**
+	 * getter for the abstract OBDD's total (width and height) "units"
+	 * @return
+	 */
+	public Pair<Double,Double> getTotalUnits() {
+		return new Pair<Double,Double>(totalWidthUnits,totalHeightUnits);
+	}
+	
 	
 	/**
 	 * constructor for an OBDD to be displayed for the first time
@@ -58,54 +71,10 @@ public class AbstractObddLayout {
 	public AbstractObddLayout(OBDD obdd) {
 		// setting the represented OBDD
 		this.obdd = obdd;
-		// retrieving the OBDD's layers
-		HashMap<Integer,LinkedList<OBDD>> obddLayers = obdd.getLayers();
 		// initializing the position map
 		positionMap = new HashMap<Integer, Pair<Double, Double>>();
-		// The total height is divided into three times the number of layers 
-		// (including the terminal layer) plus one units.
-		double totalHeight = 3.0 * (obddLayers.size() + 1) + 1.0;
-		// initializing a the current node's "position" 
-		// (its layer and its position in that layer) 
-		int currentLayerNumber = 0;
-		int currentLayerPosition = 0;
-		// variable for the nodes' vertical position
-		double verticalPosition;
-		// collecting the OBDD nodes from each layer
-		for (int var : obddLayers.keySet()) {
-			// the current layer
-			LinkedList<OBDD> currentLayer = obddLayers.get(var);
-			// The total width is divided into three times the number of nodes 
-			// in that layer plus one units.
-			double totalWidth = 3.0 * currentLayer.size() + 1.0;
-			// the current layer's nodes' vertical position
-			verticalPosition = 
-					(2.0 + 3.0 * currentLayerNumber) / totalHeight;
-			// iterator for the current layer list
-			java.util.Iterator<OBDD> iter = currentLayer.iterator();
-			// iterating over the layer list
-			while (iter.hasNext()) {
-				// the current node's horizontal position
-				double horizontalPosition = (2.0 + 3.0 * currentLayerPosition) 
-						/ totalWidth;
-				// storing the node's position in the position HashMap
-				positionMap.put(iter.next().getId(), new Pair<Double, Double>
-						(horizontalPosition, verticalPosition));
-				// increasing the position inside the layer
-				currentLayerPosition++;
-			}
-			// increasing the layer number and resetting the position inside 
-			// the layer
-			currentLayerNumber++;
-			currentLayerPosition = 0;
-		}
-		// the terminals' vertical position
-		verticalPosition = 1.0 - 2.0 / totalHeight;
-		// defining the terminals' positions
-		positionMap.put(1, new Pair<Double,Double>(2.0/7.0, verticalPosition));
-		positionMap.put(0, new Pair<Double,Double>(5.0/7.0, verticalPosition));
-		// One third of the visual OBDD's height is divided to the nodes.
-		nodeSizeToHeight = 1.0 / totalHeight;
+		// aligning the nodes' positions
+		alignNodes();
 	}
 	
 	
@@ -135,13 +104,74 @@ public class AbstractObddLayout {
 	
 	
 	/**
-	 * method that changes a node's position
-	 * @param node
-	 * @param pos
+	 * aligns the OBDD's nodes' positions and size to the used standard
 	 */
-	public void changePosition(Integer node, Pair<Double, Double> pos) {
+	public void alignNodes() {
+		// retrieving the OBDD's layers
+		HashMap<Integer,LinkedList<OBDD>> obddLayers = obdd.getLayers();
+		// The total height is divided into three times the number of layers 
+		// (including the terminal layer) plus one units.
+		totalHeightUnits = 3.0 * (obddLayers.size() + 1) + 1.0;
+		// initializing the total width units with 2 (for the terminal layer)
+		totalWidthUnits = 2;
+		// initializing a the current node's "position" 
+		// (its layer and its position in that layer) 
+		int currentLayerNumber = 0;
+		int currentLayerPosition = 0;
+		// variable for the nodes' vertical position
+		double verticalPosition;
+		// collecting the OBDD nodes from each layer
+		for (int var : obddLayers.keySet()) {
+			// the current layer
+			LinkedList<OBDD> currentLayer = obddLayers.get(var);
+			// The total width is divided into three times the number of nodes 
+			// in that layer plus one units.
+			double totalWidth = 3.0 * currentLayer.size() + 1.0;
+			// setting the total width units to the maximum of its current 
+			// value and this layer's total width (units)
+			totalWidthUnits = Math.max(totalWidthUnits, totalWidth);
+			// the current layer's nodes' vertical position
+			verticalPosition = 
+					(2.0 + 3.0 * currentLayerNumber) / totalHeightUnits;
+			// iterator for the current layer list
+			java.util.Iterator<OBDD> iter = currentLayer.iterator();
+			// iterating over the layer list
+			while (iter.hasNext()) {
+				// the current node's horizontal position
+				double horizontalPosition = (2.0 + 3.0 * currentLayerPosition) 
+						/ totalWidth;
+				// storing the node's position in the position HashMap
+				positionMap.put(iter.next().getId(), new Pair<Double, Double>
+						(horizontalPosition, verticalPosition));
+				// increasing the position inside the layer
+				currentLayerPosition++;
+			}
+			// increasing the layer number and resetting the position inside 
+			// the layer
+			currentLayerNumber++;
+			currentLayerPosition = 0;
+		}
+		// the terminals' vertical position
+		verticalPosition = 1.0 - 2.0 / totalHeightUnits;
+		// defining the terminals' positions
+		positionMap.put(1, new Pair<Double,Double>(2.0/7.0, verticalPosition));
+		positionMap.put(0, new Pair<Double,Double>(5.0/7.0, verticalPosition));
+		// One third of the visual OBDD's height is divided to the nodes's 
+		// size.
+		nodeSizeToHeight = 1.0 / totalHeightUnits;
+	}
+	
+	
+	/**
+	 * changes a node's horizontal position
+	 * @param node
+	 * @param horizontal position
+	 */
+	public void changeHorizontalPosition(Integer node, double horizontalPosition) {
 		// changing the node's position
-		positionMap.put(node, pos);
+		positionMap.put(node, 
+				new Pair<Double,Double>(horizontalPosition, 
+						positionMap.get(node).getSecond()));
 	}
 	
 	

@@ -1,7 +1,12 @@
 package controller;
 
+import java.awt.Dimension;
+
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 import model.VisualObdd;
 import view.MainGui;
@@ -106,7 +111,7 @@ public class GuiController {
 	 * auxiliary method that shows a message dialog with a given message
 	 * @param message
 	 */
-	private void messageDialog(String message) {
+	private void messageDialog(Object message) {
 		JOptionPane.showMessageDialog(new JFrame(), message);
 	}
 	
@@ -180,7 +185,9 @@ public class GuiController {
 	 * @return "true" if the answer is "yes", "false" otherwise
 	 */
 	public boolean reduceFormula() {
-		return yesOrNoDialog("Should the represented formula be reduced?", 
+		return yesOrNoDialog("Should the represented formula be reduced?" + 
+				"(in relation to constants, double negation, " + 
+				"idempotency and tertium non datur)", 
 				"Question", JOptionPane.QUESTION_MESSAGE);
 	}
 	
@@ -206,14 +213,15 @@ public class GuiController {
 	
 	
 	/**
-	 * shows two given formula strings
+	 * shows the given formula string
 	 * @param initialFormula
-	 * @param representedFormula
 	 */
-	public void showFormulas(String initialFormula, 
-			String representedFormula) {
-		messageDialog("Initial Formula: " + initialFormula + 
-				"\nRepresented Formula: " + representedFormula);
+	public void showFormula(String representedFormula) {
+		// creating a scroll panel for the formula string
+		JScrollPane scrollPane = 
+				new JScrollPane(new JLabel(representedFormula));
+		scrollPane.setPreferredSize(new Dimension(425,50));
+		messageDialog(scrollPane);
 	}
 	
 	
@@ -336,4 +344,40 @@ public class GuiController {
 	public void addToObddList(String obddName) {
 		mainGui.getObddListModel().addElement(obddName);
 	}
+	
+	
+	/**
+	 * shows a given JTable in the main GUI's truth table scroll panel
+	 * @param truthTable
+	 */
+	public void showTruthTable(JTable truthTable) {
+		JScrollPane ttScrollPane = new JScrollPane(truthTable);
+		ttScrollPane.setPreferredSize(new Dimension(60,330));
+		messageDialog(ttScrollPane);
+//		mainGui.getTtPane().removeAll();
+//		mainGui.getTtPane().add(ttScrollPane);
+//		mainGui.getTtPane().repaint();
+	}
+	
+	
+	/**
+	 * changes the main GUI's drag&drop button's tool tip
+	 * @param dragable
+	 */
+	public void changeDragDrop(boolean dragable) {
+		// Whether the nodes are currently dragable determines the button's 
+		// text.
+		String newText = "Drag&drop for the BDD's nodes is currently enabled.";
+		if (!dragable) newText = 
+				"Drag&drop for the BDD's nodes is currently disabled.";
+		mainGui.getDragDropButton().setToolTipText(newText);
+	}
+	
+	
+//	/**
+//	 * informs the user that node drag&drop is disabled
+//	 */
+//	public void dragDropDisabled() {
+//		messageDialog("Node Drag&Drop is currently disabled.");
+//	}
 }
